@@ -367,11 +367,12 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var prefix string
-	if result == notification.ResultAcknowledge {
+	switch result {
+	case notification.ResultAcknowledge:
 		prefix = "Acknowledged"
-	} else if result == notification.ResultEscalate {
+	case notification.ResultEscalate:
 		prefix = "Escalation requested"
-	} else {
+	default:
 		prefix = "Closed"
 	}
 

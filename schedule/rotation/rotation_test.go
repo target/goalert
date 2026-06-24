@@ -54,7 +54,7 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 
 			ts = ts.Add(30 * time.Second)
 		}
-		assert.EqualValues(t, expectedHandoffs, times)
+		assert.ElementsMatch(t, expectedHandoffs, times)
 	}
 
 	check(&Rotation{

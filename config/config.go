@@ -84,7 +84,7 @@ type Config struct {
 	Mailgun struct {
 		Enable bool `public:"true"`
 
-		APIKey      string `password:"true"`
+		APIKey      string `password:"true" info:"Set this to the HTTP webhook signing key."`
 		EmailDomain string `info:"The TO address for all incoming alerts."`
 	}
 
@@ -100,6 +100,7 @@ type Config struct {
 
 		SigningSecret       string `password:"true" info:"Signing secret to verify requests from slack."`
 		InteractiveMessages bool   `info:"Enable interactive messages (e.g. buttons)."`
+		DisableBroadcastThreadReplies bool `info:"Disable broadcasting alert status updates in threads to the main channel." public:"true"`
 	}
 
 	Twilio struct {

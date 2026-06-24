@@ -117,11 +117,10 @@ func (iter *TimeIterator) Next() bool {
 }
 
 // Close should be called when the iterator is no longer needed.
-func (iter *TimeIterator) Close() error {
+func (iter *TimeIterator) Close() {
 	for _, s := range iter.sub {
 		s.Done()
 	}
-	return nil
 }
 
 // Unix will return the current unix timestamp (seconds).

@@ -10,7 +10,6 @@ import {
 } from '@mui/material'
 import makeStyles from '@mui/styles/makeStyles'
 import { Add, Delete } from '@mui/icons-material'
-import FlatList from '../lists/FlatList'
 import { formatNotificationRule, sortNotificationRules } from './util'
 import UserNotificationRuleDeleteDialog from './UserNotificationRuleDeleteDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
@@ -18,6 +17,8 @@ import UserNotificationRuleCreateDialog from './UserNotificationRuleCreateDialog
 import { useIsWidthDown } from '../util/useWidth'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import { User } from '../../schema'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 const query = gql`
   query nrList($id: ID!) {
@@ -98,35 +99,39 @@ export default function UserNotificationRuleList(props: {
             ) : null
           }
         />
-        <FlatList
+        <CompList
           data-cy='notification-rules'
-          items={sortNotificationRules(user?.notificationRules ?? []).map(
-            (nr) => {
-              const formattedValue =
-                nr.contactMethod.dest.displayInfo.text || 'Unknown Label'
-              const name = nr.contactMethod.name || 'Unknown User'
-              const type =
-                nr.contactMethod.dest.displayInfo.iconAltText || 'Unknown Type'
-              return {
-                title: formatNotificationRule(nr.delayMinutes, {
+          emptyMessage='No notification rules'
+        >
+          {sortNotificationRules(user?.notificationRules ?? []).map((nr) => {
+            const formattedValue =
+              nr.contactMethod.dest.displayInfo.text || 'Unknown Label'
+            const name = nr.contactMethod.name || 'Unknown User'
+            const type =
+              nr.contactMethod.dest.displayInfo.iconAltText || 'Unknown Type'
+            return (
+              <CompListItemText
+                key={nr.id}
+                title={formatNotificationRule(nr.delayMinutes, {
                   type,
                   name,
                   formattedValue,
-                }),
-                secondaryAction: props.readOnly ? null : (
-                  <IconButton
-                    aria-label='Delete notification rule'
-                    onClick={() => setDeleteID(nr.id)}
-                    color='secondary'
-                  >
-                    <Delete />
-                  </IconButton>
-                ),
-              }
-            },
-          )}
-          emptyMessage='No notification rules'
-        />
+                })}
+                action={
+                  props.readOnly ? null : (
+                    <IconButton
+                      aria-label='Delete notification rule'
+                      onClick={() => setDeleteID(nr.id)}
+                      color='secondary'
+                    >
+                      <Delete />
+                    </IconButton>
+                  )
+                }
+              />
+            )
+          })}
+        </CompList>
       </Card>
       <Suspense>
         {showAddDialog && (

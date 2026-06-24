@@ -29,7 +29,7 @@ If you're using the demo container for integration testing:
 
 If you'd like to contribute to GoAlert, please see our [Contributing Guidelines](./CONTRIBUTING.md) and the [Development Setup Guide](./docs/development-setup.md).
 
-Please also see our [Code of Conduct](./CODE_OF_CONDUCT.md).
+Please also see our [Code of Conduct](https://github.com/target/.github/blob/main/CODE_OF_CONDUCT.md).
 
 For most purposes, you can use `make start` from the root of this repo to start a development server.
 
