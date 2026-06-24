@@ -38,6 +38,15 @@ func (a *App) Alert() graphql2.AlertResolver                 { return (*Alert)(a
 func (a *App) AlertMetric() graphql2.AlertMetricResolver     { return (*AlertMetric)(a) }
 func (a *App) AlertLogEntry() graphql2.AlertLogEntryResolver { return (*AlertLogEntry)(a) }
 
+func (a *AlertLogEntry) MessageID(ctx context.Context, obj *alertlog.Entry) (*string, error) {
+	id := obj.MessageID(ctx)
+	if id == "" {
+		return nil, nil
+	}
+
+	return &id, nil
+}
+
 func (a *AlertLogEntry) ID(ctx context.Context, obj *alertlog.Entry) (int, error) {
 	e := *obj
 	return e.ID(), nil
@@ -83,6 +92,8 @@ func notificationStateFromSendResult(s notification.Status, formattedSrc string)
 		prefix = "Sent"
 	case notification.StateDelivered:
 		prefix = "Delivered"
+	case notification.StateRead:
+		prefix = "Read"
 	case notification.StateFailedTemp, notification.StateFailedPerm:
 		prefix = "Failed"
 	default:
@@ -468,12 +479,13 @@ func (m *Mutation) SetAlertNoiseReason(ctx context.Context, input graphql2.SetAl
 }
 
 func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphql2.AlertRecentEventsOptions) (*graphql2.AlertLogEntryConnection, error) {
+	return (*App)(a).RecentAlertEvents(ctx, opts, alertlog.SearchOptions{FilterAlertIDs: []int{obj.ID}})
+}
+
+func (a *App) RecentAlertEvents(ctx context.Context, opts *graphql2.AlertRecentEventsOptions, s alertlog.SearchOptions) (*graphql2.AlertLogEntryConnection, error) {
 	if opts == nil {
 		opts = new(graphql2.AlertRecentEventsOptions)
 	}
-
-	var s alertlog.SearchOptions
-	s.FilterAlertIDs = append(s.FilterAlertIDs, obj.ID)
 
 	if opts.After != nil && *opts.After != "" {
 		err := search.ParseCursor(*opts.After, &s)
@@ -488,6 +500,7 @@ func (a *Alert) RecentEvents(ctx context.Context, obj *alert.Alert, opts *graphq
 	if s.Limit == 0 {
 		s.Limit = search.DefaultMaxResults
 	}
+	s.Since = opts.Since
 
 	s.Limit++
 

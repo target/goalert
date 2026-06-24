@@ -52,7 +52,7 @@ func isListening(addr string) bool {
 }
 
 func newEmailServer(h *Harness) *emailServer {
-	mp := newMailpit(h.t, 5)
+	mp := newMailpit(h.t)
 
 	h.t.Logf("mailpit: smtp: %s", mp.smtpAddr)
 	h.t.Logf("mailpit: api: %s", mp.apiAddr)

@@ -1,6 +1,8 @@
 package slack
 
 import (
+	"net/http"
+
 	"github.com/target/goalert/user"
 )
 
@@ -8,4 +10,5 @@ import (
 type Config struct {
 	BaseURL   string
 	UserStore *user.Store
+	Client    *http.Client
 }

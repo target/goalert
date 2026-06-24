@@ -549,11 +549,12 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	resp := newTwiMLResponse(ctx, w)
 	switch call.Digits {
 	default:
-		if call.Digits == digitOldAck {
+		switch call.Digits {
+		case digitOldAck:
 			resp.Sayf("The menu options have changed. To acknowledge, press %s.", digitAck)
-		} else if call.Digits == digitOldClose {
+		case digitOldClose:
 			resp.Sayf("The menu options have changed. To close, press %s.", digitClose)
-		} else {
+		default:
 			resp.SayUnknownDigit()
 		}
 		fallthrough
@@ -576,13 +577,14 @@ func (v *Voice) ServeAlert(w http.ResponseWriter, req *http.Request) {
 	case digitAck, digitClose, digitEscalate: // Acknowledge , Escalate and Close cases
 		var result notification.Result
 		var msg string
-		if call.Digits == digitClose {
+		switch call.Digits {
+		case digitClose:
 			result = notification.ResultResolve
 			msg = "Closed"
-		} else if call.Digits == digitEscalate {
+		case digitEscalate:
 			result = notification.ResultEscalate
 			msg = "Escalation requested"
-		} else {
+		default:
 			result = notification.ResultAcknowledge
 			msg = "Acknowledged"
 		}

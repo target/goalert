@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/target/goalert/app/lifecycle"
+
 	"github.com/pkg/errors"
 )
 
@@ -19,24 +21,20 @@ func (app *App) Run(ctx context.Context) error {
 func (app *App) _Run(ctx context.Context) error {
 	go func() {
 		err := app.Engine.Run(ctx)
-		if err != nil {
+		// ErrShutdown / context.Canceled mean the engine was shut down before
+		// this goroutine got scheduled (race between _Run and _Shutdown);
+		// it's expected during fast restarts, not a failure.
+		if err != nil && !errors.Is(err, lifecycle.ErrShutdown) && !errors.Is(err, context.Canceled) {
 			app.Logger.ErrorContext(ctx, "Failed to run engine.", slog.Any("error", err))
 		}
 	}()
 
-	go func() {
-		err := app.RiverUI.Start(ctx)
-		if err != nil {
-			app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
-		}
-	}()
-
-	eventCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	eventDoneCh, err := app.listenEvents(eventCtx)
+	err := app.RiverUI.Start(ctx)
 	if err != nil {
-		return err
+		app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
 	}
+
+	go app.events.Run(ctx)
 
 	if app.sysAPISrv != nil {
 		app.Logger.InfoContext(ctx, "System API server started.",
@@ -71,9 +69,6 @@ func (app *App) _Run(ctx context.Context) error {
 		app.hSrv.Resume()
 	}
 
-	select {
-	case <-eventDoneCh:
-	case <-ctx.Done():
-	}
+	<-ctx.Done()
 	return nil
 }

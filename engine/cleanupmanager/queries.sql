@@ -217,6 +217,7 @@ WHERE
             user_calendar_subscriptions
         WHERE
             greatest(last_access, last_update) <(now() - '1 day'::interval * sqlc.arg(inactivity_threshold_days)::int)
+            AND NOT disabled
         ORDER BY
             id
         LIMIT 100

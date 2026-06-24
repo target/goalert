@@ -2,8 +2,10 @@ package graphqlapp
 
 import (
 	context "context"
+	"database/sql"
 
 	"github.com/target/goalert/expflag"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/search"
@@ -18,6 +20,29 @@ type (
 )
 
 func (a *App) Query() graphql2.QueryResolver { return (*Query)(a) }
+
+func (q *Query) MessageStatusHistory(ctx context.Context, idStr string) ([]graphql2.MessageStatusHistory, error) {
+	id, err := validate.ParseUUID("ID", idStr)
+	if err != nil {
+		return nil, err
+	}
+
+	msgs, err := gadb.New(q.DB).GraphQL_MessageStatusHistory(ctx, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	hist := make([]graphql2.MessageStatusHistory, len(msgs))
+	for i, m := range msgs {
+		hist[i].Status = string(m.Status)
+		hist[i].Details = m.StatusDetails
+		hist[i].Timestamp = m.Timestamp
+	}
+	return hist, nil
+}
 
 func (q *Query) ListGQLFields(ctx context.Context, query *string) ([]string, error) {
 	if query == nil || *query == "" {

@@ -6,7 +6,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { ChevronRight } from '@mui/icons-material'
 import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
+import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 
 import Notices, { Notice } from './Notices'
@@ -178,7 +178,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
             />
             <List data-cy='route-links' className={classes.quickLinks} dense>
               {links.map((li, idx) => (
-                <ListItem
+                <ListItemButton
                   key={idx}
                   sx={{
                     borderLeft: `3px solid ${borderColor(
@@ -187,7 +187,6 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
                   }}
                   component={LIApplink}
                   to={li.url}
-                  button
                 >
                   <ListItemText
                     primary={li.label}
@@ -197,7 +196,7 @@ export default function DetailsPage(p: DetailsPageProps): React.JSX.Element {
                     secondary={li.subText}
                   />
                   <ChevronRight />
-                </ListItem>
+                </ListItemButton>
               ))}
             </List>
           </Card>

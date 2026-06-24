@@ -3,7 +3,6 @@ package slack
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
@@ -26,7 +25,7 @@ func waitContext(ctx context.Context, delay time.Duration) error {
 // withClient is a wrapper for slack.Client that adds retry logic.
 func (cs *ChannelSender) withClient(ctx context.Context, withFn func(*slack.Client) error) error {
 	opts := []slack.Option{
-		slack.OptionHTTPClient(http.DefaultClient),
+		slack.OptionHTTPClient(cs.cfg.Client),
 	}
 
 	cfg := config.FromContext(ctx)

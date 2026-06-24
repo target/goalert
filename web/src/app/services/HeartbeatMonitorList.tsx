@@ -5,7 +5,6 @@ import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CreateFAB from '../lists/CreateFAB'
-import FlatList from '../lists/FlatList'
 import HeartbeatMonitorCreateDialog from './HeartbeatMonitorCreateDialog'
 import makeStyles from '@mui/styles/makeStyles'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
@@ -19,6 +18,8 @@ import { HeartbeatMonitor } from '../../schema'
 import { useIsWidthDown } from '../util/useWidth'
 import { Add } from '@mui/icons-material'
 import { Time } from '../util/Time'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 // generates a single alert if a POST is not received before the timeout
 const HEARTBEAT_MONITOR_DESCRIPTION =
@@ -84,61 +85,64 @@ export default function HeartbeatMonitorList(props: {
     const items = (monitors || [])
       .slice()
       .sort(sortItems)
-      .map((monitor) => ({
-        icon: (
-          <HeartbeatMonitorStatus
-            lastState={monitor.lastState}
-            lastHeartbeat={monitor.lastHeartbeat}
-          />
-        ),
-        title: monitor.name,
-        subText: (
-          <React.Fragment>
-            <Time
-              prefix='Timeout: '
-              duration={{ minutes: monitor.timeoutMinutes }}
-              precise
-              units={['weeks', 'days', 'hours', 'minutes']}
+      .map((monitor) => (
+        <CompListItemText
+          key={monitor.id}
+          icon={
+            <HeartbeatMonitorStatus
+              lastState={monitor.lastState}
+              lastHeartbeat={monitor.lastHeartbeat}
             />
-            <br />
-            <CopyText title='Copy URL' value={monitor.href} asURL />
-          </React.Fragment>
-        ),
-        secondaryAction: (
-          <OtherActions
-            actions={[
-              {
-                label: 'Edit',
-                onClick: () => setShowEditDialogByID(monitor.id),
-              },
-              {
-                label: 'Delete',
-                onClick: () => setShowDeleteDialogByID(monitor.id),
-              },
-            ]}
-          />
-        ),
-      }))
+          }
+          title={monitor.name}
+          subText={
+            <React.Fragment>
+              <Time
+                prefix='Timeout: '
+                duration={{ minutes: monitor.timeoutMinutes }}
+                precise
+                units={['weeks', 'days', 'hours', 'minutes']}
+              />
+              <br />
+              <CopyText title='Copy URL' value={monitor.href} asURL />
+            </React.Fragment>
+          }
+          action={
+            <OtherActions
+              actions={[
+                {
+                  label: 'Edit',
+                  onClick: () => setShowEditDialogByID(monitor.id),
+                },
+                {
+                  label: 'Delete',
+                  onClick: () => setShowDeleteDialogByID(monitor.id),
+                },
+              ]}
+            />
+          }
+        />
+      ))
 
     return (
-      <FlatList
+      <CompList
         data-cy='monitors'
         emptyMessage='No heartbeat monitors exist for this service.'
-        headerNote={HEARTBEAT_MONITOR_DESCRIPTION}
-        items={items}
-        headerAction={
-          isMobile ? undefined : (
-            <Button
-              variant='contained'
-              onClick={() => setShowCreateDialog(true)}
-              startIcon={<Add />}
-              data-testid='create-monitor'
-            >
-              Create Heartbeat Monitor
-            </Button>
-          )
+        note={HEARTBEAT_MONITOR_DESCRIPTION}
+        hideActionOnMobile
+        action={
+          <Button
+            variant='contained'
+            onClick={() => setShowCreateDialog(true)}
+            startIcon={<Add />}
+            data-testid='create-monitor'
+          >
+            Create Heartbeat Monitor
+          </Button>
         }
-      />
+      >
+        {items}
+      </CompList>
     )
   }
 

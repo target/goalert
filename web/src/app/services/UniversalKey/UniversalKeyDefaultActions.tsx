@@ -1,11 +1,12 @@
 import { Button, Card } from '@mui/material'
 import React, { Suspense, useState } from 'react'
-import FlatList from '../../lists/FlatList'
 import UniversalKeyActionsList from './UniversalKeyActionsList'
 import { gql, useQuery } from 'urql'
 import { IntegrationKey } from '../../../schema'
 import { Add } from '../../icons'
 import { UniversalKeyActionDialog } from './UniversalKeyActionDialog'
+import CompList from '../../lists/CompList'
+import { CompListItemText } from '../../lists/CompListItems'
 
 interface UniversalKeyDefaultActionProps {
   serviceID: string
@@ -42,9 +43,9 @@ export default function UniversalKeyDefaultActions(
   return (
     <React.Fragment>
       <Card>
-        <FlatList
+        <CompList
           emptyMessage='No default action'
-          headerAction={
+          action={
             <Button
               variant='contained'
               startIcon={<Add />}
@@ -53,18 +54,17 @@ export default function UniversalKeyDefaultActions(
               Add Action
             </Button>
           }
-          headerNote='Default actions are performed when zero rules match.'
-          items={[
-            {
-              title: (
-                <UniversalKeyActionsList
-                  actions={q.data?.integrationKey.config.defaultActions ?? []}
-                  onEdit={(index) => setEditActionIndex(index)}
-                />
-              ),
-            },
-          ]}
-        />
+          note='Default actions are performed when zero rules match.'
+        >
+          <CompListItemText
+            title={
+              <UniversalKeyActionsList
+                actions={q.data?.integrationKey.config.defaultActions ?? []}
+                onEdit={(index) => setEditActionIndex(index)}
+              />
+            }
+          />
+        </CompList>
       </Card>
       <Suspense>
         {editActionIndex > -1 && (

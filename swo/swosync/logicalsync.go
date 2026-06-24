@@ -65,7 +65,10 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 	if err != nil {
 		return fmt.Errorf("read changes: scan changes: %w", err)
 	}
-	res.Close()
+	err = res.Close()
+	if err != nil {
+		return fmt.Errorf("read changes: close batch: %w", err)
+	}
 
 	var readRows pgx.Batch
 	tblSync.AddBatchRowReads(&readRows)
@@ -75,7 +78,10 @@ func (l *LogicalReplicator) doSync(ctx context.Context, final bool) error {
 		if err != nil {
 			return fmt.Errorf("read changes: scan rows: %w", err)
 		}
-		res.Close()
+		err = res.Close()
+		if err != nil {
+			return fmt.Errorf("read changes: close batch: %w", err)
+		}
 	}
 
 	var applyChanges pgx.Batch
