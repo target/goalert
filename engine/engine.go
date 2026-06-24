@@ -95,7 +95,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		return nil, err
 	}
 
-	rotMgr, err := rotationmanager.NewDB(ctx, db)
+	rotMgr, err := rotationmanager.NewDB(ctx, db, c.RiverDBSQL)
 	if err != nil {
 		return nil, errors.Wrap(err, "rotation management backend")
 	}
@@ -168,10 +168,9 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 	}
 
 	args := processinglock.SetupArgs{
-		DB:       db,
-		Workers:  c.RiverWorkers,
-		EventBus: c.EventBus,
-		River:    c.River,
+		DB:      db,
+		Workers: c.RiverWorkers,
+		River:   c.River,
 	}
 	for _, m := range p.modules {
 		if s, ok := m.(processinglock.Setupable); ok {
@@ -291,7 +290,7 @@ func (p *Engine) _resume(ctx context.Context) error {
 		return errors.Wrap(err, "resume river")
 	}
 
-	go p.startRiver()
+	p.startRiver()
 
 	return nil
 }
@@ -591,7 +590,7 @@ func (p *Engine) _run(ctx context.Context) error {
 	}
 
 	p.runCtx = ctx
-	go p.startRiver()
+	p.startRiver()
 
 	dur := p.cfg.CycleTime
 	if dur == 0 {

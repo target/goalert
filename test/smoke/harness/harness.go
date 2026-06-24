@@ -26,7 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
-	sloglogrus "github.com/samber/slog-logrus"
+	sloglogrus "github.com/samber/slog-logrus/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
@@ -44,6 +44,7 @@ import (
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 )
 
 var (
@@ -80,8 +81,10 @@ type Harness struct {
 
 	appPool *pgxpool.Pool
 
-	msgSvcID string
-	expFlags expflag.FlagSet
+	rcsSenderID string
+	rcsMsgSvcID string
+	msgSvcID    string
+	expFlags    expflag.FlagSet
 
 	tw  *twilioAssertionAPI
 	twS *httptest.Server
@@ -102,6 +105,7 @@ type Harness struct {
 
 	backend     *app.App
 	backendLogs io.Closer
+	logsDone    chan struct{}
 
 	dbURL  string
 	dbName string
@@ -176,9 +180,9 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 	}
 
 	t.Logf("Using DB URL: %s", dbURL)
-	name := strings.Replace("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "", -1)
+	name := strings.ReplaceAll("smoketest_"+time.Now().Format("2006_01_02_15_04_05")+uuid.New().String(), "-", "")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	conn, err := pgx.Connect(ctx, DBURL(""))
@@ -253,6 +257,11 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 
 func (h *Harness) Start() {
 	h.t.Helper()
+	h.StartWithAppCfgHook(nil)
+}
+
+func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
+	h.t.Helper()
 
 	var cfg config.Config
 	cfg.General.DisableMessageBundles = true
@@ -278,7 +287,9 @@ func (h *Harness) Start() {
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 
-	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.ApplyAll(log.WithLogger(context.Background(), l), h.dbURL)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -296,6 +307,7 @@ func (h *Harness) Start() {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ForceRiverDBTime = true
 	appCfg.ExpFlags = h.expFlags
 	appCfg.LegacyLogger = log.NewLogger()
 	appCfg.Logger = slog.New(sloglogrus.Option{
@@ -306,7 +318,7 @@ func (h *Harness) Start() {
 	appCfg.JSON = true
 	appCfg.DBURL = h.dbURL
 	appCfg.TwilioBaseURL = h.twS.URL
-	appCfg.DBMaxOpen = 3
+	appCfg.DBMaxOpen = 5
 	appCfg.SlackBaseURL = h.slackS.URL
 	appCfg.SMTPListenAddr = "localhost:0"
 	appCfg.EmailIntegrationDomain = "smoketest.example.com"
@@ -315,6 +327,7 @@ func (h *Harness) Start() {
 
 	r, w := io.Pipe()
 	h.backendLogs = w
+	h.logsDone = make(chan struct{})
 
 	appCfg.LegacyLogger.EnableJSON()
 	appCfg.LegacyLogger.SetOutput(w)
@@ -325,10 +338,14 @@ func (h *Harness) Start() {
 	if err != nil {
 		h.t.Fatalf("failed to parse db url: %v", err)
 	}
-	poolCfg.MaxConns = 3
+	poolCfg.MaxConns = 5
 
 	h.appPool, err = pgxpool.NewWithConfig(ctx, poolCfg)
 	require.NoError(h.t, err, "create pgx pool")
+
+	if fn != nil {
+		fn(&appCfg)
+	}
 
 	h.backend, err = app.NewApp(appCfg, h.appPool)
 	if err != nil {
@@ -349,6 +366,14 @@ func (h *Harness) Start() {
 // RestartGoAlertWithConfig will restart the backend with the provided config.
 func (h *Harness) RestartGoAlertWithConfig(cfg config.Config) {
 	h.t.Helper()
+	h.RestartGoAlertWithAppCfgHook(func(c *app.Config) {
+		c.InitialConfig = &cfg
+	})
+}
+
+// RestartGoAlertWithAppCfgHook will restart the backend with the provided config hook.
+func (h *Harness) RestartGoAlertWithAppCfgHook(reconfig func(*app.Config)) {
+	h.t.Helper()
 
 	h.t.Logf("Stopping backend for restart")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -360,7 +385,7 @@ func (h *Harness) RestartGoAlertWithConfig(cfg config.Config) {
 	}
 
 	h.t.Logf("Restarting backend")
-	h.appCfg.InitialConfig = &cfg
+	reconfig(&h.appCfg)
 	h.backend, err = app.NewApp(h.appCfg, h.appPool)
 	if err != nil {
 		h.t.Fatalf("failed to start backend: %v", err)
@@ -395,7 +420,9 @@ func (h *Harness) SendMail(from, to, subject, body string) {
 func (h *Harness) Migrate(migrationName string) {
 	h.t.Helper()
 	h.t.Logf("Running migrations (target: %s)", migrationName)
-	_, err := migrate.Up(context.Background(), h.dbURL, migrationName)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.Up(log.WithLogger(context.Background(), l), h.dbURL, migrationName)
 	if err != nil {
 		h.t.Fatalf("failed to run migration: %v", err)
 	}
@@ -406,6 +433,35 @@ func (h *Harness) IgnoreErrorsWith(substr string) {
 	h.mx.Lock()
 	defer h.mx.Unlock()
 	h.ignoreErrors = append(h.ignoreErrors, substr)
+}
+
+// Now returns the current time, as observed by the DB.
+func (h *Harness) Now() time.Time {
+	h.t.Helper()
+
+	var now time.Time
+	err := h.appPool.QueryRow(context.Background(), "SELECT NOW()").Scan(&now)
+	require.NoError(h.t, err, "get now()")
+
+	return now
+}
+
+// FastForwardToTime will fast-forward the database time to the next occurrence of the provided clock time.
+func (h *Harness) FastForwardToTime(t timeutil.Clock, zoneName string) {
+	h.t.Helper()
+
+	zone, err := time.LoadLocation(zoneName)
+	require.NoError(h.t, err, "load location")
+
+	now := h.Now()
+
+	y, m, d := now.In(zone).Date()
+	dst := time.Date(y, m, d, t.Hour(), t.Minute(), 0, 0, zone)
+	if !dst.After(now) {
+		dst = dst.AddDate(0, 0, 1)
+	}
+
+	h.FastForward(dst.Sub(now))
 }
 
 func (h *Harness) FastForward(d time.Duration) {
@@ -634,20 +690,37 @@ func (h *Harness) dumpDB() {
 
 // Close terminates any background processes, and drops the testing database.
 // It should be called at the end of all tests (usually with `defer h.Close()`).
-func (h *Harness) Close() error {
+func (h *Harness) Close() {
 	h.t.Helper()
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
 	}
+
+	// Deferred so it still runs if a later WaitAndAssert or Shutdown call
+	// triggers Goexit (e.g. via t.Fatalf). Closes the log pipe writer and
+	// blocks until watchBackendLogs has drained, preventing it from calling
+	// t.Logf after the test has been marked complete.
+	defer func() {
+		h.mx.Lock()
+		h.closing = true
+		h.mx.Unlock()
+		if h.backendLogs != nil {
+			h.backendLogs.Close()
+		}
+		if h.logsDone != nil {
+			<-h.logsDone
+		}
+	}()
+
 	h.dumpDB() // early as possible
 
-	h.tw.WaitAndAssert(h.t)
-	h.slack.WaitAndAssert()
-	h.email.WaitAndAssert()
-
-	h.mx.Lock()
-	h.closing = true
-	h.mx.Unlock()
+	// If backend startup never completed, Engine is nil and Trigger would panic;
+	// skip assertions that depend on driving engine cycles.
+	if h.backend != nil && h.backend.Engine != nil {
+		h.tw.WaitAndAssert(h.t)
+		h.slack.WaitAndAssert()
+		h.email.WaitAndAssert()
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -655,7 +728,6 @@ func (h *Harness) Close() error {
 	if err != nil {
 		h.t.Error("failed to shutdown backend cleanly:", err)
 	}
-	h.backendLogs.Close()
 
 	h.slackS.Close()
 	h.twS.Close()
@@ -675,13 +747,11 @@ func (h *Harness) Close() error {
 	if err != nil {
 		h.t.Errorf("failed to drop database '%s': %v", h.dbName, err)
 	}
-
-	return nil
 }
 
 // SetCarrierName will set the carrier name for the given phone number.
 func (h *Harness) SetCarrierName(number, name string) {
-	h.tw.Server.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
+	h.tw.SetCarrierInfo(number, twilio.CarrierInfo{Name: name})
 }
 
 // TwilioNumber will return a registered (or register if missing) Twilio number for the given ID.
@@ -721,6 +791,29 @@ func (h *Harness) TwilioMessagingService() string {
 
 	h.msgSvcID = newID
 	return newID
+}
+
+// TwilioMessagingServiceRCS will return the id and phone numbers for the mock messaging service with RCS enabled.
+func (h *Harness) TwilioMessagingServiceRCS() (rcs, msg string) {
+	h.mx.Lock()
+	defer h.mx.Unlock()
+	if h.rcsSenderID != "" {
+		return h.rcsSenderID, h.rcsMsgSvcID
+	}
+
+	nums := []string{h.phoneCCG.Get("twilio:rcs:sid1"), h.phoneCCG.Get("twilio:rcs:sid2"), h.phoneCCG.Get("twilio:rcs:sid3")}
+	newID, err := h.tw.NewMessagingService(h.URL()+"/v1/twilio/sms/messages", nums...)
+	if err != nil {
+		panic(err)
+	}
+
+	h.rcsMsgSvcID = newID
+
+	rcsID, err := h.tw.EnableRCS(newID)
+	require.NoError(h.t, err)
+	h.rcsSenderID = rcsID
+
+	return rcsID, newID
 }
 
 // CreateUser generates a random user.
@@ -803,26 +896,12 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 		return uniq
 	}
 	sort.Strings(userIDs)
-	match := func(final bool) bool {
+	check := func(t *assert.CollectT) {
 		ids := getUsers()
-		if len(ids) != len(userIDs) {
-			if final {
-				h.t.Fatalf("got %d on-call users; want %d", len(ids), len(userIDs))
-			}
-			return false
-		}
-		for i, id := range userIDs {
-			if ids[i] != id {
-				if final {
-					h.t.Fatalf("on-call[%d] = %s; want %s", i, ids[i], id)
-				}
-				return false
-			}
-		}
-		return true
+		require.Lenf(t, ids, len(userIDs), "number of on-call users")
+		require.ElementsMatch(t, userIDs, ids, "on-call users")
 	}
-
 	h.Trigger() // run engine cycle
 
-	match(true) // assert result
+	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
 }

@@ -39,8 +39,10 @@ export interface AlertDataPoint {
 }
 
 export interface AlertLogEntry {
+  alertID: number
   id: number
   message: string
+  messageID?: null | string
   state?: null | NotificationState
   timestamp: ISOTimestamp
 }
@@ -79,6 +81,7 @@ export interface AlertPendingNotification {
 export interface AlertRecentEventsOptions {
   after?: null | string
   limit?: null | number
+  since?: null | ISOTimestamp
 }
 
 export interface AlertSearchOptions {
@@ -745,6 +748,12 @@ export interface MessageLogSearchOptions {
   search?: null | string
 }
 
+export interface MessageStatusHistory {
+  details: string
+  status: string
+  timestamp: ISOTimestamp
+}
+
 export interface Mutation {
   addAuthSubject: boolean
   clearTemporarySchedules: boolean
@@ -775,7 +784,9 @@ export interface Mutation {
   generateKeyToken: string
   linkAccount: boolean
   promoteSecondaryToken: boolean
+  reEncryptKeyringsAndConfig: boolean
   sendContactMethodVerification: boolean
+  sendSignal: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
   setFavorite: boolean
@@ -903,6 +914,7 @@ export interface Query {
   labels: LabelConnection
   linkAccountInfo?: null | LinkAccountInfo
   messageLogs: MessageLogConnection
+  messageStatusHistory: MessageStatusHistory[]
   phoneNumberInfo?: null | PhoneNumberInfo
   rotation?: null | Rotation
   rotations: RotationConnection
@@ -1054,6 +1066,12 @@ export interface SendContactMethodVerificationInput {
   contactMethodID: string
 }
 
+export interface SendSignalInput {
+  dest: DestinationInput
+  params?: null | StringMap
+  serviceID: string
+}
+
 export interface Service {
   alertStats: AlertStats
   alertsByStatus: AlertsByStatus
@@ -1069,6 +1087,7 @@ export interface Service {
   name: string
   notices: Notice[]
   onCallUsers: ServiceOnCallUser[]
+  recentEvents: AlertLogEntryConnection
 }
 
 export interface ServiceAlertStatsOptions {
@@ -1094,6 +1113,7 @@ export interface ServiceSearchOptions {
   favoritesOnly?: null | boolean
   first?: null | number
   omit?: null | string[]
+  only?: null | string[]
   search?: null | string
 }
 
@@ -1644,6 +1664,7 @@ type ConfigID =
   | 'Slack.AccessToken'
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
+  | 'Slack.DisableBroadcastThreadReplies'
   | 'Twilio.Enable'
   | 'Twilio.VoiceName'
   | 'Twilio.VoiceLanguage'
@@ -1652,6 +1673,7 @@ type ConfigID =
   | 'Twilio.AlternateAuthToken'
   | 'Twilio.FromNumber'
   | 'Twilio.MessagingServiceSID'
+  | 'Twilio.RCSSenderID'
   | 'Twilio.DisableTwoWaySMS'
   | 'Twilio.SMSCarrierLookup'
   | 'Twilio.SMSFromNumberOverride'

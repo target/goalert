@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/target/goalert/app/lifecycle"
+
 	"github.com/pkg/errors"
 )
 
@@ -19,17 +21,18 @@ func (app *App) Run(ctx context.Context) error {
 func (app *App) _Run(ctx context.Context) error {
 	go func() {
 		err := app.Engine.Run(ctx)
-		if err != nil {
+		// ErrShutdown / context.Canceled mean the engine was shut down before
+		// this goroutine got scheduled (race between _Run and _Shutdown);
+		// it's expected during fast restarts, not a failure.
+		if err != nil && !errors.Is(err, lifecycle.ErrShutdown) && !errors.Is(err, context.Canceled) {
 			app.Logger.ErrorContext(ctx, "Failed to run engine.", slog.Any("error", err))
 		}
 	}()
 
-	go func() {
-		err := app.RiverUI.Start(ctx)
-		if err != nil {
-			app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
-		}
-	}()
+	err := app.RiverUI.Start(ctx)
+	if err != nil {
+		app.Logger.ErrorContext(ctx, "Failed to start River UI.", slog.Any("error", err))
+	}
 
 	go app.events.Run(ctx)
 
@@ -58,7 +61,7 @@ func (app *App) _Run(ctx context.Context) error {
 		slog.String("address", app.l.Addr().String()),
 		slog.String("url", app.ConfigStore.Config().PublicURL()),
 	)
-	err := app.srv.Serve(app.l)
+	err = app.srv.Serve(app.l)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return errors.Wrap(err, "serve HTTP")
 	}

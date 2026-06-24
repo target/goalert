@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification/nfydest"
@@ -16,6 +17,13 @@ var (
 func (s *ChannelSender) ID() string { return DestTypeSlackChannel }
 func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error) {
 	cfg := config.FromContext(ctx)
+
+	// Get bot name dynamically, fallback to generic name if error
+	botName := "GoAlert"
+	if name, err := s.BotName(ctx); err == nil && name != "" {
+		botName = name
+	}
+
 	return &nfydest.TypeInfo{
 		Type:                       DestTypeSlackChannel,
 		Name:                       "Slack Channel",
@@ -30,6 +38,7 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 			Label:          "Slack Channel",
 			InputType:      "text",
 			SupportsSearch: true,
+			Hint:           fmt.Sprintf("If your channel doesn't appear in search results, invite %s (bot) to the channel and allow a minute for it to appear.", botName),
 		}},
 		DynamicParams: []nfydest.DynamicParamConfig{{
 			ParamID: "message",

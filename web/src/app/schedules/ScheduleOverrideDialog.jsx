@@ -147,7 +147,7 @@ export default function ScheduleOverrideDialog(props) {
         })
       }
       disableSubmit={step === 0}
-      onNext={onNext}
+      onNext={step < 1 ? onNext : undefined}
     />
   )
 }

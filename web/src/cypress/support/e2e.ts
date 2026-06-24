@@ -15,6 +15,8 @@
 
 /// <reference types="cypress" />
 
+import 'cypress-real-events'
+
 import './slack'
 import './admin'
 import './alert'

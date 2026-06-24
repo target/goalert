@@ -219,6 +219,8 @@ FormField.propTypes = {
   // passed to the parent form's state.
   mapOnChangeValue: p.func,
 
+  onCreate: p.func,
+
   // Adjusts props for usage with a Checkbox component.
   checkbox: p.bool,
 

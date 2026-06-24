@@ -55,8 +55,20 @@ func (e Entry) Meta(ctx context.Context) interface{} {
 	}
 	return dest
 }
+
 func (e Entry) AlertID() int {
 	return e.alertID
+}
+
+func (e Entry) MessageID(ctx context.Context) string {
+	m := e.Meta(ctx)
+	if m == nil {
+		return ""
+	}
+	if m, ok := m.(*NotificationMetaData); ok && m != nil {
+		return m.MessageID
+	}
+	return ""
 }
 
 func (e Entry) ID() int {
@@ -66,6 +78,7 @@ func (e Entry) ID() int {
 func (e Entry) Timestamp() time.Time {
 	return e.timestamp
 }
+
 func (e Entry) Type() Type {
 	switch e._type {
 	case _TypeResponseReceived:

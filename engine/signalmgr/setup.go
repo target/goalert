@@ -9,9 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/riverqueue/river"
 	"github.com/target/goalert/engine/processinglock"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/gadb"
-	"github.com/target/goalert/integrationkey/uik"
 )
 
 const (
@@ -43,19 +41,6 @@ func (db *DB) Setup(ctx context.Context, args processinglock.SetupArgs) error {
 	river.AddWorker(args.Workers, river.WorkFunc(func(ctx context.Context, j *river.Job[SchedMsgsArgs]) error {
 		return db.scheduleMessages(ctx, j.Args.ServiceID)
 	}))
-
-	event.RegisterJobSource(args.EventBus, func(data uik.EventNewSignals) (river.JobArgs, *river.InsertOpts) {
-		return SchedMsgsArgs{
-				ServiceID: uuid.NullUUID{Valid: true, UUID: data.ServiceID},
-			}, &river.InsertOpts{
-				Queue:       QueueName,
-				ScheduledAt: time.Now().Add(time.Second),
-				Priority:    PriorityScheduleService, // lower priority than the catch-all job
-				UniqueOpts: river.UniqueOpts{
-					ByArgs: true,
-				},
-			}
-	})
 
 	err := args.River.Queues().Add(QueueName, river.QueueConfig{MaxWorkers: 3})
 	if err != nil {
