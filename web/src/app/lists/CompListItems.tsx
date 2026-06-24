@@ -36,6 +36,7 @@ export function CompListItemText(
         disableTypography={props.disableTypography}
         primary={props.title}
         secondary={props.subText}
+        data-cy='comp-list-item-subheader'
       />
       {props.action && (
         <ListItemSecondaryAction>{props.action}</ListItemSecondaryAction>
