@@ -48,6 +48,27 @@ WHERE
     id = $1
 FOR UPDATE;
 
+-- name: IntKeyLog :exec
+INSERT INTO uik_logs (
+    integration_key_id,
+    content_type,
+    user_agent,
+    raw_body,
+    status,
+    error_message,
+    received_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7
+)
+ON CONFLICT (integration_key_id) DO UPDATE
+SET
+    content_type = EXCLUDED.content_type,
+    user_agent = EXCLUDED.user_agent,
+    raw_body = EXCLUDED.raw_body,
+    status = EXCLUDED.status,
+    error_message = EXCLUDED.error_message,
+    received_at = EXCLUDED.received_at;
+
 -- name: IntKeySetConfig :exec
 INSERT INTO uik_config(id, config)
     VALUES ($1, $2)

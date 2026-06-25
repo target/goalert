@@ -1306,6 +1306,17 @@ type UikConfig struct {
 	SecondaryTokenHint sql.NullString
 }
 
+type UikLog struct {
+	ContentType      sql.NullString
+	ErrorMessage     sql.NullString
+	ID               uuid.UUID
+	IntegrationKeyID uuid.UUID
+	RawBody          []byte
+	ReceivedAt       time.Time
+	Status           string
+	UserAgent        sql.NullString
+}
+
 type User struct {
 	AlertStatusLogContactMethodID uuid.NullUUID
 	AvatarUrl                     string
