@@ -13,7 +13,10 @@
     "transform": {
       "^.+\\.(j|t)sx?$": "esbuild-jest"
     },
-    "rootDir": "web/src"
+    "rootDir": "web/src",
+    "transformIgnorePatterns": [
+      "node_modules/(?!wouter)"
+    ]
   },
   "standard": {
     "parser": "babel-eslint",
