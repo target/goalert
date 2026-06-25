@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 import ScheduleOnCallNotificationsList from './ScheduleOnCallNotificationsList'
 import { handleDefaultConfig } from '../../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'

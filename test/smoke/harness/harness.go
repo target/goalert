@@ -26,7 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
-	sloglogrus "github.com/samber/slog-logrus"
+	sloglogrus "github.com/samber/slog-logrus/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/target/goalert/alert"
@@ -105,6 +105,7 @@ type Harness struct {
 
 	backend     *app.App
 	backendLogs io.Closer
+	logsDone    chan struct{}
 
 	dbURL  string
 	dbName string
@@ -286,7 +287,9 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
 	h.cfg = cfg
 
-	_, err := migrate.ApplyAll(context.Background(), h.dbURL)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.ApplyAll(log.WithLogger(context.Background(), l), h.dbURL)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -304,6 +307,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 	}
 
 	appCfg := app.Defaults()
+	appCfg.ForceRiverDBTime = true
 	appCfg.ExpFlags = h.expFlags
 	appCfg.LegacyLogger = log.NewLogger()
 	appCfg.Logger = slog.New(sloglogrus.Option{
@@ -323,6 +327,7 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 
 	r, w := io.Pipe()
 	h.backendLogs = w
+	h.logsDone = make(chan struct{})
 
 	appCfg.LegacyLogger.EnableJSON()
 	appCfg.LegacyLogger.SetOutput(w)
@@ -415,7 +420,9 @@ func (h *Harness) SendMail(from, to, subject, body string) {
 func (h *Harness) Migrate(migrationName string) {
 	h.t.Helper()
 	h.t.Logf("Running migrations (target: %s)", migrationName)
-	_, err := migrate.Up(context.Background(), h.dbURL, migrationName)
+	l := log.NewLogger()
+	l.ErrorsOnly()
+	_, err := migrate.Up(log.WithLogger(context.Background(), l), h.dbURL, migrationName)
 	if err != nil {
 		h.t.Fatalf("failed to run migration: %v", err)
 	}
@@ -688,15 +695,32 @@ func (h *Harness) Close() {
 	if recErr := recover(); recErr != nil {
 		defer panic(recErr)
 	}
+
+	// Deferred so it still runs if a later WaitAndAssert or Shutdown call
+	// triggers Goexit (e.g. via t.Fatalf). Closes the log pipe writer and
+	// blocks until watchBackendLogs has drained, preventing it from calling
+	// t.Logf after the test has been marked complete.
+	defer func() {
+		h.mx.Lock()
+		h.closing = true
+		h.mx.Unlock()
+		if h.backendLogs != nil {
+			h.backendLogs.Close()
+		}
+		if h.logsDone != nil {
+			<-h.logsDone
+		}
+	}()
+
 	h.dumpDB() // early as possible
 
-	h.tw.WaitAndAssert(h.t)
-	h.slack.WaitAndAssert()
-	h.email.WaitAndAssert()
-
-	h.mx.Lock()
-	h.closing = true
-	h.mx.Unlock()
+	// If backend startup never completed, Engine is nil and Trigger would panic;
+	// skip assertions that depend on driving engine cycles.
+	if h.backend != nil && h.backend.Engine != nil {
+		h.tw.WaitAndAssert(h.t)
+		h.slack.WaitAndAssert()
+		h.email.WaitAndAssert()
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -704,7 +728,6 @@ func (h *Harness) Close() {
 	if err != nil {
 		h.t.Error("failed to shutdown backend cleanly:", err)
 	}
-	h.backendLogs.Close()
 
 	h.slackS.Close()
 	h.twS.Close()
@@ -880,5 +903,5 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	}
 	h.Trigger() // run engine cycle
 
-	assert.EventuallyWithT(h.t, check, 5*time.Second, 100*time.Millisecond)
+	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
 }

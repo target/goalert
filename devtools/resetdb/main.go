@@ -9,6 +9,7 @@ import (
 	"github.com/target/goalert/alert"
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/migrate"
+	galog "github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
 	"github.com/target/goalert/util/timeutil"
 
@@ -22,6 +23,8 @@ import (
 
 var adminID string
 
+var logger = galog.NewLogger()
+
 func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.StringVar(&adminID, "admin-id", "", "Generate an admin user with the given ID.")
@@ -32,7 +35,12 @@ func main() {
 	skipDrop := flag.Bool("skip-drop", false, "Skip database drop/create step.")
 	adminURL := flag.String("admin-db-url", "postgres://goalert@localhost/postgres", "Admin DB URL to use (used to recreate DB).")
 	dbURL := flag.String("db-url", "postgres://goalert@localhost", "DB URL to use.")
+	verbose := flag.Bool("v", false, "Enable verbose logging.")
 	flag.Parse()
+
+	if !*verbose {
+		logger.ErrorsOnly()
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -320,6 +328,7 @@ func recreateDB(ctx context.Context, url, dbName string) error {
 }
 
 func resetDB(ctx context.Context, url string) (n int, err error) {
+	ctx = galog.WithLogger(ctx, logger)
 	if flag.Arg(0) != "" {
 		n, err = migrate.Up(ctx, url, flag.Arg(0))
 	} else {

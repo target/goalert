@@ -39,6 +39,7 @@ export interface AlertDataPoint {
 }
 
 export interface AlertLogEntry {
+  alertID: number
   id: number
   message: string
   messageID?: null | string
@@ -80,6 +81,7 @@ export interface AlertPendingNotification {
 export interface AlertRecentEventsOptions {
   after?: null | string
   limit?: null | number
+  since?: null | ISOTimestamp
 }
 
 export interface AlertSearchOptions {
@@ -784,6 +786,7 @@ export interface Mutation {
   promoteSecondaryToken: boolean
   reEncryptKeyringsAndConfig: boolean
   sendContactMethodVerification: boolean
+  sendSignal: boolean
   setAlertNoiseReason: boolean
   setConfig: boolean
   setFavorite: boolean
@@ -1063,6 +1066,12 @@ export interface SendContactMethodVerificationInput {
   contactMethodID: string
 }
 
+export interface SendSignalInput {
+  dest: DestinationInput
+  params?: null | StringMap
+  serviceID: string
+}
+
 export interface Service {
   alertStats: AlertStats
   alertsByStatus: AlertsByStatus
@@ -1078,6 +1087,7 @@ export interface Service {
   name: string
   notices: Notice[]
   onCallUsers: ServiceOnCallUser[]
+  recentEvents: AlertLogEntryConnection
 }
 
 export interface ServiceAlertStatsOptions {
@@ -1654,6 +1664,7 @@ type ConfigID =
   | 'Slack.AccessToken'
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
+  | 'Slack.DisableBroadcastThreadReplies'
   | 'Twilio.Enable'
   | 'Twilio.VoiceName'
   | 'Twilio.VoiceLanguage'

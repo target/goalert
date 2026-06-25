@@ -20,8 +20,9 @@ type Listener struct {
 	mx sync.Mutex
 	c  *sync.Cond
 
-	isStopped bool
-	resume    chan struct{}
+	isStopped  bool
+	isShutdown bool
+	resume     chan struct{}
 }
 
 // NewListener will create and initialize a Listener which will automatically reconnect and listen to the provided channels when running.
@@ -34,7 +35,9 @@ func NewListener(p *pgxpool.Pool) *Listener {
 			},
 			LogError: log.Log,
 		},
-		resume: make(chan struct{}),
+		cancel:    func(error) {},
+		isStopped: true,
+		resume:    make(chan struct{}),
 	}
 	l.c = sync.NewCond(&l.mx)
 
@@ -58,9 +61,12 @@ func (l *Listener) Run(ctx context.Context) {
 	defer close(l.resume)
 
 	for {
-		cancelCtx, cancel := context.WithCancelCause(ctx)
-
 		l.mx.Lock()
+		if l.isShutdown {
+			l.mx.Unlock()
+			return
+		}
+		cancelCtx, cancel := context.WithCancelCause(ctx)
 		l.cancel = cancel
 		l.isStopped = false
 		l.c.Broadcast()
@@ -111,6 +117,7 @@ func (l *Listener) Shutdown(context.Context) error {
 	l.mx.Lock()
 	defer l.mx.Unlock()
 
+	l.isShutdown = true
 	l.cancel(errStop)
 
 	for !l.isStopped {

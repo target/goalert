@@ -58,7 +58,7 @@ This configuration starts `ngrok` automatically when you run `make start`, creat
 
 ## Database (PostgreSQL)
 
-GoAlert is built and tested against PostgreSQL 13. While versions 11 and newer should work, using PostgreSQL 13 is recommended for compatibility.
+GoAlert is built and tested against PostgreSQL 17. While versions 13 and newer should work, using PostgreSQL 17 is recommended for compatibility.
 
 ### Starting PostgreSQL
 

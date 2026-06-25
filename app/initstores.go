@@ -148,7 +148,7 @@ func (app *App) initStores(ctx context.Context) error {
 	}
 
 	if app.AlertStore == nil {
-		app.AlertStore, err = alert.NewStore(ctx, app.db, app.AlertLogStore, app.EventBus)
+		app.AlertStore, err = alert.NewStore(ctx, app.db, app.AlertLogStore)
 	}
 	if err != nil {
 		return errors.Wrap(err, "init alert store")
@@ -304,7 +304,7 @@ func (app *App) initStores(ctx context.Context) error {
 		return errors.Wrap(err, "init API key store")
 	}
 
-	app.UIKHandler = uik.NewHandler(app.db, app.httpClient, app.IntegrationKeyStore, app.AlertStore, app.EventBus)
+	app.UIKHandler = uik.NewHandler(app.db, app.httpClient, app.IntegrationKeyStore, app.AlertStore)
 
 	return nil
 }

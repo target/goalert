@@ -124,12 +124,7 @@ export default function TempSchedShiftsList({
       zone,
       handleCoverageGapClick,
     )
-    const subheaderItems = getSubheaderItems(
-      schedInterval,
-      shifts,
-      shiftDur as Duration,
-      zone,
-    )
+    const subheaderItems = getSubheaderItems(schedInterval, shifts, zone)
 
     const outOfBoundsItems = getOutOfBoundsItems(schedInterval, shifts, zone)
 
@@ -224,7 +219,7 @@ export default function TempSchedShiftsList({
           }
 
           return {
-            scrollIntoView: true,
+            scrollIntoView: !confirmationStep,
             id: DateTime.fromISO(s.start).toISO() + s.userID + index.toString(),
             title: s.user?.name,
             subText: (

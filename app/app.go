@@ -27,7 +27,6 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/engine"
 	"github.com/target/goalert/escalation"
-	"github.com/target/goalert/event"
 	"github.com/target/goalert/graphql2/graphqlapp"
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/integrationkey"
@@ -82,8 +81,6 @@ type App struct {
 	sysAPIL   net.Listener
 	sysAPISrv *grpc.Server
 	hSrv      *health.Server
-
-	EventBus *event.Bus
 
 	srv        *http.Server
 	smtpsrv    *smtpsrv.Server
@@ -147,7 +144,7 @@ type App struct {
 	//
 	// This allows us to add jobs from transactions that are not using the pgx driver. This client is not used for any job or queue processing.
 	RiverDBSQL   *river.Client[*sql.Tx]
-	RiverUI      *riverui.Server
+	RiverUI      *riverui.Handler
 	RiverWorkers *river.Workers
 }
 
@@ -160,6 +157,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 	var err error
 	db := stdlib.OpenDBFromPool(pool)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
+		c.Logger.DebugContext(ctx, "checking switchover_state table")
 		// Should not be possible for the app to ever see `use_next_db` unless misconfigured.
 		//
 		// In switchover mode, the connector wrapper will check this and provide the app with
@@ -213,8 +211,6 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		httpClient: &http.Client{
 			Transport: calllimiter.RoundTripper(http.DefaultTransport),
 		},
-
-		EventBus: event.NewBus(c.Logger),
 	}
 
 	if c.StatusAddr != "" {
@@ -224,6 +220,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		}
 	}
 
+	c.Logger.Debug("starting app")
 	app.mgr = lifecycle.NewManager(app._Run, app._Shutdown)
 	err = app.mgr.SetStartupFunc(app.startup)
 	if err != nil {

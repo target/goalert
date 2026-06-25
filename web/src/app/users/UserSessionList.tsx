@@ -59,7 +59,8 @@ function friendlyUAString(ua: string): string {
 
   let str
   if (b.getBrowserName()) {
-    str = b.getBrowserName() + ' ' + b.getBrowserVersion().split('.')[0]
+    str =
+      b.getBrowserName() + ' ' + (b.getBrowserVersion()?.split('.')[0] || '')
   }
   if (!str) {
     str = 'Unknown device'

@@ -15,8 +15,7 @@ test.use({ storageState: adminSessionFile })
 // 7. Verify deleting the duplicate using the original fails (key deleted)
 // 8. Delete the duplicate via the UI
 
-const query = `
-query ListAPIKeys {
+const query = `query ListAPIKeys {
     gqlAPIKeys {
         id
         name

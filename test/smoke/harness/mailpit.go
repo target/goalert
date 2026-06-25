@@ -42,7 +42,7 @@ func newMailpit(t *testing.T) (mp *mailpit) {
 	var output bytes.Buffer
 	cmdpath := filepath.Join(filepath.Dir(file), "../../../bin/tools/mailpit")
 
-	cmd := exec.Command(cmdpath, "-s", addrs[0], "-l", addrs[1])
+	cmd := exec.Command(cmdpath, "-s", addrs[0], "-l", addrs[1], "--allow-internal-http-requests")
 	cmd.Stdout, cmd.Stderr = &output, &output
 	require.NoError(t, cmd.Start(), "expected to start mailpit")
 
