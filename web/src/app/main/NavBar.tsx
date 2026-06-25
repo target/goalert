@@ -23,21 +23,23 @@ import NavBarLink, { NavBarSubLink } from './NavBarLink'
 import logoImgSrc from '../public/logos/lightmode_logo.svg'
 import darkModeLogoImgSrc from '../public/logos/darkmode_logo.svg'
 
-const useStyles = makeStyles((theme: Theme) => ({
-  ...globalStyles(theme),
-  logoDiv: {
-    ...theme.mixins.toolbar,
-    paddingLeft: 8,
-  },
-  navIcon: {
-    width: '1em',
-    height: '1em',
-    fontSize: '24px',
-  },
-  list: {
-    padding: 0,
-  },
-}))
+const useStyles = makeStyles<Theme, object, 'logoDiv' | 'navIcon' | 'list'>(
+  (theme: Theme) => ({
+    ...globalStyles(theme),
+    logoDiv: {
+      ...theme.mixins.toolbar,
+      paddingLeft: 8,
+    },
+    navIcon: {
+      width: '1em',
+      height: '1em',
+      fontSize: '24px',
+    },
+    list: {
+      padding: 0,
+    },
+  }),
+)
 
 export default function NavBar(): React.JSX.Element {
   const classes = useStyles()
