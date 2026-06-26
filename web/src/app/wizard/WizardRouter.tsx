@@ -19,6 +19,7 @@ import {
   getEscalationPolicy,
   getSchedule,
   getScheduleTargets,
+  ScheduleKey,
 } from './util'
 import DialogTitleWrapper from '../dialogs/components/DialogTitleWrapper'
 import DialogContentError from '../dialogs/components/DialogContentError'
@@ -96,7 +97,7 @@ export default function WizardRouter(): React.JSX.Element {
     const secondary = value.secondarySchedule.enable === 'yes'
     const steps = []
 
-    const step = (key: string): CreateEscalationPolicyStepInput => ({
+    const step = (key: ScheduleKey): CreateEscalationPolicyStepInput => ({
       delayMinutes: value.delayMinutes,
       newSchedule: {
         ...getSchedule(key, value, secondary),

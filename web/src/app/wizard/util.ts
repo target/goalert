@@ -39,7 +39,7 @@ export function getEscalationPolicy(
   }
 }
 
-type ScheduleKey = 'primarySchedule' | 'secondarySchedule'
+export type ScheduleKey = 'primarySchedule' | 'secondarySchedule'
 
 export function getSchedule(
   key: ScheduleKey,
