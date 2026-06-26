@@ -39,16 +39,18 @@ export function getEscalationPolicy(
   }
 }
 
+type ScheduleKey = 'primarySchedule' | 'secondarySchedule'
+
 export function getSchedule(
-  key: string,
+  key: ScheduleKey,
   value: WizardFormValue,
-  secondary: boolean,
+  secondaryEnabled: boolean,
 ): CreateScheduleInput {
-  const s = secondary ? value.secondarySchedule : value.primarySchedule
+  const s = value[key]
   let name = value.teamName
 
-  if (secondary) {
-    name = key.includes('primary') ? name + ' Primary' : name + ' Secondary'
+  if (secondaryEnabled) {
+    name += key === 'primarySchedule' ? ' Primary' : ' Secondary'
   }
 
   return {
@@ -64,12 +66,12 @@ export function getSchedule(
  * to be used while creating a new schedule
  */
 export function getScheduleTargets(
-  key: string,
+  key: ScheduleKey,
   value: WizardFormValue,
-  secondary: boolean,
+  secondaryEnabled: boolean,
 ): ScheduleTargetInput[] {
-  const s = secondary ? value.secondarySchedule : value.primarySchedule
-  const targets = [] as ScheduleTargetInput[]
+  const s = value[key]
+  const targets: ScheduleTargetInput[] = []
   const fts = s.followTheSunRotation.enable === 'yes'
 
   // return just the users as schedule targets if rotation type is set to "never"
@@ -96,7 +98,11 @@ export function getScheduleTargets(
 
     const name =
       value.teamName +
-      (secondary ? (key.includes('primary') ? ' Primary' : ' Secondary') : '') +
+      (secondaryEnabled
+        ? key === 'primarySchedule'
+          ? ' Primary'
+          : ' Secondary'
+        : '') +
       (tzText ? ` ${tzText}` : '')
 
     const getErrMsg = (): number => {
@@ -107,7 +113,7 @@ export function getScheduleTargets(
         isFTS && s.followTheSunRotation?.timeZone === s.timeZone
           ? FTS_CHAR_COUNT
           : 0
-      const secondaryCharCount = secondary ? SECONDARY_CHAR_COUNT : 0
+      const secondaryCharCount = secondaryEnabled ? SECONDARY_CHAR_COUNT : 0
 
       const remainingChars =
         CHAR_LIMIT - secondaryCharCount - (timeZoneLength || 0) - timeZoneMatch

@@ -218,7 +218,7 @@ export default function WizardScheduleForm({
                 </FormLabel>
                 <RadioGroup
                   aria-label='secondary'
-                  name={getScheduleField('.fts')}
+                  name={getScheduleField('fts')}
                   row
                   value={currentSchedule.followTheSunRotation.enable}
                   onChange={handleFollowTheSunToggle}
