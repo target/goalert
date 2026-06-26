@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/heartbeat"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notificationchannel"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rotation"
 	"github.com/target/goalert/service"
@@ -273,13 +274,24 @@ func (app *App) FindOneAlertMetric(ctx context.Context, id int) (*alertmetrics.M
 }
 
 // FindOneCM will return a single contact method for the given id, using the contexts dataloader if enabled.
-func (app *App) FindOneCM(ctx context.Context, id uuid.UUID) (*contactmethod.ContactMethod, error) {
+func (app *App) FindOneCM(ctx context.Context, id uuid.UUID) (cm *contactmethod.ContactMethod, err error) {
 	loader := loadersFrom(ctx).CM
 	if loader == nil {
-		return app.CMStore.FindOne(ctx, app.DB, id)
+		cm, err = app.CMStore.FindOne(ctx, app.DB, id)
+	} else {
+		cm, err = loader.FetchOne(ctx, id.String())
+	}
+	if err != nil {
+		return nil, err
+	}
+	if cm == nil {
+		return nil, nil
+	}
+	if cm.Private && cm.UserID != permission.UserID(ctx) {
+		return nil, nil
 	}
 
-	return loader.FetchOne(ctx, id.String())
+	return cm, nil
 }
 
 // FindOneNC will return a single notification channel for the given id, using the contexts dataloader if enabled.

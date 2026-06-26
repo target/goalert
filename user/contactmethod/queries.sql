@@ -1,6 +1,6 @@
 -- name: ContactMethodAdd :exec
-INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates)
-    VALUES ($1, $2, $3, $4, $5, $6);
+INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates, private)
+    VALUES ($1, $2, $3, $4, $5, $6, $7);
 
 -- name: ContactMethodUpdate :exec
 UPDATE
@@ -8,7 +8,8 @@ UPDATE
 SET
     name = $2,
     disabled = $3,
-    enable_status_updates = $4
+    enable_status_updates = $4,
+    private = $5
 WHERE
     id = $1;
 

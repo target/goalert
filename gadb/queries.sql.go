@@ -1712,8 +1712,8 @@ func (q *Queries) ConnectionInfo(ctx context.Context) ([]ConnectionInfoRow, erro
 }
 
 const contactMethodAdd = `-- name: ContactMethodAdd :exec
-INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates)
-    VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO user_contact_methods(id, name, dest, disabled, user_id, enable_status_updates, private)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
 `
 
 type ContactMethodAddParams struct {
@@ -1723,6 +1723,7 @@ type ContactMethodAddParams struct {
 	Disabled            bool
 	UserID              uuid.UUID
 	EnableStatusUpdates bool
+	Private             bool
 }
 
 func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddParams) error {
@@ -1733,6 +1734,7 @@ func (q *Queries) ContactMethodAdd(ctx context.Context, arg ContactMethodAddPara
 		arg.Disabled,
 		arg.UserID,
 		arg.EnableStatusUpdates,
+		arg.Private,
 	)
 	return err
 }
@@ -1762,7 +1764,7 @@ func (q *Queries) ContactMethodEnableDisable(ctx context.Context, arg ContactMet
 
 const contactMethodFindAll = `-- name: ContactMethodFindAll :many
 SELECT
-    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, type, user_id, value
+    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, private, type, user_id, value
 FROM
     user_contact_methods
 WHERE
@@ -1787,6 +1789,7 @@ func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([
 			&i.Metadata,
 			&i.Name,
 			&i.Pending,
+			&i.Private,
 			&i.Type,
 			&i.UserID,
 			&i.Value,
@@ -1806,7 +1809,7 @@ func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([
 
 const contactMethodFindMany = `-- name: ContactMethodFindMany :many
 SELECT
-    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, type, user_id, value
+    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, private, type, user_id, value
 FROM
     user_contact_methods
 WHERE
@@ -1831,6 +1834,7 @@ func (q *Queries) ContactMethodFindMany(ctx context.Context, dollar_1 []uuid.UUI
 			&i.Metadata,
 			&i.Name,
 			&i.Pending,
+			&i.Private,
 			&i.Type,
 			&i.UserID,
 			&i.Value,
@@ -1850,7 +1854,7 @@ func (q *Queries) ContactMethodFindMany(ctx context.Context, dollar_1 []uuid.UUI
 
 const contactMethodFindOneUpdate = `-- name: ContactMethodFindOneUpdate :one
 SELECT
-    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, type, user_id, value
+    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, private, type, user_id, value
 FROM
     user_contact_methods
 WHERE
@@ -1870,6 +1874,7 @@ func (q *Queries) ContactMethodFindOneUpdate(ctx context.Context, id uuid.UUID) 
 		&i.Metadata,
 		&i.Name,
 		&i.Pending,
+		&i.Private,
 		&i.Type,
 		&i.UserID,
 		&i.Value,
@@ -1879,7 +1884,7 @@ func (q *Queries) ContactMethodFindOneUpdate(ctx context.Context, id uuid.UUID) 
 
 const contactMethodFineOne = `-- name: ContactMethodFineOne :one
 SELECT
-    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, type, user_id, value
+    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, private, type, user_id, value
 FROM
     user_contact_methods
 WHERE
@@ -1898,6 +1903,7 @@ func (q *Queries) ContactMethodFineOne(ctx context.Context, id uuid.UUID) (UserC
 		&i.Metadata,
 		&i.Name,
 		&i.Pending,
+		&i.Private,
 		&i.Type,
 		&i.UserID,
 		&i.Value,
@@ -1965,7 +1971,8 @@ UPDATE
 SET
     name = $2,
     disabled = $3,
-    enable_status_updates = $4
+    enable_status_updates = $4,
+    private = $5
 WHERE
     id = $1
 `
@@ -1975,6 +1982,7 @@ type ContactMethodUpdateParams struct {
 	Name                string
 	Disabled            bool
 	EnableStatusUpdates bool
+	Private             bool
 }
 
 func (q *Queries) ContactMethodUpdate(ctx context.Context, arg ContactMethodUpdateParams) error {
@@ -1983,6 +1991,7 @@ func (q *Queries) ContactMethodUpdate(ctx context.Context, arg ContactMethodUpda
 		arg.Name,
 		arg.Disabled,
 		arg.EnableStatusUpdates,
+		arg.Private,
 	)
 	return err
 }

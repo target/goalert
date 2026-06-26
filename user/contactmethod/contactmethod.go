@@ -20,6 +20,7 @@ type ContactMethod struct {
 	Disabled bool
 	UserID   string
 	Pending  bool
+	Private  bool
 
 	StatusUpdates bool
 

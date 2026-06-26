@@ -141,6 +141,7 @@ func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) (*
 		Disabled:            n.Disabled,
 		UserID:              uuid.MustParse(n.UserID),
 		EnableStatusUpdates: n.StatusUpdates,
+		Private:             n.Private,
 	})
 	if err != nil {
 		return nil, err
@@ -209,6 +210,7 @@ func (s *Store) FindOne(ctx context.Context, dbtx gadb.DBTX, id uuid.UUID) (*Con
 		UserID:           row.UserID.String(),
 		Pending:          row.Pending,
 		StatusUpdates:    row.EnableStatusUpdates,
+		Private:          row.Private,
 		lastTestVerifyAt: row.LastTestVerifyAt,
 	}
 
@@ -239,7 +241,7 @@ func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) er
 	}
 
 	if permission.Admin(ctx) {
-		err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+		err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates, Private: n.Private})
 		return err
 	}
 
@@ -248,7 +250,7 @@ func (s *Store) Update(ctx context.Context, dbtx gadb.DBTX, c *ContactMethod) er
 		return err
 	}
 
-	err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates})
+	err = gadb.New(dbtx).ContactMethodUpdate(ctx, gadb.ContactMethodUpdateParams{ID: n.ID, Name: n.Name, Disabled: n.Disabled, EnableStatusUpdates: n.StatusUpdates, Private: n.Private})
 
 	return err
 }
@@ -280,6 +282,7 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]C
 			UserID:           row.UserID.String(),
 			Pending:          row.Pending,
 			StatusUpdates:    row.EnableStatusUpdates,
+			Private:          row.Private,
 			lastTestVerifyAt: row.LastTestVerifyAt,
 		}
 	}
@@ -287,26 +290,33 @@ func (s *Store) FindMany(ctx context.Context, dbtx gadb.DBTX, ids []string) ([]C
 	return cms, nil
 }
 
-// FindAll finds all contact methods from the database associated with the given user ID.
-func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]ContactMethod, error) {
+// FindAll finds all contact methods from the database associated with the given user ID along with the number of omitted (private) entries.
+func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]ContactMethod, int, error) {
 	uid, err := validate.ParseUUID("ContactMethodID", userID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	err = permission.LimitCheckAny(ctx, permission.All)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	rows, err := gadb.New(dbtx).ContactMethodFindAll(ctx, uid)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	authID := permission.UserNullUUID(ctx).UUID
 
-	cms := make([]ContactMethod, len(rows))
-	for i, row := range rows {
-		cms[i] = ContactMethod{
+	result := make([]ContactMethod, 0, len(rows))
+	var omitted int
+	for _, row := range rows {
+		if row.Private && row.UserID != authID {
+			omitted++
+			continue
+		}
+
+		result = append(result, ContactMethod{
 			ID:               row.ID,
 			Name:             row.Name,
 			Dest:             row.Dest.DestV1,
@@ -315,8 +325,9 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 			Pending:          row.Pending,
 			StatusUpdates:    row.EnableStatusUpdates,
 			lastTestVerifyAt: row.LastTestVerifyAt,
-		}
+			Private:          row.Private,
+		})
 	}
 
-	return cms, nil
+	return result, omitted, nil
 }

@@ -171,7 +171,9 @@ export const SingleField: Story = {
 
     const single = await canvas.findByLabelText('Destination Type')
     expect(single).toHaveTextContent('Single With Status')
-    await canvas.findByTestId('CheckBoxOutlineBlankIcon')
+
+    await canvas.findByLabelText('Send alert status updates')
+    await canvas.findByLabelText('This is a private contact method')
   },
 }
 

@@ -12,6 +12,7 @@ export type Value = {
   name: string
   dest: DestinationInput
   statusUpdates: boolean
+  private: boolean
 }
 
 export type UserContactMethodFormProps = {
@@ -162,6 +163,26 @@ export default function UserContactMethodForm(
                   props.onChange({
                     ...value,
                     statusUpdates: v.target.checked,
+                  })
+                }
+              />
+            }
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <FormControlLabel
+            label='This is a private contact method'
+            title='Private contact methods are not visible to other users.'
+            control={
+              <Checkbox
+                name='private'
+                disabled={props.disabled}
+                checked={value.private}
+                onChange={(v) =>
+                  props.onChange &&
+                  props.onChange({
+                    ...value,
+                    private: v.target.checked,
                   })
                 }
               />
