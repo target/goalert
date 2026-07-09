@@ -103,6 +103,11 @@ type Config struct {
 		DisableBroadcastThreadReplies bool `info:"Disable broadcasting alert status updates in threads to the main channel." public:"true"`
 	}
 
+	Teams struct {
+		Enable              bool     `public:"true" info:"Enables sending notifications to Microsoft Teams channels via Power Automate Workflow webhooks."`
+		AllowedWorkflowURLs []string `public:"true" info:"If set, allows Teams workflow webhook URLs for these domains only."`
+	}
+
 	Twilio struct {
 		Enable bool `public:"true" info:"Enables sending and processing of Voice and SMS messages through the Twilio notification provider."`
 
@@ -332,6 +337,24 @@ func (cfg Config) ValidWebhookURL(testURL string) bool {
 		return true
 	}
 	for _, baseU := range cfg.Webhook.AllowedURLs {
+		matched, err := MatchURL(baseU, testURL)
+		if err != nil {
+			return false
+		}
+		if matched {
+			return true
+		}
+	}
+	return false
+}
+
+// ValidTeamsWorkflowURL returns true if the URL is an allowed Microsoft Teams
+// workflow webhook target.
+func (cfg Config) ValidTeamsWorkflowURL(testURL string) bool {
+	if len(cfg.Teams.AllowedWorkflowURLs) == 0 {
+		return true
+	}
+	for _, baseU := range cfg.Teams.AllowedWorkflowURLs {
 		matched, err := MatchURL(baseU, testURL)
 		if err != nil {
 			return false

@@ -6,6 +6,7 @@ import WarningIcon from '@mui/icons-material/Warning'
 import slackIcon from '../../public/icons/slack.svg'
 import slackIconBlack from '../../public/icons/slack_monochrome_black.svg'
 import slackIconWhite from '../../public/icons/slack_monochrome_white.svg'
+import msTeamsIcon from '../../public/icons/msteams.svg'
 import makeStyles from '@mui/styles/makeStyles'
 import { useTheme } from '@mui/material'
 import { Webhook } from '@mui/icons-material'
@@ -87,6 +88,10 @@ export function SlackBW(): React.JSX.Element {
       alt='Slack'
     />
   )
+}
+
+export function Teams(): React.JSX.Element {
+  return <img src={msTeamsIcon} width={20} height={20} alt='Microsoft Teams' />
 }
 
 export function WebhookBW(): React.JSX.Element {

@@ -69,6 +69,8 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Slack.SigningSecret", Type: ConfigTypeString, Description: "Signing secret to verify requests from slack.", Value: cfg.Slack.SigningSecret, Password: true},
 		{ID: "Slack.InteractiveMessages", Type: ConfigTypeBoolean, Description: "Enable interactive messages (e.g. buttons).", Value: fmt.Sprintf("%t", cfg.Slack.InteractiveMessages)},
 		{ID: "Slack.DisableBroadcastThreadReplies", Type: ConfigTypeBoolean, Description: "Disable broadcasting alert status updates in threads to the main channel.", Value: fmt.Sprintf("%t", cfg.Slack.DisableBroadcastThreadReplies)},
+		{ID: "Teams.Enable", Type: ConfigTypeBoolean, Description: "Enables sending notifications to Microsoft Teams channels via Power Automate Workflow webhooks.", Value: fmt.Sprintf("%t", cfg.Teams.Enable)},
+		{ID: "Teams.AllowedWorkflowURLs", Type: ConfigTypeStringList, Description: "If set, allows Teams workflow webhook URLs for these domains only.", Value: strings.Join(cfg.Teams.AllowedWorkflowURLs, "\n")},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.VoiceName", Type: ConfigTypeString, Description: "The Twilio voice to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceName},
 		{ID: "Twilio.VoiceLanguage", Type: ConfigTypeString, Description: "The Twilio voice language to use for Text To Speech for phone calls. See https://www.twilio.com/docs/voice/twiml/say/text-speech#polly-standard-and-neural-voices", Value: cfg.Twilio.VoiceLanguage},
@@ -119,6 +121,8 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Mailgun.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Mailgun.Enable)},
 		{ID: "Slack.Enable", Type: ConfigTypeBoolean, Description: "", Value: fmt.Sprintf("%t", cfg.Slack.Enable)},
 		{ID: "Slack.DisableBroadcastThreadReplies", Type: ConfigTypeBoolean, Description: "Disable broadcasting alert status updates in threads to the main channel.", Value: fmt.Sprintf("%t", cfg.Slack.DisableBroadcastThreadReplies)},
+		{ID: "Teams.Enable", Type: ConfigTypeBoolean, Description: "Enables sending notifications to Microsoft Teams channels via Power Automate Workflow webhooks.", Value: fmt.Sprintf("%t", cfg.Teams.Enable)},
+		{ID: "Teams.AllowedWorkflowURLs", Type: ConfigTypeStringList, Description: "If set, allows Teams workflow webhook URLs for these domains only.", Value: strings.Join(cfg.Teams.AllowedWorkflowURLs, "\n")},
 		{ID: "Twilio.Enable", Type: ConfigTypeBoolean, Description: "Enables sending and processing of Voice and SMS messages through the Twilio notification provider.", Value: fmt.Sprintf("%t", cfg.Twilio.Enable)},
 		{ID: "Twilio.FromNumber", Type: ConfigTypeString, Description: "The Twilio number to use for outgoing notifications.", Value: cfg.Twilio.FromNumber},
 		{ID: "Twilio.MessagingServiceSID", Type: ConfigTypeString, Description: "If set, replaces the use of From Number for SMS notifications.", Value: cfg.Twilio.MessagingServiceSID},
@@ -321,6 +325,14 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 				return cfg, err
 			}
 			cfg.Slack.DisableBroadcastThreadReplies = val
+		case "Teams.Enable":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Teams.Enable = val
+		case "Teams.AllowedWorkflowURLs":
+			cfg.Teams.AllowedWorkflowURLs = parseStringList(v.Value)
 		case "Twilio.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {
