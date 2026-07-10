@@ -63,6 +63,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inser
 			Details:   act.Param("details"),
 			Source:    alert.SourceUniversal,
 			Status:    status,
+			Dedup:     alert.NewUserDedup(act.Param("dedup")),
 		})
 		if err != nil {
 			return false, err
