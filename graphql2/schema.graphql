@@ -1038,6 +1038,11 @@ type Alert {
   meta: [AlertMetadata!]
 
   metaValue(key: String!): String!
+
+  """
+  User-authored comments on this alert, oldest first.
+  """
+  comments: [AlertComment!]!
 }
 
 type AlertMetric {

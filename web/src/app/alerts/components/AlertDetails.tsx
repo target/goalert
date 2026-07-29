@@ -40,6 +40,7 @@ import { useIsWidthDown } from '../../util/useWidth'
 import ReactGA from 'react-ga4'
 import { useConfigValue } from '../../util/RequireConfig'
 import { renderChipsDest } from '../../escalation-policies/stepUtil'
+import AlertComments from './AlertComments'
 interface AlertDetailsProps {
   data: Alert
 }
@@ -455,6 +456,15 @@ export default function AlertDetails(
             </Typography>
           </CardContent>
         </Card>
+      </Grid>
+
+      {/* Comments -- user-authored, kept above the system Event Log */}
+      <Grid item xs={12} className={classes.cardContainer}>
+        <AlertComments
+          alertID={alert.alertID}
+          showExactTimes={showExactTimes}
+          onToggleExactTimes={handleToggleExactTimes}
+        />
       </Grid>
 
       {/* Alert Logs */}

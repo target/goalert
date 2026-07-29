@@ -33,6 +33,11 @@ type InlineDisplayInfo interface {
 	IsInlineDisplayInfo()
 }
 
+type AddAlertCommentInput struct {
+	AlertID int    `json:"alertID"`
+	Body    string `json:"body"`
+}
+
 type AlertConnection struct {
 	Nodes    []alert.Alert `json:"nodes"`
 	PageInfo *PageInfo     `json:"pageInfo"`

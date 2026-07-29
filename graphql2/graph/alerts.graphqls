@@ -10,3 +10,37 @@ type MessageStatusHistory {
   details: String!
   timestamp: ISOTimestamp!
 }
+
+extend type Mutation {
+  """
+  Adds a comment to an alert. Any signed-in user may comment on any alert.
+  """
+  addAlertComment(input: AddAlertCommentInput!): AlertComment!
+
+  """
+  Deletes a comment. Users may delete their own comments; admins may delete any.
+  """
+  deleteAlertComment(id: ID!): Boolean!
+}
+
+input AddAlertCommentInput {
+  alertID: Int!
+  body: String!
+}
+
+"""
+A free-form note left on an alert by a user, for triage context that does not
+belong in the system-generated alert log.
+"""
+type AlertComment {
+  id: ID!
+
+  """
+  The author. Null when the account has since been deleted -- the comment
+  itself is retained.
+  """
+  user: User
+
+  body: String!
+  createdAt: ISOTimestamp!
+}

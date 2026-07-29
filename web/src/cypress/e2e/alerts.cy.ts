@@ -478,6 +478,90 @@ function testAlerts(screen: ScreenFormat): void {
       cy.get('body').should('not.contain', 'Load More')
     })
   })
+
+  describe('Alert Comments', () => {
+    let alert: Alert
+
+    beforeEach(() => {
+      return cy.createAlert().then((a: Alert) => {
+        alert = a
+      })
+    })
+
+    it('should add a comment and show who and when', () => {
+      cy.visit(`/alerts/${alert.id}`)
+
+      cy.get('[data-cy=alert-comments]').should('not.contain', 'looking into')
+      cy.get('body').should('contain', 'No comments yet')
+
+      cy.get('[data-cy=new-comment] textarea').first().type('looking into this')
+      cy.get('button[aria-label="Add Comment"]').click()
+
+      // who and when, alongside the text
+      cy.get('[data-cy=alert-comments]')
+        .should('contain', 'looking into this')
+        .should('contain', 'Cypress User')
+        .should('contain', 'ago')
+    })
+
+    it('should render markdown and make links clickable', () => {
+      cy.visit(`/alerts/${alert.id}`)
+
+      cy.get('[data-cy=new-comment] textarea')
+        .first()
+        .type('see [the runbook](https://example.com/runbook) and **hurry**')
+      cy.get('button[aria-label="Add Comment"]').click()
+
+      cy.get('[data-cy=alert-comments]')
+        .find('a[href="https://example.com/runbook"]')
+        .should('contain', 'the runbook')
+
+      // markdown is rendered, not shown as literal syntax
+      cy.get('[data-cy=alert-comments]')
+        .should('contain', 'hurry')
+        .should('not.contain', '**hurry**')
+    })
+
+    it('should not render raw HTML in a comment', () => {
+      cy.visit(`/alerts/${alert.id}`)
+
+      cy.get('[data-cy=new-comment] textarea')
+        .first()
+        .type('<img src=x onerror=alert(1)> plain', {
+          parseSpecialCharSequences: false,
+        })
+      cy.get('button[aria-label="Add Comment"]').click()
+
+      // the tag is shown as text, never mounted as an element
+      cy.get('[data-cy=alert-comments]').should('contain', 'plain')
+      cy.get('[data-cy=alert-comments] img').should('not.exist')
+    })
+
+    it('should toggle full timestamps in step with the event log', () => {
+      cy.visit(`/alerts/${alert.id}`)
+
+      cy.get('[data-cy=new-comment] textarea').first().type('timestamped')
+      cy.get('button[aria-label="Add Comment"]').click()
+      cy.get('[data-cy=alert-comments]').should('contain', 'ago')
+
+      cy.get('[data-cy=toggle-comment-times] input').check()
+      cy.get('[data-cy=alert-comments]').should('not.contain', 'ago')
+
+      // one shared preference: the event log switch follows
+      cy.get('[data-cy=alert-logs]').should('not.contain', 'ago')
+    })
+
+    it('should reject an empty comment', () => {
+      cy.visit(`/alerts/${alert.id}`)
+
+      // nothing typed -- the button stays disabled
+      cy.get('button[aria-label="Add Comment"]').should('be.disabled')
+
+      // whitespace only is still nothing to say
+      cy.get('[data-cy=new-comment] textarea').first().type('   ')
+      cy.get('button[aria-label="Add Comment"]').should('be.disabled')
+    })
+  })
 }
 
 testScreen('Alerts', testAlerts)

@@ -820,6 +820,14 @@ type Alert struct {
 	Summary         string
 }
 
+type AlertComment struct {
+	AlertID   int64
+	Body      string
+	CreatedAt time.Time
+	ID        int64
+	UserID    uuid.NullUUID
+}
+
 type AlertDatum struct {
 	AlertID  int64
 	ID       int64
