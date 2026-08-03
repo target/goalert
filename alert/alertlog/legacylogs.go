@@ -105,6 +105,8 @@ func createdSubject(msg string) *Subject {
 		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "PrometheusAlertmanager"}
 	case "Created via: cloudwatch":
 		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "CloudWatch"}
+	case "Created via: azureMonitor":
+		return &Subject{Type: SubjectTypeIntegrationKey, Classifier: "Azure Monitor"}
 	case "Created via: manual":
 		return &Subject{Type: SubjectTypeUser, Classifier: "Web"}
 	case "Created via: generic":

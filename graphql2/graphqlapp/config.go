@@ -18,6 +18,7 @@ func (a *Query) IntegrationKeyTypes(ctx context.Context) ([]graphql2.Integration
 		{ID: "site24x7", Name: "Site 24x7", Label: "Site24x7 Webhook URL", Enabled: true},
 		{ID: "prometheusAlertmanager", Label: "Alertmanager Webhook URL", Name: "Prometheus Alertmanager", Enabled: true},
 		{ID: "cloudwatch", Label: "CloudWatch Webhook URL", Name: "Amazon CloudWatch", Enabled: true},
+		{ID: "azureMonitor", Label: "Azure Monitor Webhook URL", Name: "Azure Monitor", Enabled: true},
 	}
 
 	if expflag.ContextHas(ctx, expflag.UnivKeys) {

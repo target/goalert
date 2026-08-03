@@ -231,6 +231,8 @@ func (key *IntegrationKey) Href(ctx context.Context, raw *integrationkey.Integra
 		return cfg.CallbackURL("/api/v2/prometheusalertmanager/incoming", q), nil
 	case integrationkey.TypeCloudwatch:
 		return cfg.CallbackURL("/api/v2/cloudwatch/incoming", q), nil
+	case integrationkey.TypeAzureMonitor:
+		return cfg.CallbackURL("/api/v2/azuremonitor/incoming", q), nil
 	case integrationkey.TypeEmail:
 		if !cfg.EmailIngressEnabled() {
 			return "", nil

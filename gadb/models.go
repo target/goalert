@@ -169,6 +169,7 @@ func (ns NullEnumAlertLogSubjectType) Value() (driver.Value, error) {
 type EnumAlertSource string
 
 const (
+	EnumAlertSourceAzureMonitor           EnumAlertSource = "azureMonitor"
 	EnumAlertSourceCloudwatch             EnumAlertSource = "cloudwatch"
 	EnumAlertSourceEmail                  EnumAlertSource = "email"
 	EnumAlertSourceGeneric                EnumAlertSource = "generic"
@@ -303,6 +304,7 @@ func (ns NullEnumHeartbeatState) Value() (driver.Value, error) {
 type EnumIntegrationKeysType string
 
 const (
+	EnumIntegrationKeysTypeAzureMonitor           EnumIntegrationKeysType = "azureMonitor"
 	EnumIntegrationKeysTypeCloudwatch             EnumIntegrationKeysType = "cloudwatch"
 	EnumIntegrationKeysTypeEmail                  EnumIntegrationKeysType = "email"
 	EnumIntegrationKeysTypeGeneric                EnumIntegrationKeysType = "generic"

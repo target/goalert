@@ -1216,6 +1216,7 @@ enum IntegrationKeyType {
   site24x7
   prometheusAlertmanager
   cloudwatch
+  azureMonitor
   email
   universal
 }

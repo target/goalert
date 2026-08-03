@@ -9,6 +9,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/target/goalert/app/csp"
+	"github.com/target/goalert/azuremonitor"
 	"github.com/target/goalert/cloudwatch"
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
@@ -159,6 +160,10 @@ func (app *App) initHTTP(ctx context.Context) error {
 	mux.HandleFunc("POST /api/v2/site24x7/incoming", site24x7.Site24x7ToEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("POST /api/v2/prometheusalertmanager/incoming", prometheus.PrometheusAlertmanagerEventsAPI(app.AlertStore, app.IntegrationKeyStore))
 	mux.HandleFunc("POST /api/v2/cloudwatch/incoming", cw.ServeIncoming)
+	mux.HandleFunc("POST /api/v2/azuremonitor/incoming", azuremonitor.NewHandler(azuremonitor.Config{
+		AlertStore:          app.AlertStore,
+		IntegrationKeyStore: app.IntegrationKeyStore,
+	}).ServeIncoming)
 
 	mux.HandleFunc("POST /api/v2/generic/incoming", generic.ServeCreateAlert)
 	mux.HandleFunc("POST /api/v2/heartbeat/{heartbeatID}", generic.ServeHeartbeatCheck)
