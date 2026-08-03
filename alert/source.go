@@ -14,6 +14,7 @@ const (
 	SourceGrafana                Source = "grafana"                // grafana alert
 	SourceSite24x7               Source = "site24x7"               // site24x7 alert
 	SourcePrometheusAlertmanager Source = "prometheusAlertmanager" // prometheus alertmanager alert
+	SourceCloudwatch             Source = "cloudwatch"             // AWS CloudWatch alarm (via SNS)
 	SourceManual                 Source = "manual"                 // manually triggered
 	SourceGeneric                Source = "generic"                // generic API
 	SourceUniversal              Source = "universal"              // universal integration

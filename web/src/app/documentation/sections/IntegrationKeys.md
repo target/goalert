@@ -134,6 +134,36 @@ To trigger an alert using Prometheus Alertmanager, follow these steps:
 
 ---
 
+## Amazon CloudWatch
+
+CloudWatch alarms reach GoAlert through an Amazon SNS topic. GoAlert confirms the SNS subscription itself and verifies the signature on every message, so no Lambda or forwarder is required.
+
+To trigger an alert from a CloudWatch alarm, follow these steps:
+
+1. Within GoAlert, on the Services page, select the service you want to process the alert. Under Integration Keys:
+
+   - Key Name: Enter a name for the key.
+   - Key Type: Amazon CloudWatch
+   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it in the next step.
+
+2. In the AWS console, open the SNS topic your alarms publish to and create a subscription:
+
+   - Protocol: HTTPS
+   - Endpoint: Paste in the CloudWatch webhook URL you generated in step 1.
+   - Leave "Enable raw message delivery" **unchecked** — GoAlert needs the SNS envelope in order to verify the message signature.
+   - Click Create subscription. GoAlert completes the confirmation handshake automatically; the subscription should move from "Pending confirmation" to "Confirmed" within a few seconds.
+
+3. Ensure each CloudWatch alarm you want to page on has an alarm action publishing to that SNS topic.
+
+Notes:
+
+- The alarm name becomes the alert summary, and alerts are deduplicated on it, so a repeated alarm will not create a second alert while the first is still open.
+- The `AlarmDescription` is appended to the alert details verbatim, which makes it a good place to put a runbook URL.
+- An alarm moving to `OK` closes the matching alert. Transitions to `INSUFFICIENT_DATA` are ignored.
+- Your GoAlert instance must be reachable from AWS over HTTPS for the subscription to confirm.
+
+---
+
 ## Email
 
 It is possible to create an Email integration key from the Service Details page. This will generate a unique email address that can be used for creating alerts.

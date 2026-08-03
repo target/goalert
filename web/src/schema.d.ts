@@ -651,6 +651,7 @@ export interface IntegrationKeySearchOptions {
 }
 
 export type IntegrationKeyType =
+  | 'cloudwatch'
   | 'email'
   | 'generic'
   | 'grafana'
