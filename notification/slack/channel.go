@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -53,8 +54,9 @@ const (
 )
 
 var (
-	_ nfydest.MessageSender       = &ChannelSender{}
-	_ notification.ReceiverSetter = &ChannelSender{}
+	_          nfydest.MessageSender       = &ChannelSender{}
+	_          notification.ReceiverSetter = &ChannelSender{}
+	hexColorRx                             = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 )
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
@@ -456,17 +458,7 @@ func signalAttachmentColor(color string) string {
 }
 
 func isHexColor(color string) bool {
-	if len(color) != len("#000000") || color[0] != '#' {
-		return false
-	}
-
-	for _, r := range color[1:] {
-		if !('0' <= r && r <= '9' || 'a' <= r && r <= 'f' || 'A' <= r && r <= 'F') {
-			return false
-		}
-	}
-
-	return true
+	return hexColorRx.MatchString(color)
 }
 
 func chanTS(origChannelID, externalID string) (channelID, ts string) {
