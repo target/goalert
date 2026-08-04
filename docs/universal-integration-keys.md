@@ -30,6 +30,33 @@ The Expr language is chosen for its safety, performance, and Go integration capa
 
 Data mapping is part of the action definition in UIKs. Helper functions like `sprintf` can be used to construct messages based on the input data. This allows users to customize the content of sent messages based on the incoming JSON payload.
 
+#### Slack Signal Actions
+
+A UIK action that targets a Slack Channel sends a signal as a colored Slack attachment. Its dynamic parameters are expressions that resolve to strings from the incoming request.
+
+| Parameter | Description |
+| --- | --- |
+| `message` | The Slack mrkdwn message body. For an incoming JSON payload, use `req.body['message']`. |
+| `color` | The attachment color. Use `good`, `warning`, `danger`, or a six-digit hex value such as `#439FE0`. For an incoming JSON payload, use `req.body['color']`. |
+
+GoAlert resolves the named colors before sending the Slack message: `good` becomes `#218626`, `warning` becomes `#867321`, and `danger` becomes `#862421`. A valid `#RRGGBB` value is used unchanged. Missing or unsupported values use neutral blue (`#439FE0`).
+
+For example, configure the Slack action's dynamic parameters as:
+
+```text
+message: req.body['message']
+color: req.body['color']
+```
+
+Then send a payload such as:
+
+```json
+{
+  "message": "*Deployment validation*\n• Verify the alert route\n• Check <https://example.com|the runbook>",
+  "color": "danger"
+}
+```
+
 There will be limits (TBD) on the number of output actions for a single key, total number of rules, and size of the Expr expression to enforce some level of bounding on request complexity. This feature will inherit the 1-request-per-process-per-key rule that other integration keys adopt, ensuring no "noisy neighbor" issues with isolation.
 
 ### 3.5 Max Pending Messages Per Service
