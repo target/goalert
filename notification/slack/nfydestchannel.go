@@ -44,12 +44,12 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 			{
 				ParamID: signalParamMessage,
 				Label:   "Message",
-				Hint:    "The text of the message to send.",
+				Hint:    "The text of the message to send; supports markdown formatting.",
 			},
 			{
 				ParamID: signalParamColor,
 				Label:   "Color",
-				Hint:    "GoAlert resolves `good`, `warning`, and `danger` to green, yellow, and red hex values. A `#RRGGBB` value is used unchanged; missing or unsupported values use neutral blue (`#439FE0`).",
+				Hint:    "GoAlert resolves `good`, `warning`, and `danger` or `#RRGGBB` hex values; defaults to neutral blue (`#439FE0`).",
 			},
 		},
 	}, nil
