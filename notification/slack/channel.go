@@ -450,15 +450,11 @@ func signalAttachmentColor(color string) string {
 	case "":
 		return signalColorDefault
 	default:
-		if isHexColor(color) {
+		if hexColorRx.MatchString(color) {
 			return color
 		}
 		return signalColorDefault
 	}
-}
-
-func isHexColor(color string) bool {
-	return hexColorRx.MatchString(color)
 }
 
 func chanTS(origChannelID, externalID string) (channelID, ts string) {
