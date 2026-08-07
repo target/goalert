@@ -141,6 +141,12 @@ type Config struct {
 		AllowedURLs []string `public:"true" info:"If set, allows webhooks for these domains only."`
 	}
 
+	Ntfy struct {
+		Enable    bool   `public:"true" info:"Enables ntfy as a contact method."`
+		ServerURL string `public:"true" info:"Base URL of the ntfy server (e.g. https://ntfy.sh)."`
+		Token     string `password:"true" info:"Access token used to publish. Required if the server restricts publishing."`
+	}
+
 	Feedback struct {
 		Enable      bool   `public:"true" info:"Enables Feedback link in nav bar."`
 		OverrideURL string `public:"true" info:"Use a custom URL for Feedback link in nav bar."`
@@ -560,7 +566,17 @@ func (cfg Config) Validate() error {
 			"From", cfg.SMTP.From,
 			"Address", cfg.SMTP.Address,
 		),
+		validateEnable("Ntfy", cfg.Ntfy.Enable,
+			"ServerURL", cfg.Ntfy.ServerURL,
+		),
 	)
+
+	if cfg.Ntfy.ServerURL != "" {
+		err = validate.Many(
+			err,
+			validate.AbsoluteURL("Ntfy.ServerURL", cfg.Ntfy.ServerURL),
+		)
+	}
 
 	if cfg.Feedback.OverrideURL != "" {
 		err = validate.Many(
