@@ -72,7 +72,9 @@ done < <(cat "$IGNORE_PATTERN_FILE" 2>/dev/null)
 # $IGNORE_ARGS[@]: list of `:(exclude)file` patterns to ignore
 OUTPUT=$(
     if [ "$DEBUG" = "1" ]; then set -x; fi
-    git diff --ignore-blank-lines --numstat -w --diff-filter=d --minimal --merge-base "origin/$MAIN_BRANCH" -- "${IGNORE_ARGS[@]}"
+    git diff --ignore-blank-lines --numstat -w --diff-filter=d --minimal \
+    "origin/$MAIN_BRANCH...${DIFF_HEAD_REF:-HEAD}" \
+    -- "${IGNORE_ARGS[@]}"
 )
 
 debug
