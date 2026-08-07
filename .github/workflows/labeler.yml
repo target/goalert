@@ -18,19 +18,18 @@ jobs:
 
       # fetch the PR merge commit as a Git object, but do not check it out
       - name: Fetch PR merge ref
-        working-directory: base
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
+          cd base
           git fetch --no-tags origin \
             "refs/pull/${PR_NUMBER}/merge:refs/remotes/pull/${PR_NUMBER}/merge"
 
       - name: Run labeler script from base
-        working-directory: base
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
           FAIL_IF_XL: '1'
           MAIN_BRANCH: ${{ github.event.pull_request.base.ref }}
           DIFF_HEAD_REF: refs/remotes/pull/${{ github.event.number }}/merge
-        run: devtools/scripts/github-set-pr-label.sh
+        run: cd base && devtools/scripts/github-set-pr-label.sh
