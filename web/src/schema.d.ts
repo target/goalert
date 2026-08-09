@@ -651,6 +651,8 @@ export interface IntegrationKeySearchOptions {
 }
 
 export type IntegrationKeyType =
+  | 'azureMonitor'
+  | 'cloudwatch'
   | 'email'
   | 'generic'
   | 'grafana'

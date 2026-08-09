@@ -13,6 +13,8 @@ const (
 	TypeGrafana                Type = "grafana"
 	TypeSite24x7               Type = "site24x7"
 	TypePrometheusAlertmanager Type = "prometheusAlertmanager"
+	TypeCloudwatch             Type = "cloudwatch"
+	TypeAzureMonitor           Type = "azureMonitor"
 	TypeGeneric                Type = "generic"
 	TypeEmail                  Type = "email"
 	TypeUniversal              Type = "universal"

@@ -61,7 +61,7 @@ func (a Alert) Normalize() (*Alert, error) {
 	err := validate.Many(
 		validate.Text("Summary", a.Summary, 1, MaxSummaryLength),
 		validate.Text("Details", a.Details, 0, MaxDetailsLength),
-		validate.OneOf("Source", a.Source, SourceManual, SourceGrafana, SourceSite24x7, SourcePrometheusAlertmanager, SourceEmail, SourceGeneric, SourceUniversal),
+		validate.OneOf("Source", a.Source, SourceManual, SourceGrafana, SourceSite24x7, SourcePrometheusAlertmanager, SourceCloudwatch, SourceAzureMonitor, SourceEmail, SourceGeneric, SourceUniversal),
 		validate.OneOf("Status", a.Status, StatusTriggered, StatusActive, StatusClosed),
 		validate.UUID("ServiceID", a.ServiceID),
 	)

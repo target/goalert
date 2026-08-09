@@ -594,6 +594,10 @@ func (h *Handler) authWithToken(w http.ResponseWriter, req *http.Request, next h
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeSite24x7)
 	case "/api/v2/prometheusalertmanager/incoming":
 		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypePrometheusAlertmanager)
+	case "/api/v2/cloudwatch/incoming":
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeCloudwatch)
+	case "/api/v2/azuremonitor/incoming":
+		ctx, err = h.cfg.IntKeyStore.Authorize(ctx, *tok, integrationkey.TypeAzureMonitor)
 	case "/api/v2/calendar":
 		ctx, err = h.cfg.CalSubStore.Authorize(ctx, *tok)
 	default:

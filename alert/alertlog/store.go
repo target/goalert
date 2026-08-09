@@ -384,6 +384,10 @@ func (s *Store) logEntry(ctx context.Context, tx *sql.Tx, _type Type, meta inter
 				r.subject.classifier = "Grafana"
 			case integrationkey.TypeSite24x7:
 				r.subject.classifier = "Site24x7"
+			case integrationkey.TypeCloudwatch:
+				r.subject.classifier = "CloudWatch"
+			case integrationkey.TypeAzureMonitor:
+				r.subject.classifier = "Azure Monitor"
 			case integrationkey.TypeEmail:
 				r.subject.classifier = "Email"
 			}

@@ -61,6 +61,11 @@ type Config struct {
 	TwilioBaseURL string
 	SlackBaseURL  string
 
+	// CloudwatchBaseURL overrides the origin used for outbound SNS certificate
+	// and subscription-confirmation requests. Testing only; there is no flag for
+	// it. The host allowlist still runs against the message-supplied URL.
+	CloudwatchBaseURL string
+
 	DBURL     string
 	DBURLNext string
 

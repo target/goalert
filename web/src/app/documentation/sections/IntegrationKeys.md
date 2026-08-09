@@ -134,6 +134,69 @@ To trigger an alert using Prometheus Alertmanager, follow these steps:
 
 ---
 
+## Amazon CloudWatch
+
+CloudWatch alarms reach GoAlert through an Amazon SNS topic. GoAlert confirms the SNS subscription itself and verifies the signature on every message, so no Lambda or forwarder is required.
+
+To trigger an alert from a CloudWatch alarm, follow these steps:
+
+1. Within GoAlert, on the Services page, select the service you want to process the alert. Under Integration Keys:
+
+   - Key Name: Enter a name for the key.
+   - Key Type: Amazon CloudWatch
+   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it in the next step.
+
+2. In the AWS console, open the SNS topic your alarms publish to and create a subscription:
+
+   - Protocol: HTTPS
+   - Endpoint: Paste in the CloudWatch webhook URL you generated in step 1.
+   - Leave "Enable raw message delivery" **unchecked** — GoAlert needs the SNS envelope in order to verify the message signature.
+   - Click Create subscription. GoAlert completes the confirmation handshake automatically; the subscription should move from "Pending confirmation" to "Confirmed" within a few seconds.
+
+3. Ensure each CloudWatch alarm you want to page on has an alarm action publishing to that SNS topic.
+
+Notes:
+
+- The alarm name becomes the alert summary, and alerts are deduplicated on it, so a repeated alarm will not create a second alert while the first is still open.
+- The `AlarmDescription` is appended to the alert details verbatim, which makes it a good place to put a runbook URL.
+- An alarm moving to `OK` closes the matching alert. Transitions to `INSUFFICIENT_DATA` are ignored.
+- Your GoAlert instance must be reachable from AWS over HTTPS for the subscription to confirm.
+
+---
+
+## Azure Monitor
+
+Azure Monitor delivers alerts by having an **action group** POST a webhook. One GoAlert endpoint can serve any number of action groups across any number of subscriptions — the integration key in the URL selects which service the alert lands on.
+
+> **The webhook URL is a credential.** Unlike Amazon CloudWatch, Azure Monitor does not sign its webhook deliveries, so the integration key in the URL is the *only* thing protecting the endpoint. Anyone who obtains the URL can create arbitrary alerts on that service. Treat it with the same care as a password, and generate a new key if you believe it has been exposed.
+
+To trigger an alert from an Azure Monitor alert rule, follow these steps:
+
+1. Within GoAlert, on the Services page, select the service you want to process the alert. Under Integration Keys:
+
+   - Key Name: Enter a name for the key.
+   - Key Type: Azure Monitor
+   - Click Add Key. Copy the generated URL and keep it handy, as you'll need it in the next step.
+
+2. In the Azure portal, open **Monitor → Alerts → Action groups** and select (or create) the action group your alert rules notify. Under **Actions**, add a **Webhook**:
+
+   - Name: e.g. `GoAlert`
+   - URI: Paste in the Azure Monitor webhook URL you generated in step 1.
+   - **Enable the common alert schema: Yes** — this is required. GoAlert rejects deliveries that use Azure's legacy schema, with an error naming this setting.
+   - Click Save.
+
+3. Ensure the alert rules you want to page on reference that action group.
+
+Notes:
+
+- An action group can hold more than one webhook receiver, so you can add GoAlert alongside an existing destination and have both fire. That makes rollout additive, and rollback is deleting one receiver.
+- The alert rule name becomes the alert summary, and alerts are deduplicated on Azure's alert ID, so a redelivery of the same firing will not create a second alert.
+- Alert rules with **auto-mitigate** enabled (the default for metric alerts) send a `Resolved` notification when the condition clears, which closes the corresponding GoAlert alert automatically.
+- Setting **custom properties** on an alert rule surfaces them in the alert details, which makes them a good place to put a runbook URL.
+- Metric and log alerts render their condition, threshold and observed value. Log alerts also include the query and a link to the search results. Any other signal type still produces a usable alert built from the fields common to every Azure payload.
+
+---
+
 ## Email
 
 It is possible to create an Email integration key from the Service Details page. This will generate a unique email address that can be used for creating alerts.
