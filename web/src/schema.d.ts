@@ -1692,5 +1692,7 @@ type ConfigID =
   | 'SMTP.Password'
   | 'Webhook.Enable'
   | 'Webhook.AllowedURLs'
+  | 'GoogleChat.Enable'
+  | 'CustomWebhook.Enable'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'
