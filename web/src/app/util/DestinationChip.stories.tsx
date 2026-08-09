@@ -17,6 +17,7 @@ const meta = {
         'builtin://schedule',
         'builtin://rotation',
         'builtin://webhook',
+        'builtin://googlechat',
         'builtin://slack',
       ],
     },
