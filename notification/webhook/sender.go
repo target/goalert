@@ -21,6 +21,12 @@ type Sender struct {
 
 const idempotencyKeyHeader = "Idempotency-Key"
 
+const (
+	alertStateUnacknowledged = "Unacknowledged"
+	alertStateAcknowledged   = "Acknowledged"
+	alertStateClosed         = "Closed"
+)
+
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
 	AppName     string
@@ -44,10 +50,11 @@ type POSTDataAlertBundle struct {
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
 type POSTDataAlertStatus struct {
-	AppName  string
-	Type     string
-	AlertID  int
-	LogEntry string
+	AppName    string
+	Type       string
+	AlertID    int
+	LogEntry   string
+	AlertState string
 }
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
@@ -108,6 +115,19 @@ func safeRequestError(err error) error {
 	}
 }
 
+func alertStateWireValue(state notification.AlertState) (string, error) {
+	switch state {
+	case notification.AlertStateUnacknowledged:
+		return alertStateUnacknowledged, nil
+	case notification.AlertStateAcknowledged:
+		return alertStateAcknowledged, nil
+	case notification.AlertStateClosed:
+		return alertStateClosed, nil
+	default:
+		return "", errors.New("webhook alert state is invalid")
+	}
+}
+
 // Send will send an alert for the provided message type
 func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	deliveryID := msg.MsgID()
@@ -149,11 +169,16 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			Count:       m.Count,
 		}
 	case notification.AlertStatus:
+		alertState, err := alertStateWireValue(m.NewAlertState)
+		if err != nil {
+			return nil, err
+		}
 		payload = POSTDataAlertStatus{
-			AppName:  cfg.ApplicationName(),
-			Type:     "AlertStatus",
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
+			AppName:    cfg.ApplicationName(),
+			Type:       "AlertStatus",
+			AlertID:    m.AlertID,
+			LogEntry:   m.LogEntry,
+			AlertState: alertState,
 		}
 	case notification.ScheduleOnCallUsers:
 		// We use types defined in this package to insulate against unintended API

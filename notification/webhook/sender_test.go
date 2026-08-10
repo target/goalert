@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -184,6 +185,124 @@ func TestSenderRejectsMissingDeliveryIdentity(t *testing.T) {
 	assert.NotContains(t, err.Error(), "opaque-secret-token")
 	assert.NotContains(t, err.Error(), "secret-query")
 	assert.NotContains(t, err.Error(), requestSecret)
+}
+
+func TestSenderAlertStatusWireState(t *testing.T) {
+	const webURL = "test://gateway.invalid/v1/goalert/contact-method/opaque-secret-token?route=secret-query"
+	tests := []struct {
+		name      string
+		state     notification.AlertState
+		logEntry  string
+		wireState string
+		wantBody  string
+	}{
+		{
+			name:      "acknowledged",
+			state:     notification.AlertStateAcknowledged,
+			logEntry:  "误导文本：已关闭",
+			wireState: "Acknowledged",
+			wantBody:  `{"AppName":"GoAlert","Type":"AlertStatus","AlertID":42,"LogEntry":"误导文本：已关闭","AlertState":"Acknowledged"}`,
+		},
+		{
+			name:      "closed",
+			state:     notification.AlertStateClosed,
+			logEntry:  "Misleading: acknowledged",
+			wireState: "Closed",
+			wantBody:  `{"AppName":"GoAlert","Type":"AlertStatus","AlertID":42,"LogEntry":"Misleading: acknowledged","AlertState":"Closed"}`,
+		},
+		{
+			name:      "unacknowledged",
+			state:     notification.AlertStateUnacknowledged,
+			logEntry:  "Texte localisé sans état",
+			wireState: "Unacknowledged",
+			wantBody:  `{"AppName":"GoAlert","Type":"AlertStatus","AlertID":42,"LogEntry":"Texte localisé sans état","AlertState":"Unacknowledged"}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := testContext()
+			var requestCount int
+			client := &http.Client{
+				Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+					requestCount++
+					assert.Equal(t, testDeliveryID, req.Header.Get(idempotencyKeyHeader))
+					body, err := io.ReadAll(req.Body)
+					require.NoError(t, err)
+					assert.Equal(t, test.wantBody, string(body))
+					assert.NotContains(t, string(body), "NewAlertState")
+
+					var decoded map[string]interface{}
+					require.NoError(t, json.Unmarshal(body, &decoded))
+					require.Len(t, decoded, 5)
+					assert.Equal(t, test.wireState, decoded["AlertState"])
+					_, isString := decoded["AlertState"].(string)
+					assert.True(t, isString, "AlertState must be encoded as a JSON string")
+
+					return testResponse(req, http.StatusAccepted, io.NopCloser(strings.NewReader("ignored"))), nil
+				}),
+			}
+			msg := notification.AlertStatus{
+				Base: nfymsg.Base{
+					ID:   testDeliveryID,
+					Dest: NewWebhookDest(webURL),
+				},
+				AlertID:       42,
+				LogEntry:      test.logEntry,
+				NewAlertState: test.state,
+			}
+
+			result, err := NewSender(ctx, client).SendMessage(ctx, msg)
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			assert.Equal(t, notification.StateSent, result.State)
+			assert.Equal(t, 1, requestCount)
+		})
+	}
+}
+
+func TestSenderRejectsInvalidAlertStateBeforeRequest(t *testing.T) {
+	const (
+		webURL  = "https://gateway.invalid/v1/goalert/contact-method/opaque-secret-token?route=secret-query"
+		logText = "sensitive localized log entry"
+	)
+	tests := []struct {
+		name  string
+		state notification.AlertState
+	}{
+		{name: "unknown", state: notification.AlertStateUnknown},
+		{name: "out of range", state: notification.AlertState(99)},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := testContext()
+			client := &http.Client{
+				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+					t.Fatal("HTTP client must not be called for an invalid alert state")
+					return nil, nil
+				}),
+			}
+			msg := notification.AlertStatus{
+				Base: nfymsg.Base{
+					ID:   testDeliveryID,
+					Dest: NewWebhookDest(webURL),
+				},
+				AlertID:       42,
+				LogEntry:      logText,
+				NewAlertState: test.state,
+			}
+
+			result, err := NewSender(ctx, client).SendMessage(ctx, msg)
+			require.Error(t, err)
+			assert.Nil(t, result)
+			assert.Equal(t, "webhook alert state is invalid", err.Error())
+			assert.NotContains(t, err.Error(), webURL)
+			assert.NotContains(t, err.Error(), "opaque-secret-token")
+			assert.NotContains(t, err.Error(), "secret-query")
+			assert.NotContains(t, err.Error(), logText)
+		})
+	}
 }
 
 func TestSenderContextFailure(t *testing.T) {
