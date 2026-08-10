@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/retry"
 )
 
 type Sender struct {
@@ -93,6 +95,17 @@ func NewSender(ctx context.Context, client *http.Client) *Sender {
 
 var _ nfydest.MessageSender = &Sender{}
 
+func safeRequestError(err error) error {
+	switch {
+	case errors.Is(err, context.Canceled):
+		return fmt.Errorf("webhook request failed: %w", context.Canceled)
+	case errors.Is(err, context.DeadlineExceeded):
+		return fmt.Errorf("webhook request failed: %w", context.DeadlineExceeded)
+	default:
+		return retry.TemporaryError(errors.New("webhook request failed"))
+	}
+}
+
 // Send will send an alert for the provided message type
 func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
 	cfg := config.FromContext(ctx)
@@ -173,14 +186,20 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 
 	req, err := http.NewRequestWithContext(ctx, "POST", webURL, bytes.NewReader(data))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("webhook request could not be created")
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 
-	_, err = http.DefaultClient.Do(req)
+	resp, err := s.Client.Do(req)
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
 	if err != nil {
-		return nil, err
+		return nil, safeRequestError(err)
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("webhook request failed: HTTP status %d", resp.StatusCode)
 	}
 
 	return &notification.SentMessage{State: notification.StateSent}, nil
