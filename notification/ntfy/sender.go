@@ -90,6 +90,9 @@ func (s *Sender) SendMessage(ctx context.Context, msg nfymsg.Message) (*nfymsg.S
 		req.Header.Set("X-Title", title)
 	}
 	req.Header.Set("X-Priority", strconv.Itoa(m.Priority))
+	if cfg.Ntfy.Markdown {
+		req.Header.Set("X-Markdown", "yes")
+	}
 	if m.ClickURL != "" {
 		req.Header.Set("X-Click", m.ClickURL)
 	}

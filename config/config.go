@@ -146,6 +146,7 @@ type Config struct {
 		Enable    bool   `public:"true" info:"Enables ntfy as a contact method."`
 		ServerURL string `public:"true" info:"Base URL of the ntfy server (e.g. https://ntfy.sh)."`
 		Token     string `password:"true" info:"Access token used to publish. Required if the server restricts publishing."`
+		Markdown  bool   `public:"true" info:"Enables markdown formatting for ntfy notifications."`
 	}
 
 	Feedback struct {

@@ -37,7 +37,7 @@ func alertMsg(meta map[string]string) nfymsg.Alert {
 }
 
 func TestSendMessage_Alert(t *testing.T) {
-	var gotPath, gotTitle, gotPriority, gotClick, gotAuth, gotBody string
+	var gotPath, gotTitle, gotPriority, gotClick, gotAuth, gotMarkdown, gotBody string
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
@@ -46,6 +46,7 @@ func TestSendMessage_Alert(t *testing.T) {
 		gotPriority = r.Header.Get("X-Priority")
 		gotClick = r.Header.Get("X-Click")
 		gotAuth = r.Header.Get("Authorization")
+		gotMarkdown = r.Header.Get("X-Markdown")
 	}))
 	defer srv.Close()
 
@@ -64,6 +65,24 @@ func TestSendMessage_Alert(t *testing.T) {
 	assert.Equal(t, "5", gotPriority)
 	assert.Equal(t, "https://chat.example.com/demo/pl/abc123", gotClick)
 	assert.Equal(t, "Bearer tok-123", gotAuth)
+	assert.Empty(t, gotMarkdown)
+}
+
+func TestSendMessage_MarkdownEnabled(t *testing.T) {
+	var gotMarkdown string
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotMarkdown = r.Header.Get("X-Markdown")
+	}))
+	defer srv.Close()
+
+	cfg := testConfig(srv.URL)
+	cfg.Ntfy.Markdown = true
+	s := NewSender(context.Background(), srv.Client())
+
+	_, err := s.SendMessage(cfg.Context(context.Background()), alertMsg(nil))
+	require.NoError(t, err)
+	assert.Equal(t, "yes", gotMarkdown)
 }
 
 func TestSendMessage_ClickFallsBackToGoAlert(t *testing.T) {

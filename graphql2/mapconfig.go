@@ -93,6 +93,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Ntfy.Enable", Type: ConfigTypeBoolean, Description: "Enables ntfy as a contact method.", Value: fmt.Sprintf("%t", cfg.Ntfy.Enable)},
 		{ID: "Ntfy.ServerURL", Type: ConfigTypeString, Description: "Base URL of the ntfy server (e.g. https://ntfy.sh).", Value: cfg.Ntfy.ServerURL},
 		{ID: "Ntfy.Token", Type: ConfigTypeString, Description: "Access token used to publish. Required if the server restricts publishing.", Value: cfg.Ntfy.Token, Password: true},
+		{ID: "Ntfy.Markdown", Type: ConfigTypeBoolean, Description: "Enables markdown formatting for ntfy notifications.", Value: fmt.Sprintf("%t", cfg.Ntfy.Markdown)},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -131,6 +132,7 @@ func MapPublicConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "Webhook.AllowedURLs", Type: ConfigTypeStringList, Description: "If set, allows webhooks for these domains only.", Value: strings.Join(cfg.Webhook.AllowedURLs, "\n")},
 		{ID: "Ntfy.Enable", Type: ConfigTypeBoolean, Description: "Enables ntfy as a contact method.", Value: fmt.Sprintf("%t", cfg.Ntfy.Enable)},
 		{ID: "Ntfy.ServerURL", Type: ConfigTypeString, Description: "Base URL of the ntfy server (e.g. https://ntfy.sh).", Value: cfg.Ntfy.ServerURL},
+		{ID: "Ntfy.Markdown", Type: ConfigTypeBoolean, Description: "Enables markdown formatting for ntfy notifications.", Value: fmt.Sprintf("%t", cfg.Ntfy.Markdown)},
 		{ID: "Feedback.Enable", Type: ConfigTypeBoolean, Description: "Enables Feedback link in nav bar.", Value: fmt.Sprintf("%t", cfg.Feedback.Enable)},
 		{ID: "Feedback.OverrideURL", Type: ConfigTypeString, Description: "Use a custom URL for Feedback link in nav bar.", Value: cfg.Feedback.OverrideURL},
 	}
@@ -406,6 +408,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.Ntfy.ServerURL = v.Value
 		case "Ntfy.Token":
 			cfg.Ntfy.Token = v.Value
+		case "Ntfy.Markdown":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.Ntfy.Markdown = val
 		case "Feedback.Enable":
 			val, err := parseBool(v.ID, v.Value)
 			if err != nil {
