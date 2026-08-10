@@ -19,6 +19,8 @@ type Sender struct {
 	Client *http.Client
 }
 
+const idempotencyKeyHeader = "Idempotency-Key"
+
 // POSTDataAlert represents fields in outgoing alert notification.
 type POSTDataAlert struct {
 	AppName     string
@@ -108,6 +110,11 @@ func safeRequestError(err error) error {
 
 // Send will send an alert for the provided message type
 func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*notification.SentMessage, error) {
+	deliveryID := msg.MsgID()
+	if deliveryID == "" {
+		return nil, errors.New("webhook delivery identity is required")
+	}
+
 	cfg := config.FromContext(ctx)
 	var payload interface{}
 	switch m := msg.(type) {
@@ -190,6 +197,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 	}
 
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set(idempotencyKeyHeader, deliveryID)
 
 	resp, err := s.Client.Do(req)
 	if resp != nil && resp.Body != nil {

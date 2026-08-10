@@ -18,6 +18,8 @@ import (
 	"github.com/target/goalert/retry"
 )
 
+const testDeliveryID = "11111111-2222-4333-8444-555555555555"
+
 type roundTripFunc func(*http.Request) (*http.Response, error)
 
 func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -41,6 +43,7 @@ func testContext() context.Context {
 func testMessage(webURL string) notification.Test {
 	return notification.Test{
 		Base: nfymsg.Base{
+			ID:   testDeliveryID,
 			Dest: NewWebhookDest(webURL),
 		},
 	}
@@ -63,6 +66,7 @@ func TestSenderUsesInjectedHTTPClient(t *testing.T) {
 		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 			called = true
 			assert.Equal(t, "test", req.URL.Scheme)
+			assert.Equal(t, testDeliveryID, req.Header.Get(idempotencyKeyHeader))
 			return testResponse(req, http.StatusNoContent, body), nil
 		}),
 	}
@@ -136,6 +140,7 @@ func TestSenderSanitizesConnectionError(t *testing.T) {
 	}
 	msg := notification.Verification{
 		Base: nfymsg.Base{
+			ID:   testDeliveryID,
 			Dest: NewWebhookDest(webURL),
 		},
 		Code: requestSecret,
@@ -150,6 +155,35 @@ func TestSenderSanitizesConnectionError(t *testing.T) {
 	assert.NotContains(t, err.Error(), "secret-query")
 	assert.NotContains(t, err.Error(), requestSecret)
 	assert.NotContains(t, err.Error(), "sensitive-response-content")
+}
+
+func TestSenderRejectsMissingDeliveryIdentity(t *testing.T) {
+	const (
+		webURL        = "https://gateway.invalid/v1/goalert/contact-method/opaque-secret-token?route=secret-query"
+		requestSecret = "sensitive-request-content"
+	)
+	ctx := testContext()
+	client := &http.Client{
+		Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			t.Fatal("HTTP client must not be called without a delivery identity")
+			return nil, nil
+		}),
+	}
+	msg := notification.Verification{
+		Base: nfymsg.Base{
+			Dest: NewWebhookDest(webURL),
+		},
+		Code: requestSecret,
+	}
+
+	result, err := NewSender(ctx, client).SendMessage(ctx, msg)
+	require.Error(t, err)
+	assert.Nil(t, result)
+	assert.Equal(t, "webhook delivery identity is required", err.Error())
+	assert.NotContains(t, err.Error(), webURL)
+	assert.NotContains(t, err.Error(), "opaque-secret-token")
+	assert.NotContains(t, err.Error(), "secret-query")
+	assert.NotContains(t, err.Error(), requestSecret)
 }
 
 func TestSenderContextFailure(t *testing.T) {
