@@ -162,16 +162,7 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		svcInfo: p(`
 			SELECT
 				name,
-				(SELECT count(*) FROM alerts a WHERE a.service_id = $1 AND (
-					a.status = 'triggered'
-					OR (a.status = 'active' AND EXISTS (
-						-- multi-ack: still notifying even though acknowledged
-						SELECT 1
-						FROM escalation_policy_state state
-						JOIN escalation_policy_steps step ON step.id = state.escalation_policy_step_id
-						WHERE state.alert_id = a.id AND step.multi_ack
-					))
-				))
+				(SELECT count(*) FROM alerts WHERE service_id = $1 AND status = 'triggered')
 			FROM services
 			WHERE id = $1
 		`),
