@@ -331,6 +331,7 @@ type ComplexityRoot struct {
 		DelayMinutes     func(childComplexity int) int
 		EscalationPolicy func(childComplexity int) int
 		ID               func(childComplexity int) int
+		MultiAck         func(childComplexity int) int
 		StepNumber       func(childComplexity int) int
 		Targets          func(childComplexity int) int
 	}
@@ -2082,6 +2083,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.EscalationPolicyStep.ID(childComplexity), true
+	case "EscalationPolicyStep.multiAck":
+		if e.ComplexityRoot.EscalationPolicyStep.MultiAck == nil {
+			break
+		}
+
+		return e.ComplexityRoot.EscalationPolicyStep.MultiAck(childComplexity), true
 	case "EscalationPolicyStep.stepNumber":
 		if e.ComplexityRoot.EscalationPolicyStep.StepNumber == nil {
 			break
@@ -5565,6 +5572,8 @@ func (ec *executionContext) childFields_EscalationPolicyStep(ctx context.Context
 		return ec.fieldContext_EscalationPolicyStep_escalationPolicy(ctx, field)
 	case "actions":
 		return ec.fieldContext_EscalationPolicyStep_actions(ctx, field)
+	case "multiAck":
+		return ec.fieldContext_EscalationPolicyStep_multiAck(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type EscalationPolicyStep", field.Name)
 }
@@ -11835,6 +11844,29 @@ func (ec *executionContext) fieldContext_EscalationPolicyStep_actions(_ context.
 		},
 	}
 	return fc, nil
+}
+
+func (ec *executionContext) _EscalationPolicyStep_multiAck(ctx context.Context, field graphql.CollectedField, obj *escalation.Step) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_EscalationPolicyStep_multiAck(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.MultiAck, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_EscalationPolicyStep_multiAck(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("EscalationPolicyStep", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
 func (ec *executionContext) _Expr_exprToCondition(ctx context.Context, field graphql.CollectedField, obj *Expr) (ret graphql.Marshaler) {
@@ -25429,7 +25461,7 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule", "actions"}
+	fieldsInOrder := [...]string{"escalationPolicyID", "delayMinutes", "targets", "newRotation", "newSchedule", "actions", "multiAck"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25480,6 +25512,13 @@ func (ec *executionContext) unmarshalInputCreateEscalationPolicyStepInput(ctx co
 				return it, err
 			}
 			it.Actions = data
+		case "multiAck":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("multiAck"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MultiAck = data
 		}
 	}
 	return it, nil
@@ -28373,7 +28412,7 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "delayMinutes", "targets", "actions"}
+	fieldsInOrder := [...]string{"id", "delayMinutes", "targets", "actions", "multiAck"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28410,6 +28449,13 @@ func (ec *executionContext) unmarshalInputUpdateEscalationPolicyStepInput(ctx co
 				return it, err
 			}
 			it.Actions = data
+		case "multiAck":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("multiAck"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MultiAck = data
 		}
 	}
 	return it, nil
@@ -31865,6 +31911,11 @@ func (ec *executionContext) _EscalationPolicyStep(ctx context.Context, sel ast.S
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "multiAck":
+			out.Values[i] = ec._EscalationPolicyStep_multiAck(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

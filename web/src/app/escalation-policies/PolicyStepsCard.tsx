@@ -16,7 +16,11 @@ import { reorderList } from '../rotations/util'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import OtherActions from '../util/OtherActions'
-import { renderChipsDest, renderDelayMessage } from './stepUtil'
+import {
+  renderChipsDest,
+  renderDelayMessage,
+  renderMultiAckMessage,
+} from './stepUtil'
 import { Destination } from '../../schema'
 import CompList from '../lists/CompList'
 import ReorderGroup from '../lists/ReorderGroup'
@@ -36,6 +40,7 @@ type StepInfo = {
   delayMinutes: number
   stepNumber: number
   actions: Destination[]
+  multiAck: boolean
 }
 
 export type PolicyStepsCardProps = {
@@ -161,6 +166,7 @@ export default function PolicyStepsCard(
                   subText={
                     <React.Fragment>
                       {renderChipsDest(step.actions)}
+                      {renderMultiAckMessage(step)}
                       {renderDelayMessage(
                         step,
                         idx,

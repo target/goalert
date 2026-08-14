@@ -976,6 +976,7 @@ type EscalationPolicyStep struct {
 	Delay              int32
 	EscalationPolicyID uuid.UUID
 	ID                 uuid.UUID
+	MultiAck           bool
 	StepNumber         int32
 }
 
@@ -1074,6 +1075,7 @@ type NotificationPolicyCycle struct {
 	Checked     bool
 	ID          uuid.UUID
 	LastTick    sql.NullTime
+	MultiAck    bool
 	RepeatCount int32
 	StartedAt   time.Time
 	UserID      uuid.UUID

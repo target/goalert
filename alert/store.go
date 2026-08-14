@@ -162,7 +162,16 @@ func NewStore(ctx context.Context, db *sql.DB, logDB *alertlog.Store) (*Store, e
 		svcInfo: p(`
 			SELECT
 				name,
-				(SELECT count(*) FROM alerts WHERE service_id = $1 AND status = 'triggered')
+				(SELECT count(*) FROM alerts a WHERE a.service_id = $1 AND (
+					a.status = 'triggered'
+					OR (a.status = 'active' AND EXISTS (
+						-- multi-ack: still notifying even though acknowledged
+						SELECT 1
+						FROM escalation_policy_state state
+						JOIN escalation_policy_steps step ON step.id = state.escalation_policy_step_id
+						WHERE state.alert_id = a.id AND step.multi_ack
+					))
+				))
 			FROM services
 			WHERE id = $1
 		`),
@@ -666,7 +675,19 @@ func (s *Store) UpdateStatusTx(ctx context.Context, tx *sql.Tx, id int, stat Sta
 		return logError{isAlreadyClosed: true, alertID: id, _type: alertlog.TypeClosed, logDB: s.logDB}
 	}
 	if _stat == gadb.EnumAlertStatusActive && stat == StatusActive {
-		return logError{isAlreadyAcknowledged: true, alertID: id, _type: alertlog.TypeAcknowledged, logDB: s.logDB}
+		multiAck, err := gadb.New(tx).Alert_AlertMultiAck(ctx, int64(id))
+		if err != nil {
+			return err
+		}
+		if !multiAck {
+			return logError{isAlreadyAcknowledged: true, alertID: id, _type: alertlog.TypeAcknowledged, logDB: s.logDB}
+		}
+
+		// The alert is already acknowledged, but the current step is multi-ack,
+		// so we still want a record of who acknowledged and when. The status is
+		// unchanged, so return before the update below.
+		s.logDB.MustLogTx(ctx, tx, id, alertlog.TypeAcknowledged, nil)
+		return nil
 	}
 
 	_, err = tx.Stmt(s.update).ExecContext(ctx, id, stat)

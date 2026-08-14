@@ -158,3 +158,16 @@ FROM
 WHERE
     a.id = @id::bigint;
 
+
+-- name: Alert_AlertMultiAck :one
+-- Returns true if the alert's current escalation policy step has multi-ack enabled.
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_state state
+            JOIN escalation_policy_steps step ON step.id = state.escalation_policy_step_id
+        WHERE
+            state.alert_id = $1
+            AND step.multi_ack) AS multi_ack;
