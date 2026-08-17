@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if [ -z "PR_NUMBER" ]; then
+if [ -z "$PR_NUMBER" ]; then
     echo "PR_NUMBER is not set"
     exit 1
 fi
