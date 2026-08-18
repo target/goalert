@@ -45,7 +45,7 @@ export function renderChipsDest(_a: Destination[]): ReactElement {
  * repeats, and if the message is rendering on the last step
  */
 export function renderDelayMessage(
-  step: { delayMinutes: number },
+  step: { delayMinutes: number; skipIfEmpty?: boolean },
   idx: number,
   repeat: number,
   isLastStep: boolean,
@@ -70,6 +70,12 @@ export function renderDelayMessage(
     repeatText = `Go back to step #1 after ${
       step.delayMinutes
     } minute${pluralizer(step.delayMinutes)}`
+  }
+
+  // The engine only skips when a later step exists, so the last step of a
+  // repeating policy always waits out its delay.
+  if (step.skipIfEmpty && !isLastStep) {
+    repeatText += ', or immediately if no one is on-call'
   }
 
   return (

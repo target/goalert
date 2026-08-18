@@ -101,6 +101,50 @@ function testSteps(screen: ScreenFormat): void {
       )
     })
 
+    it('should create and clear a skip-if-empty step', () => {
+      const delay = c.integer({ min: 1, max: 9000 })
+
+      if (screen === 'mobile') {
+        cy.pageFab()
+      } else {
+        cy.get('button').contains('Create Step').click()
+      }
+      cy.dialogTitle('Create Step')
+      cy.dialogForm({ 'dest.type': 'Schedule', schedule_id: s1.name })
+      cy.dialogClick('Add Destination')
+      cy.dialogForm({
+        delayMinutes: delay.toString(),
+        skipIfEmpty: true,
+      })
+      cy.dialogFinish('Submit')
+
+      // Skipping only applies when a later step exists, so the note stays
+      // hidden until a second step is added after this one.
+      cy.get('body').should(
+        'not.contain',
+        'or immediately if no one is on-call',
+      )
+
+      cy.createEPStep({ epID: ep.id }).then(() => cy.reload())
+
+      cy.get('body').should('contain', 'or immediately if no one is on-call')
+
+      // turning it back off should drop the note
+      cy.get('ul[data-cy=steps-list] :nth-child(2) li')
+        .should('contain', 'Step #1')
+        .find('button[data-cy=other-actions]')
+        .menu('Edit')
+
+      cy.dialogTitle('Edit Step')
+      cy.dialogForm({ skipIfEmpty: false })
+      cy.dialogFinish('Submit')
+
+      cy.get('body').should(
+        'not.contain',
+        'or immediately if no one is on-call',
+      )
+    })
+
     it('should add users when slack is disabled', () => {
       cy.updateConfig({ Slack: { Enable: false } })
       cy.reload()

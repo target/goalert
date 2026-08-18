@@ -83,6 +83,7 @@ export const Empty: Story = {
     value: {
       delayMinutes: 15,
       multiAck: false,
+      skipIfEmpty: false,
       actions: [],
     },
   },
@@ -93,6 +94,7 @@ export const WithExistingActions: Story = {
     value: {
       delayMinutes: 15,
       multiAck: false,
+      skipIfEmpty: false,
       actions: [
         {
           type: 'single-field',
@@ -112,6 +114,7 @@ export const ManageActions: Story = {
     value: {
       delayMinutes: 15,
       multiAck: false,
+      skipIfEmpty: false,
       actions: [],
     },
   },
