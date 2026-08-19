@@ -500,6 +500,32 @@ func (q *Queries) AlertLog_LookupNCDest(ctx context.Context, id uuid.UUID) (Null
 	return dest, err
 }
 
+const alert_AddAlertComment = `-- name: Alert_AddAlertComment :one
+INSERT INTO alert_comments(alert_id, user_id, body)
+    VALUES ($1, $2, $3)
+RETURNING
+    id, created_at
+`
+
+type Alert_AddAlertCommentParams struct {
+	AlertID int64
+	UserID  uuid.NullUUID
+	Body    string
+}
+
+type Alert_AddAlertCommentRow struct {
+	ID        int64
+	CreatedAt time.Time
+}
+
+// Adds a comment to an alert.
+func (q *Queries) Alert_AddAlertComment(ctx context.Context, arg Alert_AddAlertCommentParams) (Alert_AddAlertCommentRow, error) {
+	row := q.db.QueryRowContext(ctx, alert_AddAlertComment, arg.AlertID, arg.UserID, arg.Body)
+	var i Alert_AddAlertCommentRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
+}
+
 const alert_AlertHasEPState = `-- name: Alert_AlertHasEPState :one
 SELECT
     EXISTS (
@@ -517,6 +543,28 @@ func (q *Queries) Alert_AlertHasEPState(ctx context.Context, alertID int64) (boo
 	var has_ep_state bool
 	err := row.Scan(&has_ep_state)
 	return has_ep_state, err
+}
+
+const alert_DeleteAlertComment = `-- name: Alert_DeleteAlertComment :execrows
+DELETE FROM alert_comments
+WHERE id = $1
+    AND ($2::bool
+        OR user_id = $3)
+`
+
+type Alert_DeleteAlertCommentParams struct {
+	ID        int64
+	AnyAuthor bool
+	UserID    uuid.NullUUID
+}
+
+// Deletes a comment. Restricted to the author unless @any_author is true.
+func (q *Queries) Alert_DeleteAlertComment(ctx context.Context, arg Alert_DeleteAlertCommentParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, alert_DeleteAlertComment, arg.ID, arg.AnyAuthor, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const alert_GetAlertFeedback = `-- name: Alert_GetAlertFeedback :many
@@ -630,6 +678,61 @@ func (q *Queries) Alert_GetEscalationPolicyID(ctx context.Context, id int64) (uu
 	var escalation_policy_id uuid.UUID
 	err := row.Scan(&escalation_policy_id)
 	return escalation_policy_id, err
+}
+
+const alert_GetManyAlertComments = `-- name: Alert_GetManyAlertComments :many
+SELECT
+    id,
+    alert_id,
+    user_id,
+    body,
+    created_at
+FROM
+    alert_comments
+WHERE
+    alert_id = ANY ($1::bigint[])
+ORDER BY
+    alert_id,
+    created_at,
+    id
+`
+
+type Alert_GetManyAlertCommentsRow struct {
+	ID        int64
+	AlertID   int64
+	UserID    uuid.NullUUID
+	Body      string
+	CreatedAt time.Time
+}
+
+// Returns the comments for many alerts, oldest first.
+func (q *Queries) Alert_GetManyAlertComments(ctx context.Context, alertIds []int64) ([]Alert_GetManyAlertCommentsRow, error) {
+	rows, err := q.db.QueryContext(ctx, alert_GetManyAlertComments, pq.Array(alertIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Alert_GetManyAlertCommentsRow
+	for rows.Next() {
+		var i Alert_GetManyAlertCommentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AlertID,
+			&i.UserID,
+			&i.Body,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const alert_GetStatusAndLockService = `-- name: Alert_GetStatusAndLockService :one

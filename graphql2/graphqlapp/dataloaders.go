@@ -43,6 +43,7 @@ type loaders struct {
 	NC                        *dataloader.Loader[string, notificationchannel.Channel]
 	AlertMetrics              *dataloader.Loader[int, alertmetrics.Metric]
 	AlertFeedback             *dataloader.Loader[int, alert.Feedback]
+	AlertComments             *dataloader.AggFetcher[int, alert.Comment]
 	AlertMetadata             *dataloader.Loader[int, alert.MetadataAlertID]
 	AlertsByStatus            *dataloader.AggFetcher[uuid.UUID, gadb.ServiceAlertCountsRow]
 	AlertStats                *dataloader.AggFetcherParam[uuid.UUID, AlertStatsParam, gadb.ServiceAlertStatsRow]
@@ -72,6 +73,7 @@ func (a *App) registerLoaders(ctx context.Context) context.Context {
 		NC:                        dataloader.NewStoreLoader(ctx, a.NCStore.FindMany, func(nc notificationchannel.Channel) string { return nc.ID.String() }),
 		AlertMetrics:              dataloader.NewStoreLoader(ctx, a.AlertMetricsStore.FindMetrics, func(m alertmetrics.Metric) int { return m.ID }),
 		AlertFeedback:             dataloader.NewStoreLoader(ctx, a.AlertStore.Feedback, func(f alert.Feedback) int { return f.ID }),
+		AlertComments:             dataloader.NewStoreLoaderAgg(ctx, a.AlertStore.Comments, func(c alert.Comment) int { return c.AlertID }),
 		AlertMetadata: dataloader.NewStoreLoader(ctx, func(ctx context.Context, i []int) ([]alert.MetadataAlertID, error) {
 			return a.AlertStore.FindManyMetadata(ctx, a.DB, i)
 		}, func(md alert.MetadataAlertID) int { return int(md.ID) }),
@@ -181,6 +183,15 @@ func (app *App) FindAlertCountByStatus(ctx context.Context, serviceID uuid.UUID)
 	}
 
 	return loader.FetchAggregate(ctx, serviceID)
+}
+
+func (app *App) FindAlertComments(ctx context.Context, alertID int) ([]alert.Comment, error) {
+	loader := loadersFrom(ctx).AlertComments
+	if loader == nil {
+		return app.AlertStore.Comments(ctx, []int{alertID})
+	}
+
+	return loader.FetchAggregate(ctx, alertID)
 }
 
 func (app *App) FindOneAlertMetadata(ctx context.Context, id int) (map[string]string, error) {

@@ -10,8 +10,14 @@ export interface ActionInput {
   params: ExprStringMap
 }
 
+export interface AddAlertCommentInput {
+  alertID: number
+  body: string
+}
+
 export interface Alert {
   alertID: number
+  comments: AlertComment[]
   createdAt: ISOTimestamp
   details: string
   id: string
@@ -26,6 +32,13 @@ export interface Alert {
   state?: null | AlertState
   status: AlertStatus
   summary: string
+}
+
+export interface AlertComment {
+  body: string
+  createdAt: ISOTimestamp
+  id: string
+  user?: null | User
 }
 
 export interface AlertConnection {
@@ -759,6 +772,7 @@ export interface MessageStatusHistory {
 }
 
 export interface Mutation {
+  addAlertComment: AlertComment
   addAuthSubject: boolean
   clearTemporarySchedules: boolean
   closeMatchingAlert: boolean
@@ -779,6 +793,7 @@ export interface Mutation {
   createUserOverride?: null | UserOverride
   debugCarrierInfo: DebugCarrierInfo
   debugSendSMS?: null | DebugSendSMSInfo
+  deleteAlertComment: boolean
   deleteAll: boolean
   deleteAuthSubject: boolean
   deleteGQLAPIKey: boolean

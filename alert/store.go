@@ -228,6 +228,120 @@ func (s *Store) canTouchAlert(ctx context.Context, alertID int) error {
 	return permission.LimitCheckAny(ctx, checks...)
 }
 
+// AddComment records a comment on an alert.
+//
+// Any signed-in user may comment on any alert; commenting carries no
+// authorization beyond being a user, and never affects alert state or
+// notification routing.
+func (s *Store) AddComment(ctx context.Context, alertID int, body string) (*Comment, error) {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	c, err := Comment{AlertID: alertID, Body: body}.Normalize()
+	if err != nil {
+		return nil, err
+	}
+
+	userID := permission.UserID(ctx)
+	authorID, err := uuid.Parse(userID)
+	if err != nil {
+		// permission.User was satisfied, so this should not happen; treat a
+		// non-user subject as unauthorized rather than writing a null author.
+		return nil, validation.NewGenericError("comments require a user")
+	}
+
+	row, err := gadb.New(s.db).Alert_AddAlertComment(ctx, gadb.Alert_AddAlertCommentParams{
+		AlertID: int64(alertID),
+		UserID:  uuid.NullUUID{UUID: authorID, Valid: true},
+		Body:    c.Body,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("add comment: %w", err)
+	}
+
+	c.ID = int(row.ID)
+	c.UserID = userID
+	c.CreatedAt = row.CreatedAt
+
+	return c, nil
+}
+
+// Comments returns the comments for the given alerts, oldest first.
+func (s *Store) Comments(ctx context.Context, alertIDs []int) ([]Comment, error) {
+	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	if err != nil {
+		return nil, err
+	}
+
+	err = validate.Range("AlertIDs", len(alertIDs), 0, maxBatch)
+	if err != nil {
+		return nil, err
+	}
+	if len(alertIDs) == 0 {
+		return nil, nil
+	}
+
+	ids := make([]int64, len(alertIDs))
+	for i, id := range alertIDs {
+		ids[i] = int64(id)
+	}
+
+	rows, err := gadb.New(s.db).Alert_GetManyAlertComments(ctx, ids)
+	if err != nil {
+		return nil, fmt.Errorf("get comments: %w", err)
+	}
+
+	result := make([]Comment, 0, len(rows))
+	for _, row := range rows {
+		c := Comment{
+			ID:        int(row.ID),
+			AlertID:   int(row.AlertID),
+			Body:      row.Body,
+			CreatedAt: row.CreatedAt,
+		}
+		// NULL means the author's account was deleted; the comment survives.
+		if row.UserID.Valid {
+			c.UserID = row.UserID.UUID.String()
+		}
+		result = append(result, c)
+	}
+
+	return result, nil
+}
+
+// DeleteComment removes a comment. Users may delete their own comments;
+// admins may delete any.
+func (s *Store) DeleteComment(ctx context.Context, commentID int) error {
+	err := permission.LimitCheckAny(ctx, permission.User)
+	if err != nil {
+		return err
+	}
+
+	userID := permission.UserID(ctx)
+	authorID, err := uuid.Parse(userID)
+	if err != nil {
+		return validation.NewGenericError("comments require a user")
+	}
+
+	rows, err := gadb.New(s.db).Alert_DeleteAlertComment(ctx, gadb.Alert_DeleteAlertCommentParams{
+		ID:        int64(commentID),
+		AnyAuthor: permission.Admin(ctx),
+		UserID:    uuid.NullUUID{UUID: authorID, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("delete comment: %w", err)
+	}
+	if rows == 0 {
+		// Either it does not exist or it belongs to someone else; do not
+		// distinguish, so comment IDs cannot be probed.
+		return validation.NewGenericError("comment not found")
+	}
+
+	return nil
+}
+
 // EscalateAsOf will request escalation for the given alert ID as-of the given time.
 //
 // An error will be returned if the alert is already closed, if the service is

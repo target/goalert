@@ -158,3 +158,34 @@ FROM
 WHERE
     a.id = @id::bigint;
 
+
+-- name: Alert_AddAlertComment :one
+-- Adds a comment to an alert.
+INSERT INTO alert_comments(alert_id, user_id, body)
+    VALUES (@alert_id, @user_id, @body)
+RETURNING
+    id, created_at;
+
+-- name: Alert_GetManyAlertComments :many
+-- Returns the comments for many alerts, oldest first.
+SELECT
+    id,
+    alert_id,
+    user_id,
+    body,
+    created_at
+FROM
+    alert_comments
+WHERE
+    alert_id = ANY (@alert_ids::bigint[])
+ORDER BY
+    alert_id,
+    created_at,
+    id;
+
+-- name: Alert_DeleteAlertComment :execrows
+-- Deletes a comment. Restricted to the author unless @any_author is true.
+DELETE FROM alert_comments
+WHERE id = @id
+    AND (@any_author::bool
+        OR user_id = @user_id);
