@@ -78,3 +78,20 @@ export function renderDelayMessage(
     </Typography>
   )
 }
+
+/*
+ * Renders a note that this step keeps notifying after the alert is
+ * acknowledged. Kept separate from renderDelayMessage, which renders nothing
+ * for a last step that doesn't repeat.
+ */
+export function renderMultiAckMessage(step: { multiAck: boolean }): ReactNode {
+  if (!step.multiAck) {
+    return null
+  }
+
+  return (
+    <Typography variant='caption' component='p' sx={{ pt: 2 }}>
+      Notifications continue after acknowledgment (multi-ack)
+    </Typography>
+  )
+}

@@ -251,6 +251,7 @@ export interface CreateEscalationPolicyStepInput {
   actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
+  multiAck?: null | boolean
   newRotation?: null | CreateRotationInput
   newSchedule?: null | CreateScheduleInput
   targets?: null | TargetInput[]
@@ -528,6 +529,7 @@ export interface EscalationPolicyStep {
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
+  multiAck: boolean
   stepNumber: number
   targets: Target[]
 }
@@ -1333,6 +1335,7 @@ export interface UpdateEscalationPolicyStepInput {
   actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
+  multiAck?: null | boolean
   targets?: null | TargetInput[]
 }
 

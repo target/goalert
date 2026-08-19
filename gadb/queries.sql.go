@@ -519,6 +519,27 @@ func (q *Queries) Alert_AlertHasEPState(ctx context.Context, alertID int64) (boo
 	return has_ep_state, err
 }
 
+const alert_AlertMultiAck = `-- name: Alert_AlertMultiAck :one
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_state state
+            JOIN escalation_policy_steps step ON step.id = state.escalation_policy_step_id
+        WHERE
+            state.alert_id = $1
+            AND step.multi_ack) AS multi_ack
+`
+
+// Returns true if the alert's current escalation policy step has multi-ack enabled.
+func (q *Queries) Alert_AlertMultiAck(ctx context.Context, alertID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alert_AlertMultiAck, alertID)
+	var multi_ack bool
+	err := row.Scan(&multi_ack)
+	return multi_ack, err
+}
+
 const alert_GetAlertFeedback = `-- name: Alert_GetAlertFeedback :many
 SELECT
     alert_id,

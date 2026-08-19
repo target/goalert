@@ -112,6 +112,7 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		s := &escalation.Step{
 			DelayMinutes: input.DelayMinutes,
+			MultiAck:     input.MultiAck != nil && *input.MultiAck,
 		}
 		if input.EscalationPolicyID != nil {
 			s.PolicyID = *input.EscalationPolicyID
@@ -293,6 +294,16 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 			step.DelayMinutes = *input.DelayMinutes
 
 			err = m.PolicyStore.UpdateStepDelayTx(ctx, tx, step.ID, step.DelayMinutes)
+			if err != nil {
+				return err
+			}
+		}
+
+		// update multi-ack if provided
+		if input.MultiAck != nil {
+			step.MultiAck = *input.MultiAck
+
+			err = m.PolicyStore.UpdateStepMultiAckTx(ctx, tx, step.ID, step.MultiAck)
 			if err != nil {
 				return err
 			}

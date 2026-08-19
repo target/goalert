@@ -5,7 +5,12 @@ import Grid from '@mui/material/Grid'
 import NumberField from '../util/NumberField'
 import { DestinationInput, StringMap } from '../../schema'
 import DestinationInputChip from '../util/DestinationInputChip'
-import { TextField, Typography } from '@mui/material'
+import {
+  Checkbox,
+  FormControlLabel,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { renderMenuItem } from '../selection/DisableableMenuItem'
 import DestinationField from '../selection/DestinationField'
 import { useEPTargetTypes } from '../util/RequireConfig'
@@ -28,6 +33,7 @@ const useStyles = makeStyles(() => {
 export type FormValue = {
   delayMinutes: number
   actions: DestinationInput[]
+  multiAck: boolean
 }
 
 export type PolicyStepFormProps = {
@@ -199,6 +205,22 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
                 ? 'This will cause the step to immediately escalate'
                 : `This will cause the step to escalate after ${props.value.delayMinutes}m`
             }
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <FormControlLabel
+            control={
+              <FormField
+                component={Checkbox}
+                checkbox
+                name='multiAck'
+                fieldName='multiAck'
+                disabled={props.disabled}
+              />
+            }
+            label='Continue notifications after acknowledgment (multi-ack)'
+            labelPlacement='end'
           />
         </Grid>
       </Grid>
