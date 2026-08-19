@@ -40,11 +40,18 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 			SupportsSearch: true,
 			Hint:           fmt.Sprintf("If your channel doesn't appear in search results, invite %s (bot) to the channel and allow a minute for it to appear.", botName),
 		}},
-		DynamicParams: []nfydest.DynamicParamConfig{{
-			ParamID: "message",
-			Label:   "Message",
-			Hint:    "The text of the message to send.",
-		}},
+		DynamicParams: []nfydest.DynamicParamConfig{
+			{
+				ParamID: signalParamMessage,
+				Label:   "Message",
+				Hint:    "The text of the message to send; supports markdown formatting.",
+			},
+			{
+				ParamID: signalParamColor,
+				Label:   "Color",
+				Hint:    "GoAlert resolves `good`, `warning`, and `danger` or `#RRGGBB` hex values; defaults to neutral blue (`#439FE0`).",
+			},
+		},
 	}, nil
 }
 

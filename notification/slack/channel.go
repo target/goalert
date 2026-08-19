@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -46,9 +47,16 @@ const (
 	colorAcked   = "#867321"
 )
 
+const (
+	signalParamMessage = "message"
+	signalParamColor   = "color"
+	signalColorDefault = "#439FE0"
+)
+
 var (
-	_ nfydest.MessageSender       = &ChannelSender{}
-	_ notification.ReceiverSetter = &ChannelSender{}
+	_          nfydest.MessageSender       = &ChannelSender{}
+	_          notification.ReceiverSetter = &ChannelSender{}
+	hexColorRx                             = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 )
 
 func NewChannelSender(ctx context.Context, cfg Config) (*ChannelSender, error) {
@@ -419,6 +427,36 @@ func alertMsgOption(ctx context.Context, callbackID string, id int, summary, log
 	)
 }
 
+func signalMsgOption(message, color string) slack.MsgOption {
+	attachment := slack.Attachment{
+		Color:    signalAttachmentColor(color),
+		Fallback: message,
+		Blocks: slack.Blocks{BlockSet: []slack.Block{
+			slack.NewSectionBlock(slack.NewTextBlockObject("mrkdwn", message, false, false), nil, nil),
+		}},
+	}
+
+	return slack.MsgOptionAttachments(attachment)
+}
+
+func signalAttachmentColor(color string) string {
+	switch color {
+	case "good":
+		return colorClosed
+	case "warning":
+		return colorAcked
+	case "danger":
+		return colorUnacked
+	case "":
+		return signalColorDefault
+	default:
+		if hexColorRx.MatchString(color) {
+			return color
+		}
+		return signalColorDefault
+	}
+}
+
 func chanTS(origChannelID, externalID string) (channelID, ts string) {
 	ts = externalID
 	if strings.Contains(ts, ":") {
@@ -485,7 +523,7 @@ func (s *ChannelSender) SendMessage(ctx context.Context, msg notification.Messag
 			fmt.Sprintf("Service '%s' has %d unacknowledged alerts.\n\n<%s>", slackutilsx.EscapeMessage(t.ServiceName), t.Count, cfg.CallbackURL("/services/"+t.ServiceID+"/alerts")),
 			false))
 	case notification.SignalMessage:
-		opts = append(opts, slack.MsgOptionText(t.Param("message"), false))
+		opts = append(opts, signalMsgOption(t.Param(signalParamMessage), t.Param(signalParamColor)))
 	case notification.ScheduleOnCallUsers:
 		opts = append(opts, slack.MsgOptionText(s.onCallNotificationText(ctx, t), false))
 	default:

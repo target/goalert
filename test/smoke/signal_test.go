@@ -88,7 +88,7 @@ func TestSignal(t *testing.T) {
 					{dest: {type: "builtin-webhook", args: {webhook_url: "%s"}},
 						params: {body: "req.body['webhook-body']"}},
 					{dest: {type: "builtin-slack-channel", args: {slack_channel_id: "%s"}},
-						params: {message: "req.body['slack-text']"}}
+						params: {message: "req.body['slack-text']", color: "'danger'"}}
 				]
 			})
 		}`, respData.CreateIntegrationKey.ID, srv.URL+"/test-path", h.Slack().Channel("chan1").ID()))
@@ -112,6 +112,8 @@ func TestSignal(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, r.StatusCode)
 
 	assert.True(t, gotTestMessage, "expected webhook test message")
-	h.Slack().Channel("chan1").ExpectMessage("slack-text-data")
+	msg := h.Slack().Channel("chan1").ExpectMessage("slack-text-data")
+	msg.AssertColor("#862421")
+	msg.AssertActions()
 	h.Twilio(t).Device(h.Phone("1")).ExpectSMS("test-summary")
 }
