@@ -41,7 +41,8 @@ type Config struct {
 
 	ConfigSource config.Source
 
-	MaxMessages int
+	MaxMessages         int
+	MaxMsgPerSecPerType int
 
 	DisableCycle bool
 	LogCycles    bool

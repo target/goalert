@@ -157,7 +157,7 @@ func NewEngine(ctx context.Context, db *sql.DB, c *Config) (*Engine, error) {
 		p.modules = append(p.modules, signalMgr)
 	}
 
-	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr)
+	p.msg, err = message.NewDB(ctx, db, c.AlertLogStore, p.mgr, c.CycleTime, c.MaxMsgPerSecPerType)
 	if err != nil {
 		return nil, errors.Wrap(err, "messaging backend")
 	}
