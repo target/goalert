@@ -64,10 +64,12 @@ type DB struct {
 
 	lastSent     time.Time
 	sentMessages map[string]Message
+
+	globalThrottle ThrottleConfig
 }
 
 // NewDB creates a new DB.
-func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycle.Pausable) (*DB, error) {
+func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycle.Pausable, cycleTime time.Duration, maxMsgPerSecPerType int) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeMessage,
 		Version: 11,
@@ -121,6 +123,8 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 		return nil, p.Err
 	}
 	return &DB{
+		globalThrottle: GlobalCMThrottle(maxMsgPerSecPerType, cycleTime),
+
 		lock:          lock,
 		pausable:      pausable,
 		alertlogstore: a,
@@ -304,7 +308,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 }
 
 func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*queue, error) {
-	cutoff := now.Add(-maxThrottleDuration(PerCMThrottle, GlobalCMThrottle))
+	cutoff := now.Add(-maxThrottleDuration(PerCMThrottle, db.globalThrottle))
 	sentSince := db.lastSent
 	if sentSince.IsZero() {
 		sentSince = cutoff
@@ -394,7 +398,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 	}
 
 	if cfg.General.DisableMessageBundles {
-		return newQueue(result, now), nil
+		return newQueue(db.globalThrottle, result, now), nil
 	}
 
 	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
@@ -419,7 +423,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		return nil, err
 	}
 
-	return newQueue(result, now), nil
+	return newQueue(db.globalThrottle, result, now), nil
 }
 
 // UpdateMessageStatus will update the state of a message.

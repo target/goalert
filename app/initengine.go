@@ -46,7 +46,8 @@ func (app *App) initEngine(ctx context.Context) error {
 
 		CycleTime: app.cfg.EngineCycleTime,
 
-		MaxMessages: 50,
+		MaxMessages:         app.cfg.MaxMsgPerSecPerType * 10,
+		MaxMsgPerSecPerType: app.cfg.MaxMsgPerSecPerType,
 
 		DisableCycle: app.cfg.APIOnly,
 		LogCycles:    app.cfg.LogEngine,
