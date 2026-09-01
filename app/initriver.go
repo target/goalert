@@ -118,7 +118,7 @@ func (app *App) initRiver(ctx context.Context) error {
 			river.QueueDefault: {MaxWorkers: 100},
 		},
 		RescueStuckJobsAfter: 5 * time.Minute,
-		WorkerMiddleware: []rivertype.WorkerMiddleware{
+		Middleware: []rivertype.Middleware{
 			workerMiddlewareFunc(func(ctx context.Context, doInner func(ctx context.Context) error) error {
 				// Ensure config is set in the context for all workers.
 				return doInner(app.ConfigStore.Config().Context(ctx))
