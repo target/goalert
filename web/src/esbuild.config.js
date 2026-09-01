@@ -54,7 +54,7 @@ async function run() {
     minify: isProdBuild,
     sourcemap: 'linked',
     plugins: [dynamicPublicPathPlugin],
-    target: ['chrome80', 'firefox99', 'safari12', 'edge79'],
+    target: ['chrome80', 'edge79', 'firefox99', 'safari14.1'],
     banner: {
       js: `var GOALERT_VERSION=${JSON.stringify(process.env.GOALERT_VERSION)};`,
     },
