@@ -121,6 +121,7 @@ func (m *Mutation) CreateUserContactMethod(ctx context.Context, input graphql2.C
 		UserID:        input.UserID,
 		Disabled:      true,
 		StatusUpdates: input.EnableStatusUpdates != nil && *input.EnableStatusUpdates,
+		Private:       input.Private != nil && *input.Private,
 	}
 
 	if input.Dest != nil {
@@ -188,6 +189,9 @@ func (m *Mutation) UpdateUserContactMethod(ctx context.Context, input graphql2.U
 				return errAlreadySet
 			}
 			cm.Name = *input.Name
+		}
+		if input.Private != nil {
+			cm.Private = *input.Private
 		}
 
 		if input.EnableStatusUpdates != nil {

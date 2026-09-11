@@ -1342,6 +1342,7 @@ type UserContactMethod struct {
 	Metadata            pqtype.NullRawMessage
 	Name                string
 	Pending             bool
+	Private             bool
 	Type                EnumUserContactMethodType
 	UserID              uuid.UUID
 	Value               string

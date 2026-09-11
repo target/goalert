@@ -326,6 +326,7 @@ export interface CreateUserContactMethodInput {
   enableStatusUpdates?: null | boolean
   name: string
   newUserNotificationRule?: null | CreateUserNotificationRuleInput
+  private?: null | boolean
   type?: null | ContactMethodType
   userID: string
   value?: null | string
@@ -1402,6 +1403,7 @@ export interface UpdateUserContactMethodInput {
   enableStatusUpdates?: null | boolean
   id: string
   name?: null | string
+  private?: null | boolean
   value?: null | string
 }
 
@@ -1465,6 +1467,7 @@ export interface UserContactMethod {
   lastVerifyMessageState?: null | NotificationState
   name: string
   pending: boolean
+  private: boolean
   statusUpdates: StatusUpdateState
   type?: null | ContactMethodType
   value: string

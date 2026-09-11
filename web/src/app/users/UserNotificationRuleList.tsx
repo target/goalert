@@ -104,19 +104,23 @@ export default function UserNotificationRuleList(props: {
           emptyMessage='No notification rules'
         >
           {sortNotificationRules(user?.notificationRules ?? []).map((nr) => {
-            const formattedValue =
-              nr.contactMethod.dest.displayInfo.text || 'Unknown Label'
-            const name = nr.contactMethod.name || 'Unknown User'
-            const type =
-              nr.contactMethod.dest.displayInfo.iconAltText || 'Unknown Type'
+            let info = null
+            if (nr.contactMethod) {
+              const formattedValue =
+                nr.contactMethod.dest.displayInfo.text || 'Unknown Label'
+              const name = nr.contactMethod.name || 'Unknown User'
+              const type =
+                nr.contactMethod.dest.displayInfo.iconAltText || 'Unknown Type'
+              info = {
+                type,
+                name,
+                formattedValue,
+              }
+            }
             return (
               <CompListItemText
                 key={nr.id}
-                title={formatNotificationRule(nr.delayMinutes, {
-                  type,
-                  name,
-                  formattedValue,
-                })}
+                title={formatNotificationRule(nr.delayMinutes, info)}
                 action={
                   props.readOnly ? null : (
                     <IconButton
