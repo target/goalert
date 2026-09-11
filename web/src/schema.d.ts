@@ -1674,6 +1674,8 @@ type ConfigID =
   | 'Slack.SigningSecret'
   | 'Slack.InteractiveMessages'
   | 'Slack.DisableBroadcastThreadReplies'
+  | 'Teams.Enable'
+  | 'Teams.AllowedWorkflowURLs'
   | 'Twilio.Enable'
   | 'Twilio.VoiceName'
   | 'Twilio.VoiceLanguage'
