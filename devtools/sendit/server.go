@@ -74,13 +74,13 @@ func NewServer(authSecret []byte, prefix string) *Server {
 	transport.DialContext = s.DialContext
 
 	s.proxy = &httputil.ReverseProxy{
-		Director: func(req *http.Request) {
-			req.URL.Scheme = "http"
-			req.URL.Host = req.Context().Value(serverContextValueHost).(string)
+		Rewrite: func(r *httputil.ProxyRequest) {
+			r.Out.URL.Scheme = "http"
+			r.Out.URL.Host = r.In.Context().Value(serverContextValueHost).(string)
 
-			if _, ok := req.Header["User-Agent"]; !ok {
+			if _, ok := r.Out.Header["User-Agent"]; !ok {
 				// explicitly disable User-Agent so it's not set to default value
-				req.Header.Set("User-Agent", "")
+				r.Out.Header.Set("User-Agent", "")
 			}
 		},
 		Transport: transport,
