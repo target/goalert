@@ -54,10 +54,10 @@ func TestPrivateCM(t *testing.T) {
 	t.Parallel()
 
 	const sql = `
-		insert into users (id, name, email)
+		insert into users (id, name, email, role)
 		values
-			({{uuid "user1"}}, 'bob', 'joe'),
-			({{uuid "user2"}}, 'bob2', 'joe2');
+			({{uuid "user1"}}, 'bob', 'joe', 'user'),
+			({{uuid "user2"}}, 'bob2', 'joe2', 'user');
 	`
 
 	h := harness.NewHarness(t, sql, "")
