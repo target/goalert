@@ -26,6 +26,21 @@ for file in $(find devtools -name '*.yml'); do
   fi
 done
 
+# golangci-lint workflow MUST match go.mod and golangci-lint.version
+LINT_WF=.github/workflows/golangci-lint.yml
+GO_MOD_VER=$(awk '$1=="go"{print $2}' go.mod | cut -d. -f1,2)
+WF_GO_VER=$(grep "go-version:" "$LINT_WF" | awk '{print $2}' | tr -d "'\"")
+if [ "$GO_MOD_VER" != "$WF_GO_VER" ]; then
+  echo "go-version mismatch in $LINT_WF (expected $GO_MOD_VER from go.mod, got $WF_GO_VER)"
+  exit 1
+fi
+LINT_VER=$(cat golangci-lint.version)
+WF_LINT_VER=$(grep "^ *version:" "$LINT_WF" | awk '{print $2}' | tr -d "'\"" | sed "s/^v//")
+if [ "$LINT_VER" != "$WF_LINT_VER" ]; then
+  echo "golangci-lint version mismatch in $LINT_WF (expected $LINT_VER from golangci-lint.version, got $WF_LINT_VER)"
+  exit 1
+fi
+
 # disk and DB MUST agree in schema file
 DISK_HASH=$(grep "^-- DISK=" migrate/schema.sql | awk '{print $2}' | awk -F'=' '{print $2}')
 PSQL_HASH=$(grep "^-- PSQL=" migrate/schema.sql | awk '{print $2}' | awk -F'=' '{print $2}')
