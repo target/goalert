@@ -55,6 +55,7 @@ import (
 	"github.com/target/goalert/user/notificationrule"
 	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
+	"github.com/target/goalert/util/privnet"
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -209,7 +210,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 		doneCh: make(chan struct{}),
 		Logger: c.Logger,
 		httpClient: &http.Client{
-			Transport: calllimiter.RoundTripper(http.DefaultTransport),
+			Transport: calllimiter.RoundTripper(privnet.RoundTripper(http.DefaultTransport.(*http.Transport).Clone())),
 		},
 	}
 
