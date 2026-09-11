@@ -2,6 +2,13 @@
 
 Webhooks are POST requests to specified endpoints with a content type of `application/json`. Webhook calls must complete within 3 seconds.
 
+### Restricting Destinations (Administrators)
+
+By default, any user who can add a webhook may point it at any URL reachable from the GoAlert server, including internal or private network addresses. Administrators can restrict this from the Admin page under **Webhook**:
+
+- **Allowed URLs**: if set, only webhook URLs matching one of the listed URL prefixes are accepted. If empty, all URLs are allowed.
+- **Block Private Addresses**: if enabled, requests to private, loopback, and link-local addresses (e.g., `10.0.0.0/8`, `127.0.0.1`, `169.254.169.254`) are rejected. The check is applied at connection time, so it also covers DNS names and redirects that resolve to such addresses. If requests are routed through an HTTP proxy, destination policy must be enforced at the proxy.
+
 Below are example payloads:
 
 ### Verification Message

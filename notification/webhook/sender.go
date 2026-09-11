@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/nfydest"
+	"github.com/target/goalert/util/privnet"
 )
 
 type Sender struct {
@@ -27,7 +29,7 @@ type POSTDataAlert struct {
 	ServiceID   string
 	ServiceName string
 	Meta        map[string]string
-	GoAlertURL string
+	GoAlertURL  string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
@@ -188,6 +190,10 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 		}, nil
 	}
 
+	if cfg.Webhook.BlockPrivateAddresses {
+		ctx = privnet.WithBlockPrivate(ctx)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, "POST", webURL, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
@@ -195,10 +201,18 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 
 	req.Header.Add("Content-Type", "application/json")
 
-	_, err = http.DefaultClient.Do(req)
+	resp, err := s.Client.Do(req)
+	if errors.Is(err, privnet.ErrPrivateAddress) {
+		// fail permanently; the destination is blocked by the administrator
+		return &notification.SentMessage{
+			State:        notification.StateFailedPerm,
+			StateDetails: "destination address is not allowed by administrator",
+		}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
+	resp.Body.Close()
 
 	return &notification.SentMessage{State: notification.StateSent}, nil
 }

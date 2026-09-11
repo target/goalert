@@ -1695,5 +1695,6 @@ type ConfigID =
   | 'SMTP.Password'
   | 'Webhook.Enable'
   | 'Webhook.AllowedURLs'
+  | 'Webhook.BlockPrivateAddresses'
   | 'Feedback.Enable'
   | 'Feedback.OverrideURL'
