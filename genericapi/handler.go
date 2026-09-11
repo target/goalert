@@ -123,8 +123,11 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status := alert.StatusTriggered
-	if action == "close" {
+	switch action {
+	case "close":
 		status = alert.StatusClosed
+	case "acknowledge":
+		status = alert.StatusActive
 	}
 
 	summary = validate.SanitizeText(summary, alert.MaxSummaryLength)
