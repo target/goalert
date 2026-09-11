@@ -24,6 +24,8 @@ interface CreateAlertFormProps {
   // Enables functionality to remove an incoming value at it's index from
   // an array field if the new value is falsey.
   removeFalseyIdxs?: boolean
+
+  onlyIDs?: string[]
 }
 
 // TODO: remove this interface once FormContainer.js has been converted to TS
@@ -44,7 +46,7 @@ export function CreateAlertForm({
         <FormField
           required
           render={(props: CreateAlertServiceSelectProps) => (
-            <CreateAlertServiceSelect {...props} />
+            <CreateAlertServiceSelect {...props} only={otherProps.onlyIDs} />
           )}
           name='serviceIDs'
         />

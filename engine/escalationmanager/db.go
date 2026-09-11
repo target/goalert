@@ -100,7 +100,7 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 
 		newPolicies: p.P(`
 			with to_escalate as (
-				select alert_id, step.id ep_step_id, step.delay, step.escalation_policy_id, a.service_id
+				select alert_id, step.id ep_step_id, step.delay, step.escalation_policy_id, a.service_id, step.multi_ack
 				from escalation_policy_state state
 				join escalation_policy_steps step on
 					step.escalation_policy_id = state.escalation_policy_id and
@@ -111,14 +111,14 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				for update skip locked
 				limit 1000
 			), _step_cycles as (
-				select esc.alert_id, on_call.user_id, esc.ep_step_id
+				select esc.alert_id, on_call.user_id, esc.ep_step_id, esc.multi_ack
 				from to_escalate esc
 				join ep_step_on_call_users on_call on
 					on_call.end_time isnull and
 					on_call.ep_step_id = esc.ep_step_id
 			), _cycles as (
-				insert into notification_policy_cycles (alert_id, user_id)
-				select alert_id, user_id from _step_cycles
+				insert into notification_policy_cycles (alert_id, user_id, multi_ack)
+				select alert_id, user_id, multi_ack from _step_cycles
 			), _step_channels as (
 				select
 					cast('alert_notification' as enum_outgoing_messages_type),
@@ -167,7 +167,8 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					step.delay,
 					state.escalation_policy_step_number >= ep.step_count repeated,
 					a.service_id,
-					step.escalation_policy_id
+					step.escalation_policy_id,
+					step.multi_ack
 				from escalation_policy_state state
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
 				join escalation_policies ep on ep.id = state.escalation_policy_id
@@ -184,14 +185,14 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				for update skip locked
 				limit 100
 			), _step_cycles as (
-				select esc.alert_id, on_call.user_id, esc.ep_step_id
+				select esc.alert_id, on_call.user_id, esc.ep_step_id, esc.multi_ack
 				from to_escalate esc
 				join ep_step_on_call_users on_call on
 					on_call.end_time isnull and
 					on_call.ep_step_id = esc.ep_step_id
 			), _cycles as (
-				insert into notification_policy_cycles (alert_id, user_id)
-				select alert_id, user_id
+				insert into notification_policy_cycles (alert_id, user_id, multi_ack)
+				select alert_id, user_id, multi_ack
 				from _step_cycles
 			), _step_channels as (
 				select
@@ -243,7 +244,8 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					oldStep.delay old_delay,
 					oldStep.step_number + 1 >= ep.step_count repeated,
 					nextStep.escalation_policy_id,
-					a.service_id
+					a.service_id,
+					nextStep.multi_ack
 				from escalation_policy_state state
 				join alerts a on a.id = state.alert_id and (a.status = 'triggered' or state.force_escalation)
 				join escalation_policies ep on ep.id = state.escalation_policy_id
@@ -266,14 +268,14 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				for update skip locked
 				limit 500
 			), _step_cycles as (
-				select esc.alert_id, on_call.user_id, esc.ep_step_id
+				select esc.alert_id, on_call.user_id, esc.ep_step_id, esc.multi_ack
 				from to_escalate esc
 				join ep_step_on_call_users on_call on
 					on_call.end_time isnull and
 					on_call.ep_step_id = esc.ep_step_id
 			), _cycles as (
-				insert into notification_policy_cycles (alert_id, user_id)
-				select alert_id, user_id
+				insert into notification_policy_cycles (alert_id, user_id, multi_ack)
+				select alert_id, user_id, multi_ack
 				from _step_cycles
 			), _step_channels as (
 				select

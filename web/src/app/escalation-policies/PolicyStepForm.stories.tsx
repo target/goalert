@@ -82,6 +82,7 @@ export const Empty: Story = {
   args: {
     value: {
       delayMinutes: 15,
+      multiAck: false,
       actions: [],
     },
   },
@@ -91,6 +92,7 @@ export const WithExistingActions: Story = {
   args: {
     value: {
       delayMinutes: 15,
+      multiAck: false,
       actions: [
         {
           type: 'single-field',
@@ -109,6 +111,7 @@ export const ManageActions: Story = {
   args: {
     value: {
       delayMinutes: 15,
+      multiAck: false,
       actions: [],
     },
   },

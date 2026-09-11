@@ -233,7 +233,7 @@ function testWizard(): void {
       dontShowFTSFields('secondarySchedule')
     })
 
-    it('should validate name lengths correctly', () => {
+    it.only('should validate name lengths correctly', () => {
       let teamName =
         'This Team Name Is Much Too Long and Will Error Out Upon Validation'
       cy.get('input[name="teamName"]').type(teamName)

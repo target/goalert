@@ -91,6 +91,7 @@ export interface _QueryListProps extends ControlledPaginatedListProps {
 
   createLabel?: string
   hideCreate?: boolean
+  pause?: boolean
 }
 
 export type QueryListProps = Omit<_QueryListProps, 'items'>
@@ -143,6 +144,7 @@ export default function QueryList(props: QueryListProps): React.JSX.Element {
     variables: mapVariables(queryVariables),
     fetchPolicy: 'network-only',
     pollInterval: POLL_INTERVAL,
+    skip: !!props.pause,
   })
 
   const nodes = data?.data?.nodes ?? []
@@ -153,6 +155,8 @@ export default function QueryList(props: QueryListProps): React.JSX.Element {
   // isLoading returns true if the parent says we are, or
   // we are currently on an incomplete page and `loadMore` is available.
   const isLoading = (() => {
+    if (props.pause) return true
+
     if (!data && loading) return true
 
     // We are on a future/incomplete page and loadMore is true
@@ -226,7 +230,7 @@ export default function QueryList(props: QueryListProps): React.JSX.Element {
   }
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} data-ql='true' data-ql-ready={!isLoading}>
       {renderList()}
       {!props.infiniteScroll && (
         <PageControls

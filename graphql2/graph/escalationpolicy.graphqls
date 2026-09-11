@@ -1,11 +1,19 @@
 extend type EscalationPolicyStep {
   actions: [Destination!]!
+
+  """
+  If true, notifications for users on this step continue after the alert is
+  acknowledged, so that everyone on the step is notified and can acknowledge.
+  """
+  multiAck: Boolean!
 }
 
 extend input CreateEscalationPolicyStepInput {
   actions: [DestinationInput!]
+  multiAck: Boolean
 }
 
 extend input UpdateEscalationPolicyStepInput {
   actions: [DestinationInput!]
+  multiAck: Boolean
 }

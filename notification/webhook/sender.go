@@ -27,6 +27,7 @@ type POSTDataAlert struct {
 	ServiceID   string
 	ServiceName string
 	Meta        map[string]string
+	GoAlertURL string
 }
 
 // POSTDataAlertBundle represents fields in outgoing alert bundle notification.
@@ -36,23 +37,31 @@ type POSTDataAlertBundle struct {
 	ServiceID   string
 	ServiceName string
 	Count       int
+	GoAlertURL  string
 }
 
 // POSTDataAlertStatus represents fields in outgoing alert status notification.
 type POSTDataAlertStatus struct {
-	AppName  string
-	Type     string
-	AlertID  int
-	LogEntry string
+	AppName     string
+	Type        string
+	AlertID     int
+	Summary     string
+	Details     string
+	ServiceID   string
+	ServiceName string
+	Meta        map[string]string
+	LogEntry    string
+	GoAlertURL  string
 }
 
 // POSTDataAlertStatusBundle represents fields in outgoing alert status bundle notification.
 type POSTDataAlertStatusBundle struct {
-	AppName  string
-	Type     string
-	AlertID  int
-	LogEntry string
-	Count    int
+	AppName    string
+	Type       string
+	AlertID    int
+	LogEntry   string
+	Count      int
+	GoAlertURL string
 }
 
 // POSTDataVerification represents fields in outgoing verification notification.
@@ -119,6 +128,7 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Meta:        m.Meta,
+			GoAlertURL:  cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
 		}
 	case notification.AlertBundle:
 		payload = POSTDataAlertBundle{
@@ -127,13 +137,20 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 			ServiceID:   m.ServiceID,
 			ServiceName: m.ServiceName,
 			Count:       m.Count,
+			GoAlertURL:  cfg.CallbackURL(fmt.Sprintf("/services/%s/alerts", m.ServiceID)),
 		}
 	case notification.AlertStatus:
 		payload = POSTDataAlertStatus{
-			AppName:  cfg.ApplicationName(),
-			Type:     "AlertStatus",
-			AlertID:  m.AlertID,
-			LogEntry: m.LogEntry,
+			AppName:     cfg.ApplicationName(),
+			Type:        "AlertStatus",
+			Details:     m.Details,
+			AlertID:     m.AlertID,
+			Summary:     m.Summary,
+			ServiceID:   m.ServiceID,
+			ServiceName: m.ServiceName,
+			Meta:        m.Meta,
+			LogEntry:    m.LogEntry,
+			GoAlertURL:  cfg.CallbackURL(fmt.Sprintf("/alerts/%d", m.AlertID)),
 		}
 	case notification.ScheduleOnCallUsers:
 		// We use types defined in this package to insulate against unintended API

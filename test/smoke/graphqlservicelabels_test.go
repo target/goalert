@@ -23,9 +23,9 @@ func TestGraphQLServiceLabels(t *testing.T) {
 	values
 		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
 
-	insert into labels (id, tgt_service_id, key, value) 
+	insert into labels (tgt_service_id, key, value) 
 	values
-		('1', {{uuid "sid"}}, 'foo/bar', 'testvalue');
+		({{uuid "sid"}}, 'foo/bar', 'testvalue');
 `
 
 	h := harness.NewHarness(t, sql, "labels-switchover-trigger")

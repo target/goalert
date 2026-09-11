@@ -73,6 +73,7 @@ const meta = {
                   {
                     id: 'step1',
                     delayMinutes: 17,
+                    multiAck: false,
                     actions: [
                       {
                         type: 'single-field',

@@ -177,14 +177,45 @@ test('Alerts', async ({ page, isMobile }) => {
   }
 
   await expect(page.getByTestId('service-recent-events')).toContainText(
-    'Created',
+    'Acknowledged',
   )
   await expect(page.getByTestId('service-recent-events')).toContainText(
-    'Acknowledged',
+    'Escalated',
   )
   await expect(page.getByTestId('service-recent-events')).toContainText(
     'Closed',
   )
+
+  // Validate availability from EP page
+  await page.locator('a[href^="/escalation-policies/"]').click()
+  await page
+    .getByRole('link', {
+      name: 'Manage alerts specific to services using this policy',
+    })
+    .click()
+
+  // Wait for data-ql=true and data-ql-ready=true
+  await page.waitForSelector('[data-ql="true"][data-ql-ready="true"]')
+  await page.waitForLoadState('networkidle')
+  await expect(page.getByText('No results')).toBeVisible()
+
+  await page.getByRole('tab', { name: 'CLOSED' }).click()
+
+  // ensure the url filter is updated
+  await expect(page).toHaveURL(/filter=closed/)
+
+  // ensure the tab has aria-selected=true
+  await expect(
+    page.getByRole('tab', { name: 'CLOSED', selected: true }),
+  ).toBeVisible()
+
+  const firstName = name.split(' ')[1]
+
+  await expect(
+    await page.getByRole('link', {
+      name: new RegExp(`^\\d+: CLOSED pw-service ${firstName}`),
+    }),
+  ).toBeVisible()
 })
 
 test('Metric', async ({ page, isMobile }) => {
@@ -223,8 +254,8 @@ test('Label', async ({ page, isMobile }) => {
   await expect(page.getByText(key)).toBeVisible()
   await expect(page.getByText(value)).toBeVisible()
 
-  // Delete the label, confirm it's no longer visible
-  await page.getByRole('button', { name: 'Other Actions' }).click()
+  // Delete the first label, confirm it's no longer visible
+  await page.getByRole('button', { name: 'Other Actions' }).first().click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await page.getByRole('button', { name: 'Confirm' }).click()
 

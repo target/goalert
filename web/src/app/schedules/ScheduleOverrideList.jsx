@@ -19,7 +19,8 @@ import { defaultTempSchedValue } from './temp-sched/sharedUtils'
 import ScheduleOverrideDialog from './ScheduleOverrideDialog'
 import CreateFAB from '../lists/CreateFAB'
 import ListPageControls from '../lists/ListPageControls'
-import FlatList from '../lists/FlatList'
+import CompList from '../lists/CompList'
+import { CompListItemText } from '../lists/CompListItems'
 
 const query = gql`
   query scheduleOverrides($input: UserOverrideSearchOptions) {
@@ -143,35 +144,10 @@ export default function ScheduleOverrideList({ scheduleID }) {
         loading={q.fetching}
         slots={{
           list: (
-            <FlatList
+            <CompList
               emptyMessage='No results'
-              headerNote={note}
-              items={
-                q.data?.userOverrides.nodes.map((n) => ({
-                  title: n.addUser ? n.addUser.name : n.removeUser.name,
-                  subText: subText(n),
-                  icon: (
-                    <UserAvatar
-                      userID={n.addUser ? n.addUser.id : n.removeUser.id}
-                    />
-                  ),
-                  secondaryAction: (
-                    <OtherActions
-                      actions={[
-                        {
-                          label: 'Edit',
-                          onClick: () => setEditID(n.id),
-                        },
-                        {
-                          label: 'Delete',
-                          onClick: () => setDeleteID(n.id),
-                        },
-                      ]}
-                    />
-                  ),
-                })) || []
-              }
-              headerAction={
+              note={note}
+              action={
                 <React.Fragment>
                   <FilterContainer onReset={() => resetFilter()}>
                     <Grid item xs={12}>
@@ -212,7 +188,34 @@ export default function ScheduleOverrideList({ scheduleID }) {
                   )}
                 </React.Fragment>
               }
-            />
+            >
+              {q.data?.userOverrides.nodes.map((n) => (
+                <CompListItemText
+                  key={n.id}
+                  title={n.addUser ? n.addUser.name : n.removeUser.name}
+                  subText={subText(n)}
+                  icon={
+                    <UserAvatar
+                      userID={n.addUser ? n.addUser.id : n.removeUser.id}
+                    />
+                  }
+                  action={
+                    <OtherActions
+                      actions={[
+                        {
+                          label: 'Edit',
+                          onClick: () => setEditID(n.id),
+                        },
+                        {
+                          label: 'Delete',
+                          onClick: () => setDeleteID(n.id),
+                        },
+                      ]}
+                    />
+                  }
+                />
+              ))}
+            </CompList>
           ),
         }}
       />

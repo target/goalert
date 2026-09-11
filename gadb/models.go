@@ -976,6 +976,7 @@ type EscalationPolicyStep struct {
 	Delay              int32
 	EscalationPolicyID uuid.UUID
 	ID                 uuid.UUID
+	MultiAck           bool
 	StepNumber         int32
 }
 
@@ -1035,10 +1036,13 @@ type Keyring struct {
 }
 
 type Label struct {
-	ID           int64
-	Key          string
-	TgtServiceID uuid.UUID
-	Value        string
+	ID            int64
+	Key           string
+	TgtEpID       uuid.NullUUID
+	TgtRotationID uuid.NullUUID
+	TgtScheduleID uuid.NullUUID
+	TgtServiceID  uuid.NullUUID
+	Value         string
 }
 
 type MessageStatusHistory struct {
@@ -1071,6 +1075,7 @@ type NotificationPolicyCycle struct {
 	Checked     bool
 	ID          uuid.UUID
 	LastTick    sql.NullTime
+	MultiAck    bool
 	RepeatCount int32
 	StartedAt   time.Time
 	UserID      uuid.UUID

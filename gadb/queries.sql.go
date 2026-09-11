@@ -519,6 +519,27 @@ func (q *Queries) Alert_AlertHasEPState(ctx context.Context, alertID int64) (boo
 	return has_ep_state, err
 }
 
+const alert_AlertMultiAck = `-- name: Alert_AlertMultiAck :one
+SELECT
+    EXISTS (
+        SELECT
+            1
+        FROM
+            escalation_policy_state state
+            JOIN escalation_policy_steps step ON step.id = state.escalation_policy_step_id
+        WHERE
+            state.alert_id = $1
+            AND step.multi_ack) AS multi_ack
+`
+
+// Returns true if the alert's current escalation policy step has multi-ack enabled.
+func (q *Queries) Alert_AlertMultiAck(ctx context.Context, alertID int64) (bool, error) {
+	row := q.db.QueryRowContext(ctx, alert_AlertMultiAck, alertID)
+	var multi_ack bool
+	err := row.Scan(&multi_ack)
+	return multi_ack, err
+}
+
 const alert_GetAlertFeedback = `-- name: Alert_GetAlertFeedback :many
 SELECT
     alert_id,
@@ -3210,16 +3231,28 @@ func (q *Queries) Keyring_UpdateKeyringSecrets(ctx context.Context, arg Keyring_
 const labelDeleteKeyByTarget = `-- name: LabelDeleteKeyByTarget :exec
 DELETE FROM labels
 WHERE key = $1
-    AND tgt_service_id = $2
+    AND (tgt_service_id = $2::uuid
+        OR tgt_schedule_id = $3::uuid
+        OR tgt_rotation_id = $4::uuid
+        OR tgt_ep_id = $5::uuid)
 `
 
 type LabelDeleteKeyByTargetParams struct {
-	Key          string
-	TgtServiceID uuid.UUID
+	Key        string
+	ServiceID  uuid.NullUUID
+	ScheduleID uuid.NullUUID
+	RotationID uuid.NullUUID
+	EpID       uuid.NullUUID
 }
 
 func (q *Queries) LabelDeleteKeyByTarget(ctx context.Context, arg LabelDeleteKeyByTargetParams) error {
-	_, err := q.db.ExecContext(ctx, labelDeleteKeyByTarget, arg.Key, arg.TgtServiceID)
+	_, err := q.db.ExecContext(ctx, labelDeleteKeyByTarget,
+		arg.Key,
+		arg.ServiceID,
+		arg.ScheduleID,
+		arg.RotationID,
+		arg.EpID,
+	)
 	return err
 }
 
@@ -3230,16 +3263,31 @@ SELECT
 FROM
     labels
 WHERE
-    tgt_service_id = $1
+    tgt_service_id = $1::uuid
+    OR tgt_schedule_id = $2::uuid
+    OR tgt_rotation_id = $3::uuid
+    OR tgt_ep_id = $4::uuid
 `
+
+type LabelFindAllByTargetParams struct {
+	ServiceID  uuid.NullUUID
+	ScheduleID uuid.NullUUID
+	RotationID uuid.NullUUID
+	EpID       uuid.NullUUID
+}
 
 type LabelFindAllByTargetRow struct {
 	Key   string
 	Value string
 }
 
-func (q *Queries) LabelFindAllByTarget(ctx context.Context, tgtServiceID uuid.UUID) ([]LabelFindAllByTargetRow, error) {
-	rows, err := q.db.QueryContext(ctx, labelFindAllByTarget, tgtServiceID)
+func (q *Queries) LabelFindAllByTarget(ctx context.Context, arg LabelFindAllByTargetParams) ([]LabelFindAllByTargetRow, error) {
+	rows, err := q.db.QueryContext(ctx, labelFindAllByTarget,
+		arg.ServiceID,
+		arg.ScheduleID,
+		arg.RotationID,
+		arg.EpID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -3262,21 +3310,31 @@ func (q *Queries) LabelFindAllByTarget(ctx context.Context, tgtServiceID uuid.UU
 }
 
 const labelSetByTarget = `-- name: LabelSetByTarget :exec
-INSERT INTO labels(key, value, tgt_service_id)
-    VALUES ($1, $2, $3)
-ON CONFLICT (key, tgt_service_id)
+INSERT INTO labels(key, value, tgt_service_id, tgt_schedule_id, tgt_rotation_id, tgt_ep_id)
+    VALUES ($1, $2, $3::uuid, $4::uuid, $5::uuid, $6::uuid)
+ON CONFLICT (key, tgt_service_id, tgt_schedule_id, tgt_rotation_id, tgt_ep_id)
     DO UPDATE SET
         value = $2
 `
 
 type LabelSetByTargetParams struct {
-	Key          string
-	Value        string
-	TgtServiceID uuid.UUID
+	Key        string
+	Value      string
+	ServiceID  uuid.NullUUID
+	ScheduleID uuid.NullUUID
+	RotationID uuid.NullUUID
+	EpID       uuid.NullUUID
 }
 
 func (q *Queries) LabelSetByTarget(ctx context.Context, arg LabelSetByTargetParams) error {
-	_, err := q.db.ExecContext(ctx, labelSetByTarget, arg.Key, arg.Value, arg.TgtServiceID)
+	_, err := q.db.ExecContext(ctx, labelSetByTarget,
+		arg.Key,
+		arg.Value,
+		arg.ServiceID,
+		arg.ScheduleID,
+		arg.RotationID,
+		arg.EpID,
+	)
 	return err
 }
 

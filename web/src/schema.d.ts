@@ -241,6 +241,7 @@ export interface CreateBasicAuthInput {
 export interface CreateEscalationPolicyInput {
   description?: null | string
   favorite?: null | boolean
+  labels?: null | SetLabelInput[]
   name: string
   repeat?: null | number
   steps?: null | CreateEscalationPolicyStepInput[]
@@ -250,6 +251,7 @@ export interface CreateEscalationPolicyStepInput {
   actions?: null | DestinationInput[]
   delayMinutes: number
   escalationPolicyID?: null | string
+  multiAck?: null | boolean
   newRotation?: null | CreateRotationInput
   newSchedule?: null | CreateScheduleInput
   targets?: null | TargetInput[]
@@ -281,6 +283,7 @@ export interface CreateIntegrationKeyInput {
 export interface CreateRotationInput {
   description?: null | string
   favorite?: null | boolean
+  labels?: null | SetLabelInput[]
   name: string
   shiftLength?: null | number
   start: ISOTimestamp
@@ -292,6 +295,7 @@ export interface CreateRotationInput {
 export interface CreateScheduleInput {
   description?: null | string
   favorite?: null | boolean
+  labels?: null | SetLabelInput[]
   name: string
   newUserOverrides?: null | CreateUserOverrideInput[]
   targets?: null | ScheduleTargetInput[]
@@ -500,6 +504,7 @@ export interface EscalationPolicy {
   description: string
   id: string
   isFavorite: boolean
+  labels: Label[]
   name: string
   notices: Notice[]
   repeat: number
@@ -525,6 +530,7 @@ export interface EscalationPolicyStep {
   delayMinutes: number
   escalationPolicy?: null | EscalationPolicy
   id: string
+  multiAck: boolean
   stepNumber: number
   targets: Target[]
 }
@@ -943,6 +949,7 @@ export interface Rotation {
   description: string
   id: string
   isFavorite: boolean
+  labels: Label[]
   name: string
   nextHandoffTimes: ISOTimestamp[]
   shiftLength: number
@@ -1011,6 +1018,7 @@ export interface Schedule {
   description: string
   id: string
   isFavorite: boolean
+  labels: Label[]
   name: string
   onCallNotificationRules: OnCallNotificationRule[]
   shifts: OnCallShift[]
@@ -1328,6 +1336,7 @@ export interface UpdateEscalationPolicyStepInput {
   actions?: null | DestinationInput[]
   delayMinutes?: null | number
   id: string
+  multiAck?: null | boolean
   targets?: null | TargetInput[]
 }
 

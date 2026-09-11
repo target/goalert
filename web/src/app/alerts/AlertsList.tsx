@@ -22,11 +22,12 @@ import { NotificationContext } from '../main/SnackbarNotification'
 import ReactGA from 'react-ga4'
 import { useConfigValue } from '../util/RequireConfig'
 import AlertFeedbackDialog from './components/AlertFeedbackDialog'
+import { Target } from 'web/src/schema'
 
-interface AlertsListProps {
-  serviceID: string
+type AlertsListProps = {
   secondaryActions?: ReactElement
-}
+  cardHeader?: ReactElement
+} & ({ serviceID: string } | { policyID: string })
 
 interface MutationVariables {
   input: MutationVariablesInput
@@ -124,6 +125,9 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
   const [fullTime] = useURLParam('fullTime', false)
   const [filter] = useURLParam<string>('filter', 'active')
 
+  const serviceID = 'serviceID' in props ? props.serviceID : ''
+  const policyID = 'policyID' in props ? props.policyID : ''
+
   useEffect(() => {
     if (analyticsID && event.length)
       ReactGA.event({ category: 'Bulk Alert Action', action: event })
@@ -139,19 +143,46 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
         }
       }
     `,
-    variables: { id: props.serviceID || '' },
-    pause: !props.serviceID,
+    variables: { id: serviceID },
+    pause: !serviceID,
   })
+
+  // query for current policy name if props.policyID is provided
+  const [policyInfoQuery] = useQuery({
+    query: gql`
+      query ($id: ID!) {
+        escalationPolicy(id: $id) {
+          id
+          name
+          assignedTo {
+            id
+            type
+          }
+        }
+      }
+    `,
+    variables: { id: policyID },
+    pause: !policyID,
+  })
+  const policyServiceIDs: string[] = (
+    policyInfoQuery.data?.escalationPolicy.assignedTo ?? []
+  )
+    .filter((a: Target) => a.type === 'service')
+    .map((a: Target) => a.id)
 
   // alerts list query variables
   const variables = {
     input: {
       filterByStatus: getStatusFilter(filter),
       first: 25,
-      // default to favorites only, unless viewing alerts from a service's page
-      favoritesOnly: !props.serviceID && !allServices,
-      includeNotified: !props.serviceID, // keep service list alerts specific to that service,
-      filterByServiceID: props.serviceID ? [props.serviceID] : null,
+      // default to favorites only, unless viewing alerts from a service or policy page
+      favoritesOnly: !serviceID && !policyID && !allServices,
+      includeNotified: !serviceID && !policyID, // keep service list alerts specific to that service,
+      filterByServiceID: serviceID
+        ? [serviceID]
+        : policyID
+          ? policyServiceIDs
+          : null,
     },
   }
 
@@ -250,8 +281,11 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
       return `Showing ${filter} alerts for all services.`
     }
 
-    if (props.serviceID && serviceNameQuery.data?.service?.name) {
+    if (serviceID && serviceNameQuery.data?.service?.name) {
       return `Showing ${filter} alerts for the service ${serviceNameQuery.data.service.name}.`
+    }
+    if (policyID && policyInfoQuery.data?.escalationPolicy?.name) {
+      return `Showing ${filter} alerts for all services using the policy ${policyInfoQuery.data.escalationPolicy.name}.`
     }
   }
 
@@ -298,7 +332,7 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
   return (
     <React.Fragment>
       <Grid container direction='column' spacing={2}>
-        <ServiceNotices serviceID={props.serviceID} />
+        <ServiceNotices serviceID={serviceID} />
         <Grid item>
           <QueryList
             query={alertsListQuery}
@@ -311,8 +345,7 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
               title: `${a.alertID}: ${a.status
                 .toUpperCase()
                 .replace('STATUS', '')}`,
-              subText:
-                (props.serviceID ? '' : a.service.name + ': ') + a.summary,
+              subText: (serviceID ? '' : a.service.name + ': ') + a.summary,
               action: (
                 <ListItemText
                   className={classes.alertTimeContainer}
@@ -330,20 +363,28 @@ export default function AlertsList(props: AlertsListProps): React.JSX.Element {
             variables={variables}
             secondaryActions={
               props?.secondaryActions ?? (
-                <AlertsListFilter serviceID={props.serviceID} />
+                <AlertsListFilter allowShowAll={!serviceID && !policyID} />
               )
             }
             renderCreateDialog={(onClose) => (
               <CreateAlertDialog
-                serviceID={props.serviceID}
+                serviceID={serviceID}
                 onClose={onClose}
+                onlyIDs={policyID ? policyServiceIDs : undefined}
               />
             )}
             createLabel='Alert'
             cardHeader={
-              <Hidden lgDown>
-                <AlertsListControls />
-              </Hidden>
+              props.cardHeader ?? (
+                <Hidden lgDown>
+                  <AlertsListControls />
+                </Hidden>
+              )
+            }
+            pause={
+              policyID
+                ? !policyInfoQuery.data && policyInfoQuery.fetching
+                : false
             }
             checkboxActions={getActions()}
           />

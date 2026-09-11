@@ -22,6 +22,11 @@ type Step struct {
 	PolicyID     string    `json:"escalation_policy_id"`
 	DelayMinutes int       `json:"delay_minutes"`
 	StepNumber   int       `json:"step_number"`
+
+	// MultiAck indicates notifications started by this step should continue
+	// after the alert is acknowledged, so that everyone on the step is notified
+	// and can acknowledge.
+	MultiAck bool `json:"multi_ack"`
 }
 
 func (s Step) Delay() time.Duration {

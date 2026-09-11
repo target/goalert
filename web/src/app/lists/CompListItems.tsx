@@ -36,6 +36,7 @@ export function CompListItemText(
         disableTypography={props.disableTypography}
         primary={props.title}
         secondary={props.subText}
+        data-cy='comp-list-item-subheader'
       />
       {props.action && (
         <ListItemSecondaryAction>{props.action}</ListItemSecondaryAction>
@@ -46,13 +47,14 @@ export function CompListItemText(
 
 export type CompListItemNavProps = CompListItemTextProps & {
   url: string
+  newTab?: boolean
 }
 
 /* A list item that links to a URL. */
 export function CompListItemNav(props: CompListItemNavProps): React.ReactNode {
   return (
     <li>
-      <ListItemButton component={AppLink} to={props.url}>
+      <ListItemButton component={AppLink} to={props.url} newTab={props.newTab}>
         {props.icon && <ListItemIcon tabIndex={-1}>{props.icon}</ListItemIcon>}
         <ListItemText primary={props.title} secondary={props.subText} />
         {props.action && (

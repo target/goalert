@@ -13,6 +13,7 @@ import (
 	"github.com/target/goalert/escalation"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/label"
 	"github.com/target/goalert/notice"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -111,6 +112,7 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 	err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		s := &escalation.Step{
 			DelayMinutes: input.DelayMinutes,
+			MultiAck:     input.MultiAck != nil && *input.MultiAck,
 		}
 		if input.EscalationPolicyID != nil {
 			s.PolicyID = *input.EscalationPolicyID
@@ -194,6 +196,15 @@ func (m *Mutation) CreateEscalationPolicy(ctx context.Context, input graphql2.Cr
 				return validation.AddPrefix("Steps["+strconv.Itoa(i)+"].", err)
 			}
 		}
+
+		for i, lbl := range input.Labels {
+			lbl.Target = &assignment.RawTarget{Type: assignment.TargetTypeEscalationPolicy, ID: pol.ID}
+			_, err = m.SetLabel(ctx, lbl)
+			if err != nil {
+				return validation.AddPrefix("labels["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
 		return err
 	})
 
@@ -288,6 +299,16 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 			}
 		}
 
+		// update multi-ack if provided
+		if input.MultiAck != nil {
+			step.MultiAck = *input.MultiAck
+
+			err = m.PolicyStore.UpdateStepMultiAckTx(ctx, tx, step.ID, step.MultiAck)
+			if err != nil {
+				return err
+			}
+		}
+
 		// update targets if provided
 		if input.Actions != nil {
 			// get current actions
@@ -364,6 +385,10 @@ func (step *EscalationPolicyStep) EscalationPolicy(ctx context.Context, raw *esc
 
 func (step *EscalationPolicy) IsFavorite(ctx context.Context, raw *escalation.Policy) (bool, error) {
 	return raw.IsUserFavorite(), nil
+}
+
+func (ep *EscalationPolicy) Labels(ctx context.Context, raw *escalation.Policy) ([]label.Label, error) {
+	return ep.LabelStore.FindAllByTarget(ctx, ep.DB, assignment.EscalationPolicyTarget(raw.ID))
 }
 
 func (ep *EscalationPolicy) Steps(ctx context.Context, raw *escalation.Policy) ([]escalation.Step, error) {

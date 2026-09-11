@@ -14,6 +14,7 @@ import (
 	"github.com/target/goalert/assignment"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
+	"github.com/target/goalert/label"
 	"github.com/target/goalert/oncall"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -83,6 +84,10 @@ func (a *TemporarySchedule) Shifts(ctx context.Context, temp *schedule.Temporary
 
 func (q *Query) Schedule(ctx context.Context, id string) (*schedule.Schedule, error) {
 	return (*App)(q).FindOneSchedule(ctx, id)
+}
+
+func (s *Schedule) Labels(ctx context.Context, raw *schedule.Schedule) ([]label.Label, error) {
+	return s.LabelStore.FindAllByTarget(ctx, s.DB, assignment.ScheduleTarget(raw.ID))
 }
 
 func (s *Schedule) Shifts(ctx context.Context, raw *schedule.Schedule, start, end time.Time, userIDs []string) ([]oncall.Shift, error) {
@@ -306,6 +311,14 @@ func (m *Mutation) CreateSchedule(ctx context.Context, input graphql2.CreateSche
 			_, err = m.CreateUserOverride(ctx, override)
 			if err != nil {
 				return validation.AddPrefix("newUserOverride["+strconv.Itoa(i)+"].", err)
+			}
+		}
+
+		for i, lbl := range input.Labels {
+			lbl.Target = &assignment.RawTarget{Type: assignment.TargetTypeSchedule, ID: sched.ID}
+			_, err = m.SetLabel(ctx, lbl)
+			if err != nil {
+				return validation.AddPrefix("labels["+strconv.Itoa(i)+"].", err)
 			}
 		}
 

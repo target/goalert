@@ -537,6 +537,8 @@ input CreateScheduleInput {
 
   targets: [ScheduleTargetInput!]
   newUserOverrides: [CreateUserOverrideInput!]
+
+  labels: [SetLabelInput!]
 }
 
 input ScheduleTargetInput {
@@ -604,6 +606,8 @@ input CreateEscalationPolicyInput {
   favorite: Boolean
 
   steps: [CreateEscalationPolicyStepInput!]
+
+  labels: [SetLabelInput!]
 }
 
 input CreateEscalationPolicyStepInput {
@@ -698,6 +702,8 @@ type Schedule {
 
   temporarySchedules: [TemporarySchedule!]!
   onCallNotificationRules: [OnCallNotificationRule!]!
+
+  labels: [Label!]!
 }
 
 input SetScheduleOnCallNotificationRulesInput {
@@ -788,6 +794,8 @@ input CreateRotationInput {
   shiftLength: Int = 1
 
   userIDs: [ID!]
+
+  labels: [SetLabelInput!]
 }
 
 type Rotation {
@@ -808,6 +816,8 @@ type Rotation {
   users: [User!]!
 
   nextHandoffTimes(num: Int): [ISOTimestamp!]!
+
+  labels: [Label!]!
 }
 
 enum RotationType {
@@ -1226,6 +1236,8 @@ type EscalationPolicy {
   steps: [EscalationPolicyStep!]!
 
   notices: [Notice!]!
+
+  labels: [Label!]!
 }
 
 enum AlertStatus {

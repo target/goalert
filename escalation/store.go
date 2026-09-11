@@ -47,6 +47,7 @@ type Store struct {
 	findAllOnCallSteps   *sql.Stmt
 	createStep           *sql.Stmt
 	updateStepDelay      *sql.Stmt
+	updateStepMultiAck   *sql.Stmt
 	updateStepNumber     *sql.Stmt
 	deleteStep           *sql.Stmt
 }
@@ -107,10 +108,10 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 		updatePolicy: p.P(`UPDATE escalation_policies SET name = $2, description = $3, repeat = $4 WHERE id = $1`),
 		deletePolicy: p.P(`DELETE FROM escalation_policies WHERE id = any($1)`),
 
-		findOneStepForUpdate: p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE id = $1 FOR UPDATE`),
-		findAllSteps:         p.P(`SELECT id, escalation_policy_id, delay, step_number FROM escalation_policy_steps WHERE escalation_policy_id = $1 ORDER BY step_number`),
+		findOneStepForUpdate: p.P(`SELECT id, escalation_policy_id, delay, step_number, multi_ack FROM escalation_policy_steps WHERE id = $1 FOR UPDATE`),
+		findAllSteps:         p.P(`SELECT id, escalation_policy_id, delay, step_number, multi_ack FROM escalation_policy_steps WHERE escalation_policy_id = $1 ORDER BY step_number`),
 		findAllOnCallSteps: p.P(`
-			SELECT step.id, step.escalation_policy_id, step.delay, step.step_number
+			SELECT step.id, step.escalation_policy_id, step.delay, step.step_number, step.multi_ack
 			FROM ep_step_on_call_users oc
 			JOIN escalation_policy_steps step ON step.id = oc.ep_step_id
 			WHERE oc.user_id = $1 AND oc.end_time isnull
@@ -119,13 +120,14 @@ func NewStore(ctx context.Context, db *sql.DB, cfg Config) (*Store, error) {
 
 		createStep: p.P(`
 			INSERT INTO escalation_policy_steps
-				(id, escalation_policy_id, delay, step_number)
-			VALUES ($1, $2, $3, DEFAULT)
+				(id, escalation_policy_id, delay, step_number, multi_ack)
+			VALUES ($1, $2, $3, DEFAULT, $4)
 			RETURNING step_number
 		`),
-		updateStepDelay:  p.P(`UPDATE escalation_policy_steps SET delay = $2 WHERE id = $1`),
-		updateStepNumber: p.P(`UPDATE escalation_policy_steps SET step_number = $2 WHERE id = $1`),
-		deleteStep:       p.P(`DELETE FROM escalation_policy_steps WHERE id = $1 RETURNING escalation_policy_id`),
+		updateStepDelay:    p.P(`UPDATE escalation_policy_steps SET delay = $2 WHERE id = $1`),
+		updateStepMultiAck: p.P(`UPDATE escalation_policy_steps SET multi_ack = $2 WHERE id = $1`),
+		updateStepNumber:   p.P(`UPDATE escalation_policy_steps SET step_number = $2 WHERE id = $1`),
+		deleteStep:         p.P(`DELETE FROM escalation_policy_steps WHERE id = $1 RETURNING escalation_policy_id`),
 	}, p.Err
 }
 
@@ -340,7 +342,7 @@ func (s *Store) FindOneStepForUpdateTx(ctx context.Context, tx *sql.Tx, id strin
 
 	row := stmt.QueryRowContext(ctx, id)
 	var st Step
-	err = row.Scan(&st.ID, &st.PolicyID, &st.DelayMinutes, &st.StepNumber)
+	err = row.Scan(&st.ID, &st.PolicyID, &st.DelayMinutes, &st.StepNumber, &st.MultiAck)
 	if err != nil {
 		return nil, err
 	}
@@ -377,7 +379,7 @@ func (s *Store) FindAllOnCallStepsForUserTx(ctx context.Context, tx *sql.Tx, use
 	var result []Step
 	for rows.Next() {
 		var s Step
-		err = rows.Scan(&s.ID, &s.PolicyID, &s.DelayMinutes, &s.StepNumber)
+		err = rows.Scan(&s.ID, &s.PolicyID, &s.DelayMinutes, &s.StepNumber, &s.MultiAck)
 		if err != nil {
 			return nil, err
 		}
@@ -412,7 +414,7 @@ func (s *Store) FindAllStepsTx(ctx context.Context, tx *sql.Tx, policyID string)
 	var result []Step
 	for rows.Next() {
 		var s Step
-		err = rows.Scan(&s.ID, &s.PolicyID, &s.DelayMinutes, &s.StepNumber)
+		err = rows.Scan(&s.ID, &s.PolicyID, &s.DelayMinutes, &s.StepNumber, &s.MultiAck)
 		if err != nil {
 			return nil, err
 		}
@@ -440,7 +442,7 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 
 	n.ID = uuid.New()
 
-	err = stmt.QueryRowContext(ctx, n.ID, n.PolicyID, n.DelayMinutes).Scan(&n.StepNumber)
+	err = stmt.QueryRowContext(ctx, n.ID, n.PolicyID, n.DelayMinutes, n.MultiAck).Scan(&n.StepNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -487,6 +489,26 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID uuid.U
 	}
 
 	_, err = stmt.ExecContext(ctx, stepID, stepDelay)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateStepMultiAckTx updates the multi-ack setting for a step.
+func (s *Store) UpdateStepMultiAckTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, multiAck bool) error {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	if err != nil {
+		return err
+	}
+
+	stmt := s.updateStepMultiAck
+	if tx != nil {
+		stmt = tx.StmtContext(ctx, stmt)
+	}
+
+	_, err = stmt.ExecContext(ctx, stepID, multiAck)
 	if err != nil {
 		return err
 	}

@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function CreateAlertDialog(props: {
   onClose: () => void
   serviceID?: string
+  onlyIDs?: string[]
 }): React.JSX.Element {
   const classes = useStyles()
   const [step, setStep] = useState(0)
@@ -156,6 +157,7 @@ export default function CreateAlertDialog(props: {
             onChange={(newValue: Value) => setValue(newValue)}
             disabled={loading}
             errors={fieldErrors(error)}
+            onlyIDs={props.onlyIDs}
           />
         )
       }

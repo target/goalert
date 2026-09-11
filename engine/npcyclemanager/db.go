@@ -66,7 +66,26 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				using alerts a, lock_cycles lock
 				where
 					a.status != 'triggered' and a.id = cycle.alert_id and
-					cycle.id = lock.id
+					cycle.id = lock.id and
+					(
+						-- closing always cancels pending notifications
+						a.status = 'closed'
+
+						-- not a multi-ack cycle, so acking cancels it as usual
+						or not cycle.multi_ack
+
+						-- ...or this cycle's own user has already acknowledged since
+						-- it started; no need to keep paging them.
+						or exists (
+							select 1
+							from alert_logs alog
+							where
+								alog.alert_id = cycle.alert_id and
+								alog.event = 'acknowledged' and
+								alog.sub_user_id = cycle.user_id and
+								alog.timestamp > cycle.started_at
+						)
+					)
 				returning cycle.id
 			), process_cycles as (
 				select *
