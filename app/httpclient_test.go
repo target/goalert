@@ -10,12 +10,15 @@ import (
 )
 
 func TestNewHTTPClientWithWrappedDefaultTransport(t *testing.T) {
+	t.Parallel()
+
 	original := http.DefaultTransport
 	t.Cleanup(func() { http.DefaultTransport = original })
 
 	histogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "goalert_test_http_client_requests_duration_seconds",
 	}, []string{"code", "method"})
+	http.DefaultTransport = promhttp.InstrumentRoundTripperDuration(histogram, original)
 
 	client, err := newHTTPClient()
 	require.NoError(t, err)
