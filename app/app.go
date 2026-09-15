@@ -156,7 +156,7 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 	var err error
 	httpClient, err := newHTTPClient()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "init http client")
 	}
 
 	db := stdlib.OpenDBFromPool(pool)
