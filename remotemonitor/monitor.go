@@ -50,7 +50,9 @@ func NewMonitor(cfg Config) (*Monitor, error) {
 		return nil, err
 	}
 
-	http.DefaultTransport.(*http.Transport).DisableKeepAlives = true
+	if transport, ok := http.DefaultTransport.(*http.Transport); ok {
+		transport.DisableKeepAlives = true
+	}
 	http.DefaultTransport = &requestIDTransport{
 		RoundTripper: http.DefaultTransport,
 	}
