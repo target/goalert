@@ -53,9 +53,7 @@ import (
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/user/favorite"
 	"github.com/target/goalert/user/notificationrule"
-	"github.com/target/goalert/util/calllimiter"
 	"github.com/target/goalert/util/log"
-	"github.com/target/goalert/util/privnet"
 	"github.com/target/goalert/util/sqlutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -156,6 +154,11 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 	}
 
 	var err error
+	httpClient, err := newHTTPClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "init http client")
+	}
+
 	db := stdlib.OpenDBFromPool(pool)
 	permission.SudoContext(context.Background(), func(ctx context.Context) {
 		c.Logger.DebugContext(ctx, "checking switchover_state table")
@@ -203,15 +206,13 @@ func NewApp(c Config, pool *pgxpool.Pool) (*App, error) {
 	})
 
 	app := &App{
-		l:      l,
-		db:     db,
-		pgx:    pool,
-		cfg:    c,
-		doneCh: make(chan struct{}),
-		Logger: c.Logger,
-		httpClient: &http.Client{
-			Transport: calllimiter.RoundTripper(privnet.RoundTripper(http.DefaultTransport.(*http.Transport).Clone())),
-		},
+		l:          l,
+		db:         db,
+		pgx:        pool,
+		cfg:        c,
+		doneCh:     make(chan struct{}),
+		Logger:     c.Logger,
+		httpClient: httpClient,
 	}
 
 	if c.StatusAddr != "" {
