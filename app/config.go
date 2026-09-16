@@ -46,6 +46,8 @@ type Config struct {
 
 	EmailIntegrationDomain string
 
+	MaxMsgPerSecPerType int
+
 	HTTPPrefix string
 
 	DBMaxOpen int

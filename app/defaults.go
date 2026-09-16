@@ -13,5 +13,7 @@ func Defaults() Config {
 		RegionName:        "default",
 		EngineCycleTime:   5 * time.Second,
 		SMTPMaxRecipients: 1,
+
+		MaxMsgPerSecPerType: 1,
 	}
 }
