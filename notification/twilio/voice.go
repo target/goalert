@@ -186,7 +186,7 @@ func (v *Voice) SendMessage(ctx context.Context, msg notification.Message) (*not
 	})
 
 	opts := &VoiceOptions{
-		ValidityPeriod: time.Second * 10,
+		ValidityPeriod: time.Second * 30,
 	}
 
 	if err := opts.setMsgParams(msg); err != nil {
