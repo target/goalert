@@ -214,5 +214,18 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 	}
 	resp.Body.Close()
 
-	return &notification.SentMessage{State: notification.StateSent}, nil
+	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
+		return &notification.SentMessage{State: notification.StateSent}, nil
+	}
+
+	state := notification.StateFailedPerm
+	if resp.StatusCode == http.StatusTooManyRequests ||
+		(resp.StatusCode >= http.StatusInternalServerError && resp.StatusCode < 600) {
+		state = notification.StateFailedTemp
+	}
+
+	return &notification.SentMessage{
+		State:        state,
+		StateDetails: resp.Status,
+	}, nil
 }
