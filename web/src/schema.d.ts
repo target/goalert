@@ -116,9 +116,7 @@ export interface AlertStats {
 }
 
 export type AlertStatus =
-  | 'StatusAcknowledged'
-  | 'StatusClosed'
-  | 'StatusUnacknowledged'
+  'StatusAcknowledged' | 'StatusClosed' | 'StatusUnacknowledged'
 
 export interface AlertsByStatus {
   acked: number
@@ -217,11 +215,7 @@ export interface ConfigValueInput {
 }
 
 export type ContactMethodType =
-  | 'EMAIL'
-  | 'SLACK_DM'
-  | 'SMS'
-  | 'VOICE'
-  | 'WEBHOOK'
+  'EMAIL' | 'SLACK_DM' | 'SMS' | 'VOICE' | 'WEBHOOK'
 
 export interface CreateAlertInput {
   dedup?: null | string
@@ -625,8 +619,7 @@ export type ISORInterval = string
 export type ISOTimestamp = string
 
 export type InlineDisplayInfo =
-  | DestinationDisplayInfo
-  | DestinationDisplayInfoError
+  DestinationDisplayInfo | DestinationDisplayInfoError
 
 export type Int = string
 
@@ -1199,10 +1192,7 @@ export interface SlackUserGroupSearchOptions {
 }
 
 export type StatusUpdateState =
-  | 'DISABLED'
-  | 'DISABLED_FORCED'
-  | 'ENABLED'
-  | 'ENABLED_FORCED'
+  'DISABLED' | 'DISABLED_FORCED' | 'ENABLED' | 'ENABLED_FORCED'
 
 export type String = string
 
