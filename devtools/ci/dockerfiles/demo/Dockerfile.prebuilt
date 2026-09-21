@@ -1,7 +1,7 @@
 FROM docker.io/library/alpine:3.14 AS build
 ARG TARGETARCH
 COPY /bin/goalert-linux-$TARGETARCH.tgz /work/goalert.tgz
-COPY /bin/linux-$TARGETARCH/resetdb /work/bin/
+COPY /bin/linux-$TARGETARCH.demo/resetdb /work/bin/
 COPY devtools/ci/dockerfiles/demo/start.sh /work/bin/
 RUN tar xfv /work/goalert.tgz -C /work && cp /work/goalert/bin/* /work/bin/
 
