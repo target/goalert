@@ -147,7 +147,7 @@ func (s *SMS) SendMessage(ctx context.Context, msg notification.Message) (*notif
 	}
 
 	opts := &SMSOptions{
-		ValidityPeriod: time.Second * 10,
+		ValidityPeriod: time.Second * 30,
 		CallbackParams: make(url.Values),
 	}
 	opts.CallbackParams.Set(msgParamID, msg.MsgID())
