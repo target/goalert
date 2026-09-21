@@ -48,7 +48,7 @@ PREBUILT:=.prebuilt
 container-goalert: bin/goalert-linux-amd64.tgz bin/goalert-linux-arm.tgz bin/goalert-linux-arm64.tgz
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
 
-container-demo: bin/goalert-linux-amd64.tgz bin/linux-amd64/resetdb bin/goalert-linux-arm.tgz bin/linux-arm/resetdb bin/goalert-linux-arm64.tgz bin/linux-arm64/resetdb
+container-demo: bin/goalert-linux-amd64.tgz bin/linux-amd64.demo/resetdb bin/goalert-linux-arm.tgz bin/linux-arm.demo/resetdb bin/goalert-linux-arm64.tgz bin/linux-arm64.demo/resetdb
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile$(PREBUILT) $(PUSH_ARG) .
 
 $(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
@@ -57,6 +57,18 @@ $(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lock web
 	mkdir -p $@/plugins
 	cp web/src/cypress/plugins/index.js $@/plugins/index.js
 	touch $@
+$(BIN_DIR)/linux-amd64.demo/resetdb: $(GO_DEPS)
+	mkdir -p $(BIN_DIR)/linux-amd64.demo
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -o "$@" ./devtools/resetdb
+
+$(BIN_DIR)/linux-arm.demo/resetdb: $(GO_DEPS)
+	mkdir -p $(BIN_DIR)/linux-arm.demo
+	GOOS=linux GOARCH=arm CGO_ENABLED=0 go build -trimpath -o "$@" ./devtools/resetdb
+
+$(BIN_DIR)/linux-arm64.demo/resetdb: $(GO_DEPS)
+	mkdir -p $(BIN_DIR)/linux-arm64.demo
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -o "$@" ./devtools/resetdb
+
 
 
 $(BIN_DIR)/build/integration/bin/build/goalert-darwin-amd64: $(BIN_DIR)/build/goalert-darwin-amd64
