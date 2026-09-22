@@ -282,6 +282,8 @@ func (h *Harness) StartWithAppCfgHook(fn func(*app.Config)) {
 
 	cfg.Webhook.Enable = true
 
+	cfg.Teams.Enable = true
+
 	cfg.Mailgun.Enable = true
 	cfg.Mailgun.APIKey = mailgunAPIKey
 	cfg.Mailgun.EmailDomain = "smoketest.example.com"
