@@ -140,6 +140,13 @@ func (l *Lock) WithTxShared(ctx context.Context, fn func(context.Context, *sql.T
 	}
 	defer sqlutil.Rollback(ctx, "processing lock: with tx (shared)", tx)
 
+	// Shared transactions are run by retryable background jobs, so rather than
+	// block indefinitely on a row lock, fail so the job can be retried later.
+	_, err = tx.ExecContext(ctx, `SET LOCAL lock_timeout = 8000`)
+	if err != nil {
+		return err
+	}
+
 	err = fn(ctx, tx)
 	if err != nil {
 		return err
