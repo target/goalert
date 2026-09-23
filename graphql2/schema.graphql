@@ -615,6 +615,8 @@ input CreateEscalationPolicyStepInput {
 
   delayMinutes: Int!
 
+  skipIfEmpty: Boolean
+
   targets: [TargetInput!]
     @goField(forceResolver: true)
     @deprecated(reason: "use actions instead")
@@ -626,6 +628,11 @@ type EscalationPolicyStep {
   id: ID!
   stepNumber: Int!
   delayMinutes: Int!
+
+  # When true, this step escalates immediately -- without waiting out
+  # delayMinutes -- if it resolves to no one: no on-call users and no
+  # notification channels.
+  skipIfEmpty: Boolean!
   targets: [Target!]!
     @goField(forceResolver: true)
     @deprecated(reason: "use actions instead")
@@ -658,6 +665,7 @@ input UpdateEscalationPolicyInput {
 input UpdateEscalationPolicyStepInput {
   id: ID!
   delayMinutes: Int
+  skipIfEmpty: Boolean
   targets: [TargetInput!]
     @goField(forceResolver: true)
     @deprecated(reason: "use actions instead")

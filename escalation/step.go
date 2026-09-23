@@ -27,6 +27,10 @@ type Step struct {
 	// after the alert is acknowledged, so that everyone on the step is notified
 	// and can acknowledge.
 	MultiAck bool `json:"multi_ack"`
+	// SkipIfEmpty escalates immediately, rather than waiting out DelayMinutes,
+	// when the step resolves to no one: no on-call users and no notification
+	// channels.
+	SkipIfEmpty bool `json:"skip_if_empty"`
 }
 
 func (s Step) Delay() time.Duration {

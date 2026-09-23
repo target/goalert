@@ -977,6 +977,7 @@ type EscalationPolicyStep struct {
 	EscalationPolicyID uuid.UUID
 	ID                 uuid.UUID
 	MultiAck           bool
+	SkipIfEmpty        bool
 	StepNumber         int32
 }
 

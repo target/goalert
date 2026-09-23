@@ -117,6 +117,9 @@ func (m *Mutation) CreateEscalationPolicyStep(ctx context.Context, input graphql
 		if input.EscalationPolicyID != nil {
 			s.PolicyID = *input.EscalationPolicyID
 		}
+		if input.SkipIfEmpty != nil {
+			s.SkipIfEmpty = *input.SkipIfEmpty
+		}
 
 		step, err = m.PolicyStore.CreateStepTx(ctx, tx, s)
 		if err != nil {
@@ -304,6 +307,16 @@ func (m *Mutation) UpdateEscalationPolicyStep(ctx context.Context, input graphql
 			step.MultiAck = *input.MultiAck
 
 			err = m.PolicyStore.UpdateStepMultiAckTx(ctx, tx, step.ID, step.MultiAck)
+			if err != nil {
+				return err
+			}
+		}
+
+		// update skip-if-empty if provided
+		if input.SkipIfEmpty != nil {
+			step.SkipIfEmpty = *input.SkipIfEmpty
+
+			err = m.PolicyStore.UpdateStepSkipIfEmptyTx(ctx, tx, step.ID, step.SkipIfEmpty)
 			if err != nil {
 				return err
 			}

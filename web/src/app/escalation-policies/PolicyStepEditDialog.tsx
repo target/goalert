@@ -31,6 +31,7 @@ const query = gql`
         id
         delayMinutes
         multiAck
+        skipIfEmpty
         actions {
           type
           args
@@ -61,6 +62,7 @@ export default function PolicyStepEditDialog(
     })),
     delayMinutes: step.delayMinutes,
     multiAck: step.multiAck,
+    skipIfEmpty: step.skipIfEmpty,
   })
 
   const [editStepStatus, editStep] = useMutation(mutation)
@@ -96,6 +98,7 @@ export default function PolicyStepEditDialog(
               delayMinutes: +value.delayMinutes,
               actions: value.actions,
               multiAck: value.multiAck,
+              skipIfEmpty: value.skipIfEmpty,
             } satisfies UpdateEscalationPolicyStepInput,
           },
           { additionalTypenames: ['EscalationPolicy'] },

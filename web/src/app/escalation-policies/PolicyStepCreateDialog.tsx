@@ -24,6 +24,7 @@ export default function PolicyStepCreateDialog(props: {
     actions: [],
     delayMinutes: 15,
     multiAck: false,
+    skipIfEmpty: false,
   })
 
   const [createStepStatus, createStep] = useMutation(mutation)
@@ -63,6 +64,7 @@ export default function PolicyStepCreateDialog(props: {
               delayMinutes: +value.delayMinutes,
               actions: value.actions,
               multiAck: value.multiAck,
+              skipIfEmpty: value.skipIfEmpty,
             },
           },
           { additionalTypenames: ['EscalationPolicy'] },

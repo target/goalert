@@ -215,6 +215,7 @@ type CreateEscalationPolicyInput struct {
 type CreateEscalationPolicyStepInput struct {
 	EscalationPolicyID *string                `json:"escalationPolicyID,omitempty"`
 	DelayMinutes       int                    `json:"delayMinutes"`
+	SkipIfEmpty        *bool                  `json:"skipIfEmpty,omitempty"`
 	Targets            []assignment.RawTarget `json:"targets,omitempty"`
 	NewRotation        *CreateRotationInput   `json:"newRotation,omitempty"`
 	NewSchedule        *CreateScheduleInput   `json:"newSchedule,omitempty"`
@@ -857,6 +858,7 @@ type UpdateEscalationPolicyInput struct {
 type UpdateEscalationPolicyStepInput struct {
 	ID           string                 `json:"id"`
 	DelayMinutes *int                   `json:"delayMinutes,omitempty"`
+	SkipIfEmpty  *bool                  `json:"skipIfEmpty,omitempty"`
 	Targets      []assignment.RawTarget `json:"targets,omitempty"`
 	Actions      []gadb.DestV1          `json:"actions,omitempty"`
 	MultiAck     *bool                  `json:"multiAck,omitempty"`
