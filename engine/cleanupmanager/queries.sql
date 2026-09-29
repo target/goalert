@@ -17,6 +17,7 @@ WHERE id = ANY (
 
 -- name: CleanupMgrFindStaleAlerts :many
 -- CleanupMgrFindStaleAlerts will find alerts that are triggered or active and have no activity in specified number of days.
+-- Policy updates are not considered activity, since they are not caused by anything happening on the alert itself.
 SELECT
     id
 FROM
@@ -32,7 +33,8 @@ AND NOT EXISTS (
         alert_logs log
     WHERE
         timestamp > now() - '1 day'::interval * sqlc.arg(auto_close_threshold_days)
-        AND log.alert_id = a.id)
+        AND log.alert_id = a.id
+        AND log.event != 'policy_updated')
 LIMIT 100;
 
 -- name: CleanupMgrDeleteOldOverrides :execrows
