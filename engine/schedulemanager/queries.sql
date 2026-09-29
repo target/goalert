@@ -87,6 +87,15 @@ FROM
 WHERE
     end_time ISNULL;
 
+-- name: SchedMgrVerifyUsers :many
+-- Returns the subset of the given user IDs that exist in the users table.
+SELECT
+    id
+FROM
+    users
+WHERE
+    id = ANY (sqlc.arg(user_ids)::uuid[]);
+
 -- name: SchedMgrStartOnCall :exec
 INSERT INTO schedule_on_call_users(schedule_id, start_time, user_id)
 SELECT
