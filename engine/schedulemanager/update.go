@@ -158,6 +158,27 @@ func (db *DB) update(ctx context.Context) error {
 		}
 	}
 
+	// Temporary schedule shifts are stored as JSON, so they may reference users that have since been deleted.
+	tempUsers := mapset.NewThreadUnsafeSet[uuid.UUID]()
+	for _, info := range updateData {
+		if isActive, users := info.ScheduleData.TempOnCall(now); isActive {
+			tempUsers.Append(users...)
+		}
+	}
+	if tempUsers.Cardinality() > 0 {
+		validUsers, err := q.SchedMgrVerifyUsers(ctx, tempUsers.ToSlice())
+		if err != nil {
+			return errors.Wrap(err, "verify temporary schedule users")
+		}
+		missing := tempUsers.Clone()
+		missing.RemoveAll(validUsers...)
+		if missing.Cardinality() > 0 {
+			for _, info := range updateData {
+				info.MissingUsers = missing
+			}
+		}
+	}
+
 	onCallRows, err := q.SchedMgrOnCall(ctx)
 	if err != nil {
 		return errors.Wrap(err, "get on call")
