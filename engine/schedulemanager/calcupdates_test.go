@@ -87,3 +87,46 @@ func TestUpdateInfo_calcUpdates_NotifyAtTime(t *testing.T) {
 	require.NoError(t, err)
 	require.JSONEq(t, string(expectedData), string(result.NewRawScheduleData))
 }
+
+func TestUpdateInfo_calcUpdates_TempSchedMissingUser(t *testing.T) {
+	channelID := uuid.MustParse("123e4567-e89b-12d3-a456-426614174000")
+	validUser := uuid.MustParse("223e4567-e89b-12d3-a456-426614174000")
+	deletedUser := uuid.MustParse("323e4567-e89b-12d3-a456-426614174000")
+	now := time.Date(2023, 10, 1, 9, 0, 0, 0, time.UTC)
+
+	var sData schedule.Data
+	sData.V1.OnCallNotificationRules = []schedule.OnCallNotificationRule{{ChannelID: channelID}}
+	sData.V1.TemporarySchedules = []schedule.TemporarySchedule{{
+		Start: now.Add(-time.Hour),
+		End:   now.Add(time.Hour),
+		Shifts: []schedule.FixedShift{
+			{Start: now.Add(-time.Hour), End: now.Add(time.Hour), UserID: validUser.String()},
+			{Start: now.Add(-time.Hour), End: now.Add(time.Hour), UserID: deletedUser.String()},
+		},
+	}}
+	data, err := json.Marshal(sData)
+	require.NoError(t, err)
+
+	info := updateInfo{
+		ScheduleID:      uuid.New(),
+		TimeZone:        time.UTC,
+		RawScheduleData: data,
+		ScheduleData:    sData,
+		// the deleted user can never be recorded as on-call, so only the valid user is
+		CurrentOnCall: mapset.NewThreadUnsafeSet(validUser),
+		MissingUsers:  mapset.NewThreadUnsafeSet(deletedUser),
+	}
+
+	result, err := info.calcUpdates(now)
+	require.NoError(t, err)
+	require.Empty(t, result.UsersToStart.ToSlice(), "deleted user should not be started")
+	require.Empty(t, result.UsersToStop.ToSlice())
+	require.Empty(t, result.NotificationChannels.ToSlice(), "should not notify when on-call is unchanged")
+
+	// without MissingUsers, the deleted user is always "new", which triggers a notification every cycle
+	info.MissingUsers = nil
+	result, err = info.calcUpdates(now)
+	require.NoError(t, err)
+	require.Equal(t, []uuid.UUID{deletedUser}, result.UsersToStart.ToSlice())
+	require.Equal(t, []uuid.UUID{channelID}, result.NotificationChannels.ToSlice())
+}
