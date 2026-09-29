@@ -20,6 +20,9 @@ type updateInfo struct {
 	CurrentOnCall   mapset.Set[uuid.UUID]
 	Rules           []gadb.SchedMgrRulesRow
 	ActiveOverrides []gadb.SchedMgrOverridesRow
+
+	// MissingUsers contains user IDs referenced by temporary schedule shifts that no longer exist
+	MissingUsers mapset.Set[uuid.UUID]
 }
 
 type updateResult struct {
@@ -34,7 +37,13 @@ func (info updateInfo) calcLatestOnCall(now time.Time) mapset.Set[uuid.UUID] {
 	if isActive, users := info.ScheduleData.TempOnCall(now); isActive {
 		// temporary schedule config takes precedence over anything else and makes this easy
 		// we use a thread-unsafe set here to avoid the cost of locking since this is only called in a single thread
-		return mapset.NewThreadUnsafeSet(users...)
+		onCall := mapset.NewThreadUnsafeSet(users...)
+		if info.MissingUsers != nil {
+			// users that no longer exist can never be recorded as on-call, so including them
+			// would cause a loop of "on-call changed" state (and repeated notifications)
+			onCall.RemoveAll(info.MissingUsers.ToSlice()...)
+		}
+		return onCall
 	}
 	now = now.In(info.TimeZone)
 	newOnCall := mapset.NewThreadUnsafeSet[uuid.UUID]()

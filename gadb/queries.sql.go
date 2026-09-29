@@ -5395,6 +5395,39 @@ func (q *Queries) SchedMgrTimezones(ctx context.Context) ([]SchedMgrTimezonesRow
 	return items, nil
 }
 
+const schedMgrVerifyUsers = `-- name: SchedMgrVerifyUsers :many
+SELECT
+    id
+FROM
+    users
+WHERE
+    id = ANY ($1::uuid[])
+`
+
+// Returns the subset of the given user IDs that exist in the users table.
+func (q *Queries) SchedMgrVerifyUsers(ctx context.Context, userIds []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrVerifyUsers, pq.Array(userIds))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const schedUpdate = `-- name: SchedUpdate :exec
 UPDATE schedules
 SET name = $2, description = $3, time_zone = $4
