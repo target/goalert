@@ -46,7 +46,7 @@ PREBUILT:=.prebuilt
 container-goalert:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz{{end}}
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/goalert:$(IMAGE_TAG) -f devtools/ci/dockerfiles/goalert/Dockerfile$(PREBUILT) $(PUSH_ARG) .
 
-container-demo:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}/resetdb{{end}}
+container-demo:{{range $.ContainerArch}} bin/goalert-linux-{{.}}.tgz bin/linux-{{.}}.demo/resetdb{{end}}
 	docker buildx build --platform linux/amd64,linux/arm64,linux/arm -t $(IMAGE_REPO)/demo:$(IMAGE_TAG) -f devtools/ci/dockerfiles/demo/Dockerfile$(PREBUILT) $(PUSH_ARG) .
 
 $(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lock web/src/esbuild.cypress.js $(shell find ./web/src/cypress)
@@ -55,6 +55,12 @@ $(BIN_DIR)/build/integration/cypress/plugins/index.js: package.json bun.lock web
 	mkdir -p $@/plugins
 	cp web/src/cypress/plugins/index.js $@/plugins/index.js
 	touch $@
+
+{{- range $.ContainerArch}}
+$(BIN_DIR)/linux-{{.}}.demo/resetdb: $(GO_DEPS)
+	mkdir -p $(BIN_DIR)/linux-{{.}}.demo
+	GOOS=linux GOARCH={{.}} CGO_ENABLED=0 go build -trimpath -o "$@" ./devtools/resetdb
+{{end}}
 
 {{range $.Builds}}
 $(BIN_DIR)/build/integration/bin/build/goalert-{{.Name}}: $(BIN_DIR)/build/goalert-{{.Name}}
