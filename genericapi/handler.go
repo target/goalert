@@ -79,6 +79,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	details := r.FormValue("details")
 	action := r.FormValue("action")
 	dedup := r.FormValue("dedup")
+	escalate := r.FormValue("escalate") == "true"
 
 	meta := make(map[string]string)
 	for _, v := range r.Form["meta"] {
@@ -99,6 +100,7 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		var b struct {
 			Summary, Details, Action, Dedup *string
 			Meta                            map[string]string
+			Escalate 						*bool
 		}
 		err = json.Unmarshal(data, &b)
 		if errutil.HTTPError(ctx, w, validation.WrapError(err)) {
@@ -116,6 +118,9 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 		}
 		if b.Action != nil {
 			action = *b.Action
+		}
+		if b.Escalate != nil {
+			escalate = *b.Escalate
 		}
 		if b.Meta != nil {
 			meta = b.Meta
@@ -160,6 +165,12 @@ func (h *Handler) ServeCreateAlert(w http.ResponseWriter, r *http.Request) {
 	)
 	if errutil.HTTPError(ctx, w, errors.Wrap(err, "create alert")) {
 		return
+	}
+	if escalate && !resp.IsNew && resp.AlertID != 0 && action != "close" {
+		err = h.c.AlertStore.EscalateAsOf(ctx, resp.AlertID, time.Time{})
+		if errutil.HTTPError(ctx, w, errors.Wrap(err, "escalate alert")){
+			return
+		}
 	}
 
 	if r.Header.Get("Accept") != "application/json" {
