@@ -38,6 +38,7 @@ const mutation = gql`
 type StepInfo = {
   id: string
   delayMinutes: number
+  skipIfEmpty: boolean
   stepNumber: number
   actions: Destination[]
   multiAck: boolean

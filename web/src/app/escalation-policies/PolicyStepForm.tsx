@@ -34,6 +34,7 @@ export type FormValue = {
   delayMinutes: number
   actions: DestinationInput[]
   multiAck: boolean
+  skipIfEmpty: boolean
 }
 
 export type PolicyStepFormProps = {
@@ -222,6 +223,26 @@ export default function PolicyStepForm(props: PolicyStepFormProps): ReactNode {
             label='Continue notifications after acknowledgment (multi-ack)'
             labelPlacement='end'
           />
+          <FormControlLabel
+            control={
+              <FormField
+                noError
+                component={Checkbox}
+                checkbox
+                disabled={props.disabled}
+                name='skipIfEmpty'
+              />
+            }
+            label='Skip if no one is on-call'
+            labelPlacement='end'
+          />
+          <Typography variant='caption' color='textSecondary' component='p'>
+            Escalate immediately, without waiting the delay above, when this
+            step has no one on-call and no notification channels. On-call is
+            resolved once, when the step is reached, so waiting would not notify
+            anyone who comes on-call during the delay. This has no effect on the
+            last step, which always waits before the policy repeats.
+          </Typography>
         </Grid>
       </Grid>
     </FormContainer>

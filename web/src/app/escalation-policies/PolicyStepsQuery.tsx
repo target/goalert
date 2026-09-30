@@ -11,6 +11,7 @@ export const policyStepsQueryDest = gql`
       steps {
         id
         delayMinutes
+        skipIfEmpty
         stepNumber
         multiAck
         actions {

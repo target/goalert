@@ -100,8 +100,10 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 
 		newPolicies: p.P(`
 			with to_escalate as (
-				select alert_id, step.id ep_step_id, step.delay, step.escalation_policy_id, a.service_id, step.multi_ack
+				select alert_id, step.id ep_step_id, step.delay, step.skip_if_empty, step.escalation_policy_id, a.service_id,
+					step.multi_ack, ep.step_count > 1 has_later_step
 				from escalation_policy_state state
+				join escalation_policies ep on ep.id = state.escalation_policy_id
 				join escalation_policy_steps step on
 					step.escalation_policy_id = state.escalation_policy_id and
 					step.step_number = 0
@@ -140,11 +142,33 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					escalation_policy_id,
 					channel_id
 				from _step_channels
+			), _skip as (
+				-- Steps that resolved to no one at all: no on-call users and no
+				-- notification channels. On-call is resolved once, here, at escalation
+				-- time, so a user whose shift begins partway through the delay is not
+				-- notified until the following escalation regardless. Waiting out the
+				-- delay therefore notifies nobody -- escalate on the next pass instead.
+				--
+				-- Only skip when a later step exists. Skipping the last step would just
+				-- accelerate the wrap back to step 0, consuming a repeat with no elapsed
+				-- time -- and, on a single-step policy, burning the alert's only retry.
+				-- Because the last step always waits, a fully empty policy cannot cycle
+				-- on every engine tick.
+				select esc.alert_id
+				from to_escalate esc
+				where
+					esc.skip_if_empty and
+					esc.has_later_step and
+					not exists (select 1 from _step_cycles c where c.alert_id = esc.alert_id) and
+					not exists (select 1 from _step_channels ch where ch.alert_id = esc.alert_id)
 			), _update as (
 				update escalation_policy_state state
 				set
 					last_escalation = now(),
-					next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
+					next_escalation = case
+						when esc.alert_id in (select alert_id from _skip) then now()
+						else now() + (cast(esc.delay as text)||' minutes')::interval
+					end,
 					escalation_policy_step_id = esc.ep_step_id,
 					force_escalation = false
 				from
@@ -165,6 +189,8 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					step.id ep_step_id,
 					step.step_number,
 					step.delay,
+					step.skip_if_empty,
+					step.step_number + 1 < ep.step_count has_later_step,
 					state.escalation_policy_step_number >= ep.step_count repeated,
 					a.service_id,
 					step.escalation_policy_id,
@@ -215,11 +241,33 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					escalation_policy_id,
 					channel_id
 				from _step_channels
+			), _skip as (
+				-- Steps that resolved to no one at all: no on-call users and no
+				-- notification channels. On-call is resolved once, here, at escalation
+				-- time, so a user whose shift begins partway through the delay is not
+				-- notified until the following escalation regardless. Waiting out the
+				-- delay therefore notifies nobody -- escalate on the next pass instead.
+				--
+				-- Only skip when a later step exists. Skipping the last step would just
+				-- accelerate the wrap back to step 0, consuming a repeat with no elapsed
+				-- time -- and, on a single-step policy, burning the alert's only retry.
+				-- Because the last step always waits, a fully empty policy cannot cycle
+				-- on every engine tick.
+				select esc.alert_id
+				from to_escalate esc
+				where
+					esc.skip_if_empty and
+					esc.has_later_step and
+					not exists (select 1 from _step_cycles c where c.alert_id = esc.alert_id) and
+					not exists (select 1 from _step_channels ch where ch.alert_id = esc.alert_id)
 			), _update as (
 				update escalation_policy_state state
 				set
 					last_escalation = now(),
-					next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
+					next_escalation = case
+						when esc.alert_id in (select alert_id from _skip) then now()
+						else now() + (cast(esc.delay as text)||' minutes')::interval
+					end,
 					escalation_policy_step_number = esc.step_number,
 					escalation_policy_step_id = esc.ep_step_id,
 					force_escalation = false
@@ -239,6 +287,8 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					alert_id,
 					nextStep.id ep_step_id,
 					nextStep.delay,
+					nextStep.skip_if_empty,
+					nextStep.step_number + 1 < ep.step_count has_later_step,
 					nextStep.step_number,
 					force_escalation forced,
 					oldStep.delay old_delay,
@@ -298,11 +348,33 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 					escalation_policy_id,
 					channel_id
 				from _step_channels
+			), _skip as (
+				-- Steps that resolved to no one at all: no on-call users and no
+				-- notification channels. On-call is resolved once, here, at escalation
+				-- time, so a user whose shift begins partway through the delay is not
+				-- notified until the following escalation regardless. Waiting out the
+				-- delay therefore notifies nobody -- escalate on the next pass instead.
+				--
+				-- Only skip when a later step exists. Skipping the last step would just
+				-- accelerate the wrap back to step 0, consuming a repeat with no elapsed
+				-- time -- and, on a single-step policy, burning the alert's only retry.
+				-- Because the last step always waits, a fully empty policy cannot cycle
+				-- on every engine tick.
+				select esc.alert_id
+				from to_escalate esc
+				where
+					esc.skip_if_empty and
+					esc.has_later_step and
+					not exists (select 1 from _step_cycles c where c.alert_id = esc.alert_id) and
+					not exists (select 1 from _step_channels ch where ch.alert_id = esc.alert_id)
 			), _update as (
 				update escalation_policy_state state
 				set
 					last_escalation = now(),
-					next_escalation = now() + (cast(esc.delay as text)||' minutes')::interval,
+					next_escalation = case
+						when esc.alert_id in (select alert_id from _skip) then now()
+						else now() + (cast(esc.delay as text)||' minutes')::interval
+					end,
 					escalation_policy_step_number = esc.step_number,
 					escalation_policy_step_id = esc.ep_step_id,
 					loop_count = CASE WHEN esc.repeated THEN loop_count + 1 ELSE loop_count END,
