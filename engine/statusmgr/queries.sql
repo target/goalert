@@ -57,6 +57,5 @@ FROM
     JOIN alerts a ON a.id = sub.alert_id
 WHERE
     sub.id = $1
-FOR UPDATE
-    SKIP LOCKED;
+FOR UPDATE;
 

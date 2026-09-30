@@ -16,7 +16,7 @@ func (db *DB) update(ctx context.Context, tx *sql.Tx, id int64) error {
 
 	sub, err := q.StatusMgrFindOne(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
-		// subscription was deleted or locked by another job
+		// subscription was deleted
 		return nil
 	}
 	if err != nil {
