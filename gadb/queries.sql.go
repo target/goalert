@@ -1363,7 +1363,8 @@ AND NOT EXISTS (
         alert_logs log
     WHERE
         timestamp > now() - '1 day'::interval * $2
-        AND log.alert_id = a.id)
+        AND log.alert_id = a.id
+        AND log.event != 'policy_updated')
 LIMIT 100
 `
 
@@ -1373,6 +1374,7 @@ type CleanupMgrFindStaleAlertsParams struct {
 }
 
 // CleanupMgrFindStaleAlerts will find alerts that are triggered or active and have no activity in specified number of days.
+// Policy updates are not considered activity, since they are not caused by anything happening on the alert itself.
 func (q *Queries) CleanupMgrFindStaleAlerts(ctx context.Context, arg CleanupMgrFindStaleAlertsParams) ([]int64, error) {
 	rows, err := q.db.QueryContext(ctx, cleanupMgrFindStaleAlerts, arg.IncludeAcked, arg.AutoCloseThresholdDays)
 	if err != nil {
