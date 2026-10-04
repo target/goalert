@@ -23,6 +23,9 @@ type SearchOptions struct {
 	// Omit specifies a list of user IDs to exclude from the results.
 	Omit []string `json:"o,omitempty"`
 
+	// Only specifies a list of user IDs to limit the results to.
+	Only []string `json:"n,omitempty"`
+
 	Limit int `json:"-"`
 
 	DestArgs map[string]string `json:"da,omitempty"`
@@ -72,6 +75,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	WHERE true
 	{{if .Omit}}
 		AND not usr.id = any(:omit)
+	{{end}}
+	{{if .Only}}
+		AND usr.id = any(:only)
 	{{end}}
 	{{if .Search}}
 		AND ({{orderedPrefixSearch "search" "usr.name"}}  OR {{contains "search" "usr.name"}})
@@ -135,6 +141,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
+		validate.ManyUUID("Only", opts.Only, 50),
 	)
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.Name("After.Name", opts.After.Name))
@@ -154,6 +161,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.SearchString()),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("only", sqlutil.UUIDArray(opts.Only)),
 		sql.Named("DestArgs", opts.DestArgs),
 		sql.Named("DestType", opts.DestType),
 		sql.Named("favUserID", opts.FavoritesUserID),

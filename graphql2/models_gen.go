@@ -994,6 +994,7 @@ type UserSearchOptions struct {
 	After   *string            `json:"after,omitempty"`
 	Search  *string            `json:"search,omitempty"`
 	Omit    []string           `json:"omit,omitempty"`
+	Only    []string           `json:"only,omitempty"`
 	CMValue *string            `json:"CMValue,omitempty"`
 	CMType  *ContactMethodType `json:"CMType,omitempty"`
 	Dest    *gadb.DestV1       `json:"dest,omitempty"`

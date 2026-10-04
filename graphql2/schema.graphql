@@ -945,6 +945,7 @@ input UserSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  only: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
   dest: DestinationInput

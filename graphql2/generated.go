@@ -29238,7 +29238,7 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 		asMap["favoritesFirst"] = false
 	}
 
-	fieldsInOrder := [...]string{"first", "after", "search", "omit", "CMValue", "CMType", "dest", "favoritesOnly", "favoritesFirst"}
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "only", "CMValue", "CMType", "dest", "favoritesOnly", "favoritesFirst"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29273,6 +29273,13 @@ func (ec *executionContext) unmarshalInputUserSearchOptions(ctx context.Context,
 				return it, err
 			}
 			it.Omit = data
+		case "only":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("only"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Only = data
 		case "CMValue":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CMValue"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
