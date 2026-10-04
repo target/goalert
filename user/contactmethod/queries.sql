@@ -50,6 +50,14 @@ FROM
 WHERE
     user_id = $1;
 
+-- name: ContactMethodFindAllByUserIDs :many
+SELECT
+    *
+FROM
+    user_contact_methods
+WHERE
+    user_id = ANY ($1::uuid[]);
+
 -- name: ContactMethodLookupUserID :many
 SELECT DISTINCT
     user_id
