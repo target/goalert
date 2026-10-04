@@ -27256,7 +27256,7 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 		asMap["favoritesFirst"] = false
 	}
 
-	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "only", "favoritesOnly", "favoritesFirst"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27291,6 +27291,13 @@ func (ec *executionContext) unmarshalInputRotationSearchOptions(ctx context.Cont
 				return it, err
 			}
 			it.Omit = data
+		case "only":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("only"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Only = data
 		case "favoritesOnly":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -27388,7 +27395,7 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 		asMap["favoritesFirst"] = false
 	}
 
-	fieldsInOrder := [...]string{"first", "after", "search", "omit", "favoritesOnly", "favoritesFirst"}
+	fieldsInOrder := [...]string{"first", "after", "search", "omit", "only", "favoritesOnly", "favoritesFirst"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27423,6 +27430,13 @@ func (ec *executionContext) unmarshalInputScheduleSearchOptions(ctx context.Cont
 				return it, err
 			}
 			it.Omit = data
+		case "only":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("only"))
+			data, err := ec.unmarshalOID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Only = data
 		case "favoritesOnly":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("favoritesOnly"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)

@@ -209,6 +209,7 @@ func (q *Query) Rotations(ctx context.Context, opts *graphql2.RotationSearchOpti
 		searchOpts.FavoritesOnly = *opts.FavoritesOnly
 	}
 	searchOpts.Omit = opts.Omit
+	searchOpts.Only = opts.Only
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
 		if err != nil {
