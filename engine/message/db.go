@@ -381,6 +381,10 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		}
 	}
 
+	if cfg.General.DisableMessageBundles {
+    return newQueue(result, now), nil
+	}
+	
 	result, err = dedupAlerts(result, func(parentID string, duplicateIDs []string) error {
 		_, err = tx.StmtContext(ctx, db.bundleMessages).ExecContext(ctx, parentID, sqlutil.UUIDArray(duplicateIDs))
 		if err != nil {
@@ -393,9 +397,7 @@ func (db *DB) currentQueue(ctx context.Context, tx *sql.Tx, now time.Time) (*que
 		return nil, fmt.Errorf("dedup alerts: %w", err)
 	}
 
-	if cfg.General.DisableMessageBundles {
-		return newQueue(result, now), nil
-	}
+	
 
 	result, err = bundleAlertMessages(result, func(msg Message) (string, error) {
 		var userID sql.NullString
