@@ -15,10 +15,11 @@ import (
 type Store struct {
 	db *sql.DB
 
-	insert       *sql.Stmt
-	delete       *sql.Stmt
-	findAll      *sql.Stmt
-	lookupUserID *sql.Stmt
+	insert          *sql.Stmt
+	delete          *sql.Stmt
+	findAll         *sql.Stmt
+	findAllByUserID *sql.Stmt
+	lookupUserID    *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
@@ -29,6 +30,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	s.insert = p("INSERT INTO user_notification_rules (id,user_id,delay_minutes,contact_method_id) VALUES ($1,$2,$3,$4)")
 	s.findAll = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = $1")
+	s.findAllByUserID = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = any($1)")
 	s.delete = p("DELETE FROM user_notification_rules WHERE id = any($1)")
 	s.lookupUserID = p("SELECT user_id FROM user_notification_rules WHERE id = any($1)")
 
@@ -130,6 +132,38 @@ func (s *Store) FindAll(ctx context.Context, userID string) ([]NotificationRule,
 	}
 
 	rows, err := s.findAll.QueryContext(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	notificationrules := []NotificationRule{}
+	for rows.Next() {
+		var n NotificationRule
+		err = rows.Scan(&n.ID, &n.UserID, &n.DelayMinutes, &n.ContactMethodID)
+		if err != nil {
+			return nil, err
+		}
+		notificationrules = append(notificationrules, n)
+	}
+
+	return notificationrules, nil
+}
+
+// FindAllByUserIDs finds all notification rules associated with any of the given user IDs,
+// batched into a single query.
+func (s *Store) FindAllByUserIDs(ctx context.Context, userIDs []string) ([]NotificationRule, error) {
+	err := validate.ManyUUID("UserID", userIDs, 100)
+	if err != nil {
+		return nil, err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.findAllByUserID.QueryContext(ctx, sqlutil.UUIDArray(userIDs))
 	if err != nil {
 		return nil, err
 	}

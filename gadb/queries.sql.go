@@ -1830,6 +1830,51 @@ func (q *Queries) ContactMethodFindAll(ctx context.Context, userID uuid.UUID) ([
 	return items, nil
 }
 
+const contactMethodFindAllByUserIDs = `-- name: ContactMethodFindAllByUserIDs :many
+SELECT
+    dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, private, type, user_id, value
+FROM
+    user_contact_methods
+WHERE
+    user_id = ANY ($1::uuid[])
+`
+
+func (q *Queries) ContactMethodFindAllByUserIDs(ctx context.Context, dollar_1 []uuid.UUID) ([]UserContactMethod, error) {
+	rows, err := q.db.QueryContext(ctx, contactMethodFindAllByUserIDs, pq.Array(dollar_1))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserContactMethod
+	for rows.Next() {
+		var i UserContactMethod
+		if err := rows.Scan(
+			&i.Dest,
+			&i.Disabled,
+			&i.EnableStatusUpdates,
+			&i.ID,
+			&i.LastTestVerifyAt,
+			&i.Metadata,
+			&i.Name,
+			&i.Pending,
+			&i.Private,
+			&i.Type,
+			&i.UserID,
+			&i.Value,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const contactMethodFindMany = `-- name: ContactMethodFindMany :many
 SELECT
     dest, disabled, enable_status_updates, id, last_test_verify_at, metadata, name, pending, private, type, user_id, value
