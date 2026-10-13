@@ -18,7 +18,6 @@ type Store struct {
 	insert           *sql.Stmt
 	delete           *sql.Stmt
 	findAll          *sql.Stmt
-	findAllByUserID  *sql.Stmt
 	findAllByUserIDs *sql.Stmt
 	lookupUserID     *sql.Stmt
 }
