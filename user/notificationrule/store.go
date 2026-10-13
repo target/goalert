@@ -163,7 +163,7 @@ func (s *Store) FindAllByUserIDs(ctx context.Context, userIDs []string) ([]Notif
 		return nil, err
 	}
 
-	rows, err := s.findAllByUserID.QueryContext(ctx, sqlutil.UUIDArray(userIDs))
+	rows, err := s.findAllByUserIDs.QueryContext(ctx, sqlutil.UUIDArray(userIDs))
 	if err != nil {
 		return nil, err
 	}
