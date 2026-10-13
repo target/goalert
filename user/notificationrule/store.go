@@ -15,11 +15,12 @@ import (
 type Store struct {
 	db *sql.DB
 
-	insert          *sql.Stmt
-	delete          *sql.Stmt
-	findAll         *sql.Stmt
-	findAllByUserID *sql.Stmt
-	lookupUserID    *sql.Stmt
+	insert           *sql.Stmt
+	delete           *sql.Stmt
+	findAll          *sql.Stmt
+	findAllByUserID  *sql.Stmt
+	findAllByUserIDs *sql.Stmt
+	lookupUserID     *sql.Stmt
 }
 
 // NewDB will create a DB backend from a sql.DB. An error will be returned if statements fail to prepare.
