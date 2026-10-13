@@ -30,7 +30,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 	s.insert = p("INSERT INTO user_notification_rules (id,user_id,delay_minutes,contact_method_id) VALUES ($1,$2,$3,$4)")
 	s.findAll = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = $1")
-	s.findAllByUserID = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = any($1)")
+	s.findAllByUserIDs = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = any($1)")
 	s.delete = p("DELETE FROM user_notification_rules WHERE id = any($1)")
 	s.lookupUserID = p("SELECT user_id FROM user_notification_rules WHERE id = any($1)")
 
