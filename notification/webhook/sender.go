@@ -214,5 +214,19 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 	}
 	resp.Body.Close()
 
+	// Only a 2xx response means the webhook accepted the message.
+	code := resp.StatusCode
+	if code/100 != 2 {
+		// Timeouts, rate limits and server errors may succeed later, so they are retried.
+		state := notification.StateFailedPerm
+		if code == http.StatusRequestTimeout || code == http.StatusTooManyRequests || code >= 500 {
+			state = notification.StateFailedTemp
+		}
+		return &notification.SentMessage{
+			State:        state,
+			StateDetails: fmt.Sprintf("webhook returned HTTP %d", code),
+		}, nil
+	}
+
 	return &notification.SentMessage{State: notification.StateSent}, nil
 }
