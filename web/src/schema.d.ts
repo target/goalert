@@ -971,6 +971,7 @@ export interface RotationSearchOptions {
   favoritesOnly?: null | boolean
   first?: null | number
   omit?: null | string[]
+  only?: null | string[]
   search?: null | string
 }
 
@@ -1055,6 +1056,7 @@ export interface ScheduleSearchOptions {
   favoritesOnly?: null | boolean
   first?: null | number
   omit?: null | string[]
+  only?: null | string[]
   search?: null | string
 }
 
@@ -1519,6 +1521,7 @@ export interface UserSearchOptions {
   favoritesOnly?: null | boolean
   first?: null | number
   omit?: null | string[]
+  only?: null | string[]
   search?: null | string
 }
 

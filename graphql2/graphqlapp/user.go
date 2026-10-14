@@ -301,6 +301,7 @@ func (q *Query) Users(ctx context.Context, opts *graphql2.UserSearchOptions, fir
 		searchOpts.Search = *opts.Search
 	}
 	searchOpts.Omit = opts.Omit
+	searchOpts.Only = opts.Only
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
 		if err != nil {

@@ -348,6 +348,7 @@ func (q *Query) Schedules(ctx context.Context, opts *graphql2.ScheduleSearchOpti
 		searchOpts.FavoritesFirst = *opts.FavoritesFirst
 	}
 	searchOpts.Omit = opts.Omit
+	searchOpts.Only = opts.Only
 	if opts.After != nil && *opts.After != "" {
 		err = search.ParseCursor(*opts.After, &searchOpts)
 		if err != nil {

@@ -31,6 +31,9 @@ type SearchOptions struct {
 	// Omit specifies a list of schedule IDs to exclude from the results.
 	Omit []string `json:"o,omitempty"`
 
+	// Only specifies a list of schedule IDs to limit the results to.
+	Only []string `json:"n,omitempty"`
+
 	Limit int `json:"-"`
 }
 
@@ -54,6 +57,9 @@ var searchTemplate = template.Must(template.New("search").Funcs(search.Helpers()
 	WHERE true
 	{{if .Omit}}
 		AND NOT sched.id = any(:omit)
+	{{end}}
+	{{if .Only}}
+		AND sched.id = any(:only)
 	{{end}}
 	{{if .Search}}
 		AND ({{orderedPrefixSearch "search" "sched.name"}} OR {{contains "search" "sched.description"}} OR {{contains "search" "sched.name"}})
@@ -89,6 +95,7 @@ func (opts renderData) Normalize() (*renderData, error) {
 		validate.Search("Search", opts.Search),
 		validate.Range("Limit", opts.Limit, 0, search.MaxResults),
 		validate.ManyUUID("Omit", opts.Omit, 50),
+		validate.ManyUUID("Only", opts.Only, 50),
 	)
 	if opts.After.Name != "" {
 		err = validate.Many(err, validate.IDName("After.Name", opts.After.Name))
@@ -108,6 +115,7 @@ func (opts renderData) QueryArgs() []sql.NamedArg {
 		sql.Named("search", opts.Search),
 		sql.Named("afterName", opts.After.Name),
 		sql.Named("omit", sqlutil.UUIDArray(opts.Omit)),
+		sql.Named("only", sqlutil.UUIDArray(opts.Only)),
 		sql.Named("favUserID", opts.FavoritesUserID),
 	}
 }

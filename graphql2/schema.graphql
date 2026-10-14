@@ -860,6 +860,7 @@ input RotationSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  only: [ID!]
 
   """
   Include only favorited rotations in the results.
@@ -908,6 +909,7 @@ input ScheduleSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  only: [ID!]
 
   """
   Include only favorited services in the results.
@@ -943,6 +945,7 @@ input UserSearchOptions {
   after: String = ""
   search: String = ""
   omit: [ID!]
+  only: [ID!]
   CMValue: String = ""
   CMType: ContactMethodType
   dest: DestinationInput
