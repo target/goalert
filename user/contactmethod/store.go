@@ -331,3 +331,41 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 
 	return result, omitted, nil
 }
+
+// FindAllByUserIDs finds all contact methods from the database associated with any of the
+// given user IDs, batched into a single query. Unlike FindAll, private contact methods are
+// not filtered here -- callers are expected to apply that check themselves, the same way
+// FindOneCM does for a single contact method.
+func (s *Store) FindAllByUserIDs(ctx context.Context, dbtx gadb.DBTX, userIDs []string) ([]ContactMethod, error) {
+	uids, err := validate.ParseManyUUID("UserID", userIDs, 100)
+	if err != nil {
+		return nil, err
+	}
+
+	err = permission.LimitCheckAny(ctx, permission.All)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := gadb.New(dbtx).ContactMethodFindAllByUserIDs(ctx, uids)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]ContactMethod, len(rows))
+	for i, row := range rows {
+		result[i] = ContactMethod{
+			ID:               row.ID,
+			Name:             row.Name,
+			Dest:             row.Dest.DestV1,
+			Disabled:         row.Disabled,
+			UserID:           row.UserID.String(),
+			Pending:          row.Pending,
+			StatusUpdates:    row.EnableStatusUpdates,
+			lastTestVerifyAt: row.LastTestVerifyAt,
+			Private:          row.Private,
+		}
+	}
+
+	return result, nil
+}
