@@ -65,7 +65,7 @@ describe('mapOverrideUserError', () => {
     start: '2019-01-02T20:33:10.363Z',
     end: '2019-01-02T21:33:10.363Z',
   }
-  const timeStr = 'Jan 2, 2019, 2:33 PM to 3:33 PM'
+  const timeStr = 'Jan 2, 2019 at 2:33 PM to 3:33 PM'
   const zone = 'America/Chicago'
 
   const add = { ...data, addUser: { id: 'foo', name: 'bob' } }
