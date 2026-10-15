@@ -22,7 +22,7 @@ type metadataDBFormat struct {
 
 // Metadata returns the metadata for a single alert. If err == nil, meta is guaranteed to be non-nil. If the alert has no metadata, an empty map is returned.
 func (s *Store) Metadata(ctx context.Context, db gadb.DBTX, alertID int) (meta map[string]string, err error) {
-	err = permission.LimitCheckAny(ctx, permission.System, permission.User)
+	err = permission.LimitCheckAny(ctx, permission.System, permission.User, permission.Service)
 	if err != nil {
 		return nil, err
 	}

@@ -604,7 +604,10 @@ func (s *Store) CreateOrUpdate(ctx context.Context, a *Alert) (*Alert, bool, err
 	return s.createOrUpdate(ctx, a, nil)
 }
 
-// CreateOrUpdateWithMeta behaves the same as CreateOrUpdate, but also sets metadata on the alert if it is new.
+// CreateOrUpdateWithMeta behaves the same as CreateOrUpdate, but also sets metadata on the
+// alert. On a new alert, meta becomes the alert's metadata. On a dedup match against an
+// existing alert, meta is merged on top of the alert's existing metadata (new keys added,
+// matching keys overwritten, other existing keys preserved) rather than discarded.
 func (s *Store) CreateOrUpdateWithMeta(ctx context.Context, a *Alert, meta map[string]string) (*Alert, bool, error) {
 	return s.createOrUpdate(ctx, a, meta)
 }
@@ -631,9 +634,31 @@ func (s *Store) createOrUpdate(ctx context.Context, a *Alert, meta map[string]st
 		return nil, false, err
 	}
 
-	// Set metadata only if meta is not nil and isNew is true
-	if meta != nil && isNew {
-		err = s.SetMetadataTx(ctx, tx, n.ID, meta)
+	// Metadata can't be set on a closed alert (see SetMetadataTx/Alert_SetAlertMetadata),
+	// and n is nil when Status is Closed but no matching alert was found -- skip entirely
+	// in both cases rather than erroring out what would otherwise be a successful close.
+	if len(meta) > 0 && n != nil && n.Status != StatusClosed {
+		toSet := meta
+		if !isNew {
+			// On a dedup match, merge the provided metadata on top of
+			// whatever is already stored instead of discarding it --
+			// otherwise a caller (e.g. the generic alert ingestion API)
+			// that re-fires the same alert with updated metadata loses
+			// that update every time after the first.
+			existing, err := s.Metadata(ctx, tx, n.ID)
+			if err != nil {
+				return nil, false, err
+			}
+			toSet = make(map[string]string, len(existing)+len(meta))
+			for k, v := range existing {
+				toSet[k] = v
+			}
+			for k, v := range meta {
+				toSet[k] = v
+			}
+		}
+
+		err = s.SetMetadataTx(ctx, tx, n.ID, toSet)
 		if err != nil {
 			return nil, false, err
 		}
