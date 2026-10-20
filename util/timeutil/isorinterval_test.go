@@ -57,6 +57,26 @@ func TestParseISORInterval(t *testing.T) {
 
 }
 
+func TestParseISORInterval_Invalid(t *testing.T) {
+	// Malformed input must return an error instead of panicking on an empty
+	// segment (e.g., a missing R value or a trailing slash).
+	for _, input := range []string{
+		"/P1D",
+		"R1/",
+		"R1/2022-01-31T00:00:00Z/",
+		"R1//2022-01-31T00:00:00Z",
+		"/",
+		"//",
+	} {
+		t.Run(input, func(t *testing.T) {
+			require.NotPanics(t, func() {
+				_, err := timeutil.ParseISORInterval(input)
+				assert.Error(t, err)
+			})
+		})
+	}
+}
+
 func TestISORInterval_String(t *testing.T) {
 	check := func(exp string, r timeutil.ISORInterval) {
 		t.Helper()

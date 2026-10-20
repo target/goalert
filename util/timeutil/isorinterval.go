@@ -71,7 +71,7 @@ func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 		return ISORInterval{}, fmt.Errorf("invalid interval: %s", s)
 	}
 
-	if parts[0][0] != 'R' {
+	if !strings.HasPrefix(parts[0], "R") {
 		return ISORInterval{}, fmt.Errorf("invalid interval: missing R value: %s", s)
 	}
 
@@ -87,7 +87,7 @@ func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 	}
 
 	var hasStart bool
-	if parts[1][0] == 'P' {
+	if strings.HasPrefix(parts[1], "P") {
 		ivl.Period, err = ParseISODuration(parts[1])
 		if err != nil {
 			return ISORInterval{}, fmt.Errorf("invalid interval: invalid duration: %s", parts[1])
@@ -108,11 +108,11 @@ func ParseISORIntervalFrom(t time.Time, s string) (ISORInterval, error) {
 		return ivl, nil
 	}
 
-	if parts[2][0] == 'P' && !hasStart {
+	if strings.HasPrefix(parts[2], "P") && !hasStart {
 		return ISORInterval{}, fmt.Errorf("invalid interval: got two durations, expected end time: %s", s)
 	}
 
-	if parts[2][0] == 'P' {
+	if strings.HasPrefix(parts[2], "P") {
 		ivl.Period, err = ParseISODuration(parts[2])
 		if err != nil {
 			return ISORInterval{}, fmt.Errorf("invalid interval: invalid duration: %s", parts[2])
