@@ -35,7 +35,14 @@ func (o UserOverride) String() string {
 }
 
 // Normalize will validate fields and return a normalized copy.
+//
+// Start and End are truncated to the minute before validation, matching the
+// rest of the application (schedule rules and temporary schedules), so that
+// override boundaries are always minute-aligned.
 func (o UserOverride) Normalize() (*UserOverride, error) {
+	o.Start = o.Start.Truncate(time.Minute)
+	o.End = o.End.Truncate(time.Minute)
+
 	var err error
 	if o.AddUserID == "" && o.RemoveUserID == "" {
 		err = validation.NewFieldError("UserID", "must specify AddUserID and/or RemoveUserID")
