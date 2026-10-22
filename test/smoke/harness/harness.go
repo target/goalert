@@ -73,6 +73,44 @@ func DBURL(name string) string {
 	return u.String()
 }
 
+// parseExpFlags parses a comma-separated list of experimental flag names (as
+// used by `goalert --experimental`), ignoring empty entries and surrounding
+// whitespace.
+func parseExpFlags(s string) expflag.FlagSet {
+	var fs expflag.FlagSet
+	for _, f := range strings.Split(s, ",") {
+		f = strings.TrimSpace(f)
+		if f == "" {
+			continue
+		}
+		fs = append(fs, expflag.Flag(f))
+	}
+	return fs
+}
+
+// mergeExpFlags returns the union of the given flag sets, preserving order and
+// dropping duplicates.
+func mergeExpFlags(sets ...expflag.FlagSet) expflag.FlagSet {
+	var result expflag.FlagSet
+	for _, fs := range sets {
+		for _, f := range fs {
+			if result.Has(f) {
+				continue
+			}
+			result = append(result, f)
+		}
+	}
+	return result
+}
+
+// envExpFlags returns the experimental flags requested via the SMOKE_EXP_FLAGS
+// environment variable (comma-separated). These are merged into the flags of
+// every harness so the whole suite can be run against an experimental code
+// path without editing tests.
+func envExpFlags() expflag.FlagSet {
+	return parseExpFlags(os.Getenv("SMOKE_EXP_FLAGS"))
+}
+
 // Harness is a helper for smoketests. It deals with assertions, database management, and backend monitoring during tests.
 type Harness struct {
 	phoneCCG, uuidG, emailG *DataGen
@@ -177,6 +215,11 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
+	}
+
+	if env := envExpFlags(); len(env) > 0 {
+		t.Logf("Using experimental flags from SMOKE_EXP_FLAGS: %v", env)
+		expFlags = mergeExpFlags(expFlags, env)
 	}
 
 	t.Logf("Using DB URL: %s", dbURL)
