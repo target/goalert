@@ -10,6 +10,11 @@
 -- Only rows containing at least one rule that still references an old_id are
 -- touched, and only the ChannelID key of those elements is replaced. Element
 -- order, any other keys, and the rest of the document are preserved.
+-- Block concurrent full-document writers for the duration of the rewrite so a
+-- write landing between the CTE snapshot and the row update cannot be reverted
+-- (same precaution as 20240628135216-dedup-notif-channels).
+LOCK TABLE schedule_data IN SHARE ROW EXCLUSIVE MODE;
+
 WITH rewritten AS (
     SELECT
         sd.schedule_id,
