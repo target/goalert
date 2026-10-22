@@ -345,6 +345,58 @@ func TestRotation_StartEnd_BruteForce(t *testing.T) {
 		"2020-10-05 02:15:00 +1100 +11",
 		"2020-10-06 02:15:00 +1100 +11",
 	)
+
+	// DST starts at midnight in Santiago on 2026-09-06 (00:00 -> 01:00), so
+	// local midnight does not exist on that day.
+	loc, err = time.LoadLocation("America/Santiago")
+	require.NoError(t, err)
+
+	// daily handoff that does not exist on the 6th; it happens at the first instant after (01:00)
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2026, time.September, 3, 0, 30, 0, 0, loc),
+	},
+		time.Date(2026, time.September, 4, 1, 0, 0, 0, loc),
+		time.Date(2026, time.September, 8, 0, 0, 0, 0, loc),
+
+		"2026-09-04 00:30:00 -0400 -04",
+		"2026-09-05 00:30:00 -0400 -04",
+		"2026-09-06 01:00:00 -0300 -03", // 00:30 does not exist
+		"2026-09-07 00:30:00 -0300 -03",
+		"2026-09-08 00:30:00 -0300 -03",
+	)
+
+	// daily handoff later in the day keeps its wall-clock time
+	check(&Rotation{
+		Type:        TypeDaily,
+		ShiftLength: 1,
+		Start:       time.Date(2026, time.September, 3, 8, 0, 0, 0, loc),
+	},
+		time.Date(2026, time.September, 4, 9, 0, 0, 0, loc),
+		time.Date(2026, time.September, 8, 7, 0, 0, 0, loc),
+
+		"2026-09-04 08:00:00 -0400 -04",
+		"2026-09-05 08:00:00 -0400 -04",
+		"2026-09-06 08:00:00 -0300 -03",
+		"2026-09-07 08:00:00 -0300 -03",
+		"2026-09-08 08:00:00 -0300 -03",
+	)
+
+	// hourly handoffs across the gap; the shift that would start at 00:00 is skipped
+	check(&Rotation{
+		Type:        TypeHourly,
+		ShiftLength: 1,
+		Start:       time.Date(2026, time.September, 5, 22, 0, 0, 0, loc),
+	},
+		time.Date(2026, time.September, 5, 22, 30, 0, 0, loc),
+		time.Date(2026, time.September, 6, 1, 30, 0, 0, loc),
+
+		"2026-09-05 22:00:00 -0400 -04",
+		"2026-09-05 23:00:00 -0400 -04",
+		"2026-09-06 01:00:00 -0300 -03",
+		"2026-09-06 02:00:00 -0300 -03",
+	)
 }
 
 func TestRotation_EndTime_DST(t *testing.T) {
