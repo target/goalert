@@ -86,6 +86,11 @@ var rules = migratetest.RuleSet{
 	// entity_updates are converted to jobs (1-way). Previously a separate job would do this.
 	{MigrationName: "rotation-direct-event", TableName: "entity_updates", MissingRows: true},
 	{MigrationName: "rotation-direct-event", TableName: "river_job", ExtraRows: true},
+
+	// schedule_data rules still pointing at a deleted duplicate notification channel (seeded
+	// before dedup-notif-channels) are rewritten to the surviving channel ID (1-way). The old
+	// channel rows no longer exist, so migrating down intentionally leaves the rewritten IDs.
+	{MigrationName: "sched-data-nc-dedup-finalize", TableName: "schedule_data", ColumnName: "data"},
 }
 
 const migrateInitData = `
