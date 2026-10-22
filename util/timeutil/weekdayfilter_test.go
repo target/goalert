@@ -179,3 +179,35 @@ func TestWeekdayFilter_DaysSince(t *testing.T) {
 	check(WeekdayFilter{1, 1, 1, 0, 0, 1, 1}, time.Monday, false, 4)
 
 }
+
+func TestWeekdayFilter_MidnightDST(t *testing.T) {
+	// DST starts at midnight in Santiago on Sunday 2026-09-06 (00:00 -> 01:00),
+	// so the day starts at 01:00 -03.
+	loc, err := time.LoadLocation("America/Santiago")
+	require.NoError(t, err)
+
+	fri := time.Date(2026, time.September, 4, 10, 0, 0, 0, loc)
+	sat := time.Date(2026, time.September, 5, 23, 30, 0, 0, loc)
+	sun := time.Date(2026, time.September, 6, 10, 0, 0, 0, loc)
+	mon := time.Date(2026, time.September, 7, 10, 0, 0, 0, loc)
+
+	sunOnly := WeekdayFilter{1, 0, 0, 0, 0, 0, 0}
+	noSun := WeekdayFilter{0, 1, 1, 1, 1, 1, 1}
+	noSat := WeekdayFilter{1, 1, 1, 1, 1, 1, 0}
+
+	const sunStart = "2026-09-06 01:00:00 -0300 -03"
+	assert.Equal(t, sunStart, sunOnly.NextActive(fri).String(), "NextActive from Friday")
+	assert.Equal(t, sunStart, sunOnly.NextActive(sat).String(), "NextActive from Saturday")
+	assert.Equal(t, sunStart, noSun.NextInactive(fri).String(), "NextInactive from Friday")
+	assert.Equal(t, sunStart, noSun.NextInactive(sat).String(), "NextInactive from Saturday")
+
+	assert.Equal(t, sunStart, sunOnly.StartTime(sun).String(), "StartTime on Sunday")
+	assert.Equal(t, sunStart, noSat.StartTime(sun).String(), "StartTime on Sunday (start of streak)")
+	assert.Equal(t, sunStart, noSat.StartTime(mon).String(), "StartTime on Monday (streak started Sunday)")
+	assert.Equal(t, sunStart, sunOnly.StartTime(sat).String(), "StartTime on inactive Saturday (next active)")
+
+	// the following day has a normal midnight
+	const monStart = "2026-09-07 00:00:00 -0300 -03"
+	assert.Equal(t, monStart, noSun.NextActive(sun).String(), "NextActive from Sunday")
+	assert.Equal(t, monStart, sunOnly.NextInactive(sun).String(), "NextInactive from Sunday")
+}

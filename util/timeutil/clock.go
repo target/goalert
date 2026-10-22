@@ -85,13 +85,31 @@ func (c Clock) Days() (int, Clock) {
 	return int(days), Clock(rem)
 }
 
+// dayStart returns the earliest instant of the calendar day containing t,
+// along with the DST transition (if any) that occurs during that day, in the
+// same form as IsDST.
+//
+// If local midnight does not exist (a DST transition at midnight) the day
+// begins after the gap, so IsDST cannot observe the transition from the start
+// of the day. In that case it is reported as a transition at clock 00:00,
+// with the wall-clock value of the first instant as the amount of change.
+func dayStart(t time.Time) (start time.Time, isDST bool, at, change Clock) {
+	y, m, d := t.Date()
+	start = startOfDay(y, m, d, t.Location())
+
+	h, min, sec := start.Clock()
+	if h != 0 || min != 0 || sec != 0 {
+		return start, true, 0, Clock(time.Duration(h)*time.Hour + time.Duration(min)*time.Minute + time.Duration(sec)*time.Second)
+	}
+
+	isDST, at, change = IsDST(start)
+	return start, isDST, at, change
+}
+
 // FirstOfDay will return the first timestamp where the time matches
 // the clock value, or the first instant after, if it does not exist.
 func (c Clock) FirstOfDay(t time.Time) time.Time {
-	y, m, d := t.Date()
-	t = time.Date(y, m, d, 0, 0, 0, 0, t.Location())
-
-	isDST, dstAt, dstChange := IsDST(t)
+	t, isDST, dstAt, dstChange := dayStart(t)
 	if !isDST || c < dstAt {
 		// if we spring forward, DST won't happen yet
 		// if we fall back, we'll land on the 'first' instance
@@ -116,10 +134,7 @@ func (c Clock) FirstOfDay(t time.Time) time.Time {
 // LastOfDay will return the last timestamp where the time matches
 // the clock value, or the first instant after, if it does not exist.
 func (c Clock) LastOfDay(t time.Time) time.Time {
-	y, m, d := t.Date()
-	t = time.Date(y, m, d, 0, 0, 0, 0, t.Location())
-
-	isDST, dstAt, dstChange := IsDST(t)
+	t, isDST, dstAt, dstChange := dayStart(t)
 	if !isDST || (dstChange > 0 && c < dstAt) {
 		return t.Add(time.Duration(c))
 	}
