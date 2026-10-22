@@ -714,11 +714,44 @@ func (h *Harness) EnqueueJob(queue, kind, id string, args map[string]any) {
 	h.WaitForJobs(queue)
 }
 
-// Trigger will trigger, and wait for, an engine cycle.
-func (h *Harness) Trigger() {
+// runEngineCycle runs, and waits for, exactly one engine cycle.
+func (h *Harness) runEngineCycle() {
+	h.t.Helper()
 	id := h.backend.Engine.NextCycleID()
 	go h.backend.Engine.Trigger()
 	require.NoError(h.t, h.backend.Engine.WaitCycleID(context.Background(), id))
+}
+
+// Trigger will trigger, and wait for, an engine cycle.
+//
+// Engine modules are moving from inline per-cycle processing to River jobs
+// (rotation-manager today, schedule-manager next). Those jobs are enqueued by
+// DB triggers and by River's scheduler exactly as in production, so the
+// harness does NOT re-insert or fake them: engine/jobtrigger.go (removed in
+// #4185) used to force periodic jobs to run, and was dropped because faking
+// job runs did not reflect real behavior. Instead, Trigger only waits for the
+// real queues to drain:
+//
+//  1. Wait for engineQueues to have no available/running/due jobs, so the
+//     cycle observes their output (e.g. rotation state).
+//  2. Run one engine cycle, exactly as before.
+//  3. Wait again, since the cycle (or DB triggers fired during it) may have
+//     enqueued more jobs.
+//  4. If either wait had to wait at all, run one more engine cycle so that
+//     modules which consume job output (e.g. the escalation manager reading
+//     schedule_on_call_users written by jobs that ran after the first cycle
+//     began) see it.
+//
+// Tests that see no job activity get exactly one cycle, as before.
+func (h *Harness) Trigger() {
+	h.t.Helper()
+
+	waited := h.WaitForJobs(engineQueues...)
+	h.runEngineCycle()
+	waited2 := h.WaitForJobs(engineQueues...)
+	if waited || waited2 {
+		h.runEngineCycle()
+	}
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
@@ -1002,11 +1035,15 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	}
 	sort.Strings(userIDs)
 	check := func(t *assert.CollectT) {
+		// Run an engine cycle before each check (not just once up front) so
+		// on-call state produced by River jobs that finish between polls is
+		// picked up (see Trigger).
+		h.Trigger()
+
 		ids := getUsers()
 		require.Lenf(t, ids, len(userIDs), "number of on-call users")
 		require.ElementsMatch(t, userIDs, ids, "on-call users")
 	}
-	h.Trigger() // run engine cycle
 
-	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
+	assert.EventuallyWithT(h.t, check, 30*time.Second, time.Second)
 }
