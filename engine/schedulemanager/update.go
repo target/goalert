@@ -61,34 +61,11 @@ func ruleRowIsActive(row gadb.SchedMgrRulesRow, t time.Time) bool {
 }
 
 func (db *DB) update(ctx context.Context) error {
-	tx, state, err := db.lock.BeginTxWithState(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
+	tx, err := db.lock.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	if err != nil {
 		return errors.Wrap(err, "start transaction")
 	}
 	defer sqlutil.Rollback(ctx, "schedule manager", tx)
-
-	var s State
-	err = state.Load(ctx, &s)
-	if err != nil {
-		return errors.Wrap(err, "load state")
-	}
-
-	if !s.HasMigratedScheduleData {
-		isDone, err := db.migrateScheduleDataNotifDedup(ctx, tx)
-		if err != nil {
-			return errors.Wrap(err, "migrate schedule data")
-		}
-		if !isDone {
-			// We're not done yet, so we'll try again later.
-			return tx.Commit()
-		}
-
-		s.HasMigratedScheduleData = true
-		err = state.Save(ctx, &s)
-		if err != nil {
-			return errors.Wrap(err, "save state")
-		}
-	}
 
 	log.Debugf(ctx, "Updating schedule rules.")
 
