@@ -13,11 +13,9 @@ import (
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
-	"github.com/target/goalert/schedule/rule"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
-	"github.com/target/goalert/util/timeutil"
 )
 
 // UpdateAll will update all schedule rules.
@@ -31,33 +29,7 @@ func (db *DB) UpdateAll(ctx context.Context) error {
 }
 
 func ruleRowIsActive(row gadb.SchedMgrRulesRow, t time.Time) bool {
-	var wf timeutil.WeekdayFilter
-	if row.Sunday {
-		wf[0] = 1
-	}
-	if row.Monday {
-		wf[1] = 1
-	}
-	if row.Tuesday {
-		wf[2] = 1
-	}
-	if row.Wednesday {
-		wf[3] = 1
-	}
-	if row.Thursday {
-		wf[4] = 1
-	}
-	if row.Friday {
-		wf[5] = 1
-	}
-	if row.Saturday {
-		wf[6] = 1
-	}
-	return rule.Rule{
-		Start:         row.StartTime,
-		End:           row.EndTime,
-		WeekdayFilter: wf,
-	}.IsActive(t)
+	return ruleFromRow(row).IsActive(t)
 }
 
 func (db *DB) update(ctx context.Context) error {
