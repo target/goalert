@@ -5034,6 +5034,27 @@ func (q *Queries) SchedInsertData(ctx context.Context, scheduleID uuid.UUID) err
 	return err
 }
 
+const schedMgrDataForSchedule = `-- name: SchedMgrDataForSchedule :one
+SELECT
+    data
+FROM
+    schedule_data
+WHERE
+    schedule_id = $1
+FOR UPDATE
+`
+
+// Returns the data for a single schedule, locking the row for the rest of the
+// transaction. The lock is required because schedule/storedata.go locks only
+// schedule_data (not schedules) when users edit, so this is the row that
+// serializes the engine against user edits of the same schedule.
+func (q *Queries) SchedMgrDataForSchedule(ctx context.Context, scheduleID uuid.UUID) (json.RawMessage, error) {
+	row := q.db.QueryRowContext(ctx, schedMgrDataForSchedule, scheduleID)
+	var data json.RawMessage
+	err := row.Scan(&data)
+	return data, err
+}
+
 const schedMgrDataForUpdate = `-- name: SchedMgrDataForUpdate :many
 SELECT
     schedule_id,
@@ -5110,6 +5131,28 @@ func (q *Queries) SchedMgrInsertMessage(ctx context.Context, arg SchedMgrInsertM
 	return err
 }
 
+const schedMgrLockSchedule = `-- name: SchedMgrLockSchedule :one
+SELECT
+    time_zone
+FROM
+    schedules
+WHERE
+    id = $1
+FOR NO KEY UPDATE
+`
+
+// Locks the schedule row for the rest of the transaction and returns its time
+// zone. FOR NO KEY UPDATE serializes concurrent jobs for the same schedule
+// without blocking the FOR KEY SHARE locks that foreign-key checks take when
+// rules or overrides referencing the schedule are inserted. sql.ErrNoRows
+// means the schedule was deleted.
+func (q *Queries) SchedMgrLockSchedule(ctx context.Context, scheduleID uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, schedMgrLockSchedule, scheduleID)
+	var time_zone string
+	err := row.Scan(&time_zone)
+	return time_zone, err
+}
+
 const schedMgrOnCall = `-- name: SchedMgrOnCall :many
 SELECT
     schedule_id,
@@ -5148,11 +5191,47 @@ func (q *Queries) SchedMgrOnCall(ctx context.Context) ([]SchedMgrOnCallRow, erro
 	return items, nil
 }
 
+const schedMgrOnCallForSchedule = `-- name: SchedMgrOnCallForSchedule :many
+SELECT
+    user_id
+FROM
+    schedule_on_call_users
+WHERE
+    schedule_id = $1
+    AND end_time ISNULL
+`
+
+// Returns the users currently recorded as on-call for a single schedule.
+func (q *Queries) SchedMgrOnCallForSchedule(ctx context.Context, scheduleID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrOnCallForSchedule, scheduleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const schedMgrOverrides = `-- name: SchedMgrOverrides :many
 SELECT
     add_user_id,
     remove_user_id,
-    tgt_schedule_id
+    tgt_schedule_id,
+    start_time,
+    end_time
 FROM
     user_overrides
 WHERE
@@ -5163,8 +5242,11 @@ type SchedMgrOverridesRow struct {
 	AddUserID     uuid.NullUUID
 	RemoveUserID  uuid.NullUUID
 	TgtScheduleID uuid.UUID
+	StartTime     time.Time
+	EndTime       time.Time
 }
 
+// Returns the overrides that are active right now, for all schedules.
 func (q *Queries) SchedMgrOverrides(ctx context.Context) ([]SchedMgrOverridesRow, error) {
 	rows, err := q.db.QueryContext(ctx, schedMgrOverrides)
 	if err != nil {
@@ -5174,7 +5256,67 @@ func (q *Queries) SchedMgrOverrides(ctx context.Context) ([]SchedMgrOverridesRow
 	var items []SchedMgrOverridesRow
 	for rows.Next() {
 		var i SchedMgrOverridesRow
-		if err := rows.Scan(&i.AddUserID, &i.RemoveUserID, &i.TgtScheduleID); err != nil {
+		if err := rows.Scan(
+			&i.AddUserID,
+			&i.RemoveUserID,
+			&i.TgtScheduleID,
+			&i.StartTime,
+			&i.EndTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedMgrOverridesForSchedule = `-- name: SchedMgrOverridesForSchedule :many
+SELECT
+    add_user_id,
+    remove_user_id,
+    tgt_schedule_id,
+    start_time,
+    end_time
+FROM
+    user_overrides
+WHERE
+    tgt_schedule_id = $1
+    AND end_time > now()
+`
+
+type SchedMgrOverridesForScheduleRow struct {
+	AddUserID     uuid.NullUUID
+	RemoveUserID  uuid.NullUUID
+	TgtScheduleID uuid.UUID
+	StartTime     time.Time
+	EndTime       time.Time
+}
+
+// Returns every override for a single schedule that has not yet ended,
+// including ones that have not started; whether an override is currently
+// active is decided in Go (see overrideActive).
+func (q *Queries) SchedMgrOverridesForSchedule(ctx context.Context, scheduleID uuid.UUID) ([]SchedMgrOverridesForScheduleRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrOverridesForSchedule, scheduleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedMgrOverridesForScheduleRow
+	for rows.Next() {
+		var i SchedMgrOverridesForScheduleRow
+		if err := rows.Scan(
+			&i.AddUserID,
+			&i.RemoveUserID,
+			&i.TgtScheduleID,
+			&i.StartTime,
+			&i.EndTime,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -5229,6 +5371,81 @@ func (q *Queries) SchedMgrRules(ctx context.Context) ([]SchedMgrRulesRow, error)
 	var items []SchedMgrRulesRow
 	for rows.Next() {
 		var i SchedMgrRulesRow
+		if err := rows.Scan(
+			&i.CreatedAt,
+			&i.EndTime,
+			&i.Friday,
+			&i.ID,
+			&i.IsActive,
+			&i.Monday,
+			&i.Saturday,
+			&i.ScheduleID,
+			&i.StartTime,
+			&i.Sunday,
+			&i.TgtRotationID,
+			&i.TgtUserID,
+			&i.Thursday,
+			&i.Tuesday,
+			&i.Wednesday,
+			&i.ResolvedUserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const schedMgrRulesForSchedule = `-- name: SchedMgrRulesForSchedule :many
+SELECT
+    rule.created_at, rule.end_time, rule.friday, rule.id, rule.is_active, rule.monday, rule.saturday, rule.schedule_id, rule.start_time, rule.sunday, rule.tgt_rotation_id, rule.tgt_user_id, rule.thursday, rule.tuesday, rule.wednesday,
+    coalesce(rule.tgt_user_id, part.user_id) AS resolved_user_id
+FROM
+    schedule_rules rule
+    LEFT JOIN rotation_state rState ON rState.rotation_id = rule.tgt_rotation_id
+    LEFT JOIN rotation_participants part ON part.id = rState.rotation_participant_id
+WHERE
+    coalesce(rule.tgt_user_id, part.user_id)
+    NOTNULL
+    AND rule.schedule_id = $1
+`
+
+type SchedMgrRulesForScheduleRow struct {
+	CreatedAt      time.Time
+	EndTime        timeutil.Clock
+	Friday         bool
+	ID             uuid.UUID
+	IsActive       bool
+	Monday         bool
+	Saturday       bool
+	ScheduleID     uuid.UUID
+	StartTime      timeutil.Clock
+	Sunday         bool
+	TgtRotationID  uuid.NullUUID
+	TgtUserID      uuid.NullUUID
+	Thursday       bool
+	Tuesday        bool
+	Wednesday      bool
+	ResolvedUserID uuid.UUID
+}
+
+// Returns the rules for a single schedule. The column list is identical to
+// SchedMgrRules so both rows convert to the same Go types.
+func (q *Queries) SchedMgrRulesForSchedule(ctx context.Context, scheduleID uuid.UUID) ([]SchedMgrRulesForScheduleRow, error) {
+	rows, err := q.db.QueryContext(ctx, schedMgrRulesForSchedule, scheduleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SchedMgrRulesForScheduleRow
+	for rows.Next() {
+		var i SchedMgrRulesForScheduleRow
 		if err := rows.Scan(
 			&i.CreatedAt,
 			&i.EndTime,
