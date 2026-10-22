@@ -609,6 +609,111 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 	})
 }
 
+// engineQueues lists the River queues used by engine modules that have moved
+// (or are moving) from inline per-cycle processing to River jobs. Trigger
+// waits for these queues to drain so an engine cycle observes their results.
+//
+// schedule-manager does not exist yet; queues that do not exist simply have
+// zero rows in river_job, so listing them early is harmless.
+var engineQueues = []string{"rotation-manager", "schedule-manager"}
+
+// pendingJobsQuery counts jobs in the given queues that are, or are about to
+// be, worked. Rows in 'scheduled' or 'retryable' whose scheduled_at has passed
+// are counted because River only promotes them to 'available' on its scheduler
+// interval (5s), so right after a FastForward they are due but not yet picked
+// up. now() here is the mocked DB clock (see devtools/pgmocktime), so it
+// follows FastForward.
+const pendingJobsQuery = `
+	select count(*)
+	from river_job
+	where queue = any($1)
+	and (
+		state in ('available', 'running', 'pending')
+		or (state in ('scheduled', 'retryable') and scheduled_at <= now())
+	)
+`
+
+// WaitForJobs waits until the given River queues have no jobs that are
+// available, running, pending, or due (scheduled/retryable with scheduled_at in
+// the past, by DB time).
+//
+// It returns true if it had to wait at all (i.e., the first poll found pending
+// jobs), and fails the test if the queues do not drain within 30 seconds.
+func (h *Harness) WaitForJobs(queues ...string) bool {
+	h.t.Helper()
+
+	count := func() (int, error) {
+		var n int
+		err := h.appPool.QueryRow(context.Background(), pendingJobsQuery, queues).Scan(&n)
+		return n, err
+	}
+
+	n, err := count()
+	require.NoError(h.t, err, "count pending jobs")
+	if n == 0 {
+		return false
+	}
+
+	require.EventuallyWithT(h.t, func(t *assert.CollectT) {
+		n, err := count()
+		require.NoError(t, err, "count pending jobs")
+		assert.Zero(t, n, "pending jobs in queues %v", queues)
+	}, 30*time.Second, 100*time.Millisecond, "jobs in queues %v did not finish", queues)
+
+	return true
+}
+
+// CountJobs returns the number of River jobs in `queue` of kind `kind` whose
+// args contain `argsContains` (JSON containment, `@>`). If `states` is
+// non-empty, only jobs in one of those states are counted.
+func (h *Harness) CountJobs(queue, kind string, argsContains map[string]any, states ...string) int {
+	h.t.Helper()
+
+	if argsContains == nil {
+		argsContains = map[string]any{}
+	}
+	args, err := json.Marshal(argsContains)
+	require.NoError(h.t, err, "marshal job args")
+
+	if len(states) == 0 {
+		states = nil // encodes as NULL
+	}
+
+	var n int
+	err = h.appPool.QueryRow(context.Background(), `
+		select count(*)
+		from river_job
+		where queue = $1
+		and kind = $2
+		and args @> $3::jsonb
+		and ($4::text[] is null or state::text = any($4::text[]))
+	`, queue, kind, string(args), states).Scan(&n)
+	require.NoError(h.t, err, "count jobs")
+
+	return n
+}
+
+// EnqueueJob inserts a River job using fn_util_river_job, the same SQL function
+// DB triggers use to enqueue work, and then waits for `queue` to drain.
+//
+// The call is made as a single statement in its own (implicit) transaction:
+// fn_util_river_job dedupes by (queue, id) within a transaction via a
+// transaction-local set_config guard, so each EnqueueJob call always inserts.
+func (h *Harness) EnqueueJob(queue, kind, id string, args map[string]any) {
+	h.t.Helper()
+
+	if args == nil {
+		args = map[string]any{}
+	}
+	data, err := json.Marshal(args)
+	require.NoError(h.t, err, "marshal job args")
+
+	_, err = h.appPool.Exec(context.Background(), `select fn_util_river_job($1, $2, $3, $4::jsonb)`, queue, kind, id, string(data))
+	require.NoError(h.t, err, "enqueue job")
+
+	h.WaitForJobs(queue)
+}
+
 // Trigger will trigger, and wait for, an engine cycle.
 func (h *Harness) Trigger() {
 	id := h.backend.Engine.NextCycleID()
