@@ -159,6 +159,10 @@ func TestGraphQLAlert(t *testing.T) {
 		}
 	}
 
+	// The schedule rule must be active at any wall-clock time, otherwise the
+	// on-call user is not on call for part of the day and the test fails
+	// depending on when it runs. A rule with start == end on every weekday is
+	// treated as always active (see rule.Rule.AlwaysActive).
 	doQL(fmt.Sprintf(`
 		mutation {
 			createSchedule(
@@ -175,7 +179,7 @@ func TestGraphQLAlert(t *testing.T) {
 						}
 						rules: {
 							start: "00:00"
-							end: "23:00"
+							end: "00:00"
 							weekdayFilter: [true, true, true, true, true, true, true]
 						}
 					}
