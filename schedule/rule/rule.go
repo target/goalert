@@ -187,6 +187,40 @@ func (r Rule) IsActive(t time.Time) bool {
 	return !r.StartTime(t).After(t)
 }
 
+// NextChange returns the next instant after t at which IsActive would change
+// value: EndTime(t) if the rule is active at t, otherwise StartTime(t).
+//
+// If the rule is NeverActive or AlwaysActive it never changes, so the zero
+// time is returned.
+//
+// Post-condition: result.IsZero() || result.After(t).
+//
+// IsActive evaluates t truncated to the minute, so t may carry seconds; the
+// returned boundary is always a whole minute strictly after the original t
+// (e.g. 07:59:30 -> 08:00 and 08:00:30 -> the shift end, for an 08:00 start).
+//
+// Guard: in zones whose DST transition occurs at midnight, the weekday math
+// in timeutil (see the StartTime doc comment) can produce StartTime/EndTime
+// values that are not after t. Rather than return a stale instant, the zero
+// time is returned in that case.
+func (r Rule) NextChange(t time.Time) time.Time {
+	if r.NeverActive() || r.AlwaysActive() {
+		return time.Time{}
+	}
+
+	var next time.Time
+	if r.IsActive(t) {
+		next = r.EndTime(t)
+	} else {
+		next = r.StartTime(t)
+	}
+	if !next.After(t) {
+		return time.Time{}
+	}
+
+	return next
+}
+
 // String returns a human-readable string describing the rule
 func (r Rule) String() string {
 	if r.AlwaysActive() {
