@@ -84,3 +84,24 @@ func TestHoursBetween(t *testing.T) {
 		time.Date(2020, 11, 1, 2, 30, 0, 0, loc),
 	)
 }
+
+func TestAddClock_MidnightDST(t *testing.T) {
+	check := func(exp string, ts time.Time, c Clock) {
+		t.Helper()
+		res := AddClock(ts, c)
+		assert.Equal(t, exp, res.String(), "AddClock(%s, %s)", ts, c)
+	}
+
+	// DST starts at midnight in Santiago on 2026-09-06 (00:00 -> 01:00)
+	loc, err := time.LoadLocation("America/Santiago")
+	require.NoError(t, err)
+
+	// 00:30 on the 6th does not exist, so the first instant after is used
+	check("2026-09-06 01:00:00 -0300 -03", time.Date(2026, time.September, 5, 0, 30, 0, 0, loc), NewClock(24, 0))
+	check("2026-09-06 01:00:00 -0300 -03", time.Date(2026, time.September, 5, 23, 30, 0, 0, loc), NewClock(1, 0))
+	check("2026-09-06 01:00:00 -0300 -03", time.Date(2026, time.September, 7, 0, 30, 0, 0, loc), NewClock(-24, 0))
+
+	check("2026-09-06 08:00:00 -0300 -03", time.Date(2026, time.September, 5, 20, 0, 0, 0, loc), NewClock(12, 0))
+	check("2026-09-06 08:00:00 -0300 -03", time.Date(2026, time.September, 7, 8, 0, 0, 0, loc), NewClock(-24, 0))
+	check("2026-09-07 00:30:00 -0300 -03", time.Date(2026, time.September, 6, 1, 0, 0, 0, loc), NewClock(23, 30))
+}
