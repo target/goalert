@@ -68,6 +68,32 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions, 
 	}
 	q := gadb.New(tx)
 
+	if shared {
+		// Shared transactions are run by retryable background jobs, so rather
+		// than block indefinitely behind an exclusive holder of the module row
+		// lock (e.g. a legacy UpdateAll using FOR UPDATE NOWAIT), bound the
+		// wait so the job fails fast and can be retried later.
+		//
+		// This must be set before ProcAcquireModuleSharedLock (FOR SHARE),
+		// which is the only statement in this function that can wait on a
+		// lock. Setting it here, rather than after _BeginTx returns, is the
+		// whole point: lock_timeout only applies to statements issued after
+		// it, and the wait we care about is the FOR SHARE below.
+		//
+		// The advisory lock acquired first uses pg_try_advisory_xact_lock_shared,
+		// which is a try-lock and never waits, so lock_timeout has no effect on
+		// it (it still returns false immediately if the lock is unavailable).
+		//
+		// When the timeout expires Postgres raises SQLSTATE 55P03
+		// (lock_not_available), the same code as NOWAIT, and it is mapped to
+		// ErrNoLock below.
+		_, err = tx.ExecContext(ctx, `SET LOCAL lock_timeout = 8000`)
+		if err != nil {
+			sqlutil.Rollback(ctx, "processing lock: begin", tx)
+			return nil, err
+		}
+	}
+
 	// Ensure the engine isn't running or that it waits for migrations to complete.
 	gotAdvLock, err := q.ProcSharedAdvisoryLock(ctx, int64(lock.GlobalMigrate))
 	if err != nil {
@@ -97,7 +123,8 @@ func (l *Lock) _BeginTx(ctx context.Context, b txBeginner, opts *sql.TxOptions, 
 	}
 	if err != nil {
 		sqlutil.Rollback(ctx, "processing lock: begin", tx)
-		// 55P03 is lock_not_available (due to the `nowait` in the query)
+		// 55P03 is lock_not_available, raised either by the `nowait` in the
+		// exclusive query, or by lock_timeout expiring in the shared path.
 		//
 		// https://www.postgresql.org/docs/9.4/static/errcodes-appendix.html
 		if sqlErr := sqlutil.MapError(err); sqlErr != nil && sqlErr.Code == "55P03" {
@@ -132,20 +159,23 @@ func (l *Lock) WithTx(ctx context.Context, fn func(context.Context, *sql.Tx) err
 
 // WithTxShared will run the given function in a locked transaction that is compatible with other shared locks.
 //
-// Note: This will block until it acquires the lock.
+// Acquiring the module lock blocks for at most lock_timeout (8s); if an
+// exclusive holder (e.g. a legacy UpdateAll) still has the row after that,
+// ErrNoLock is returned without calling fn. Callers can detect this with
+// IsNoLock. The same lock_timeout remains in effect for statements run by fn.
+//
+// Note: this is a behavior change for existing River workers using this
+// method (rotationmanager, statusmgr, cleanupmanager, signalmgr). Previously
+// the module lock was acquired before lock_timeout was set, so a blocked
+// worker waited until River's job timeout (1 minute by default), then failed
+// and burned an attempt. They now fail fast with ErrNoLock after 8s; River
+// still logs the error and retries the job on its normal schedule.
 func (l *Lock) WithTxShared(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
 	tx, err := l._BeginTx(ctx, l.db, nil, true)
 	if err != nil {
 		return err
 	}
 	defer sqlutil.Rollback(ctx, "processing lock: with tx (shared)", tx)
-
-	// Shared transactions are run by retryable background jobs, so rather than
-	// block indefinitely on a row lock, fail so the job can be retried later.
-	_, err = tx.ExecContext(ctx, `SET LOCAL lock_timeout = 8000`)
-	if err != nil {
-		return err
-	}
 
 	err = fn(ctx, tx)
 	if err != nil {
