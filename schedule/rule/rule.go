@@ -96,9 +96,6 @@ func (r Rule) readFields() []interface{} {
 // became active (in the past).
 //
 // If the rule is NeverActive or AlwaysActive, zero time is returned.
-//
-// It may break when processing a timezone where daylight savings repeats or skips
-// ahead at midnight.
 func (r Rule) StartTime(t time.Time) time.Time {
 	if r.NeverActive() {
 		return time.Time{}
@@ -134,7 +131,7 @@ func (r Rule) StartTime(t time.Time) time.Time {
 	end := r.End.LastOfDay(t)
 	if r.Day(w-1) && t.Before(end) {
 		// yesterday's shift is still active
-		return r.Start.FirstOfDay(t.AddDate(0, 0, -1))
+		return r.Start.FirstOfDay(timeutil.AddDays(t, -1))
 	}
 
 	if isTodayEnabled {
@@ -162,7 +159,7 @@ func (r Rule) EndTime(t time.Time) time.Time {
 	}
 	if r.Start > r.End {
 		// always the day after the start
-		return r.End.LastOfDay(start.AddDate(0, 0, 1))
+		return r.End.LastOfDay(timeutil.AddDays(start, 1))
 	}
 
 	// 24-hour rule, end time of the next inactive day

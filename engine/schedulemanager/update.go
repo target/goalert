@@ -250,9 +250,7 @@ func nextOnCallNotification(nowInZone time.Time, rule schedule.OnCallNotificatio
 		newTime := rule.Time.FirstOfDay(nowInZone)
 		if !newTime.After(nowInZone) {
 			// add a day
-			y, m, d := nowInZone.Date()
-			nowInZone = time.Date(y, m, d+1, 0, 0, 0, 0, nowInZone.Location())
-			newTime = rule.Time.FirstOfDay(nowInZone)
+			newTime = rule.Time.FirstOfDay(timeutil.AddDays(nowInZone, 1))
 		}
 
 		return &newTime
