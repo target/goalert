@@ -4,16 +4,12 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/google/uuid"
 	"github.com/target/goalert/engine/processinglock"
 )
 
 // DB will manage schedules and schedule rules in Postgres.
 type DB struct {
 	lock *processinglock.Lock
-
-	migrateSchedIDs []uuid.UUID
-	migrateMap      map[uuid.UUID]uuid.UUID
 }
 
 // Name returns the name of the module.
