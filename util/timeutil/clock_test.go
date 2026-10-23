@@ -202,3 +202,105 @@ func TestIsDST(t *testing.T) {
 	)
 
 }
+
+func TestFirstOfDay_MidnightDST(t *testing.T) {
+	check := func(expTs string, c Clock, ts time.Time) {
+		t.Helper()
+		res := c.FirstOfDay(ts)
+		assert.Equal(t, expTs, res.String(), "FirstOfDay(%s) on %s", c, ts.Format("2006-01-02"))
+	}
+
+	// DST starts at midnight in Santiago on 2026-09-06 (00:00 -> 01:00)
+	santiago := mustLoadLocation(t, "America/Santiago")
+	day := time.Date(2026, time.September, 6, 12, 0, 0, 0, santiago)
+	check("2026-09-06 01:00:00 -0300 -03", NewClock(0, 0), day)
+	check("2026-09-06 01:00:00 -0300 -03", NewClock(0, 30), day)
+	check("2026-09-06 01:00:00 -0300 -03", NewClock(1, 0), day)
+	check("2026-09-06 01:30:00 -0300 -03", NewClock(1, 30), day)
+	check("2026-09-06 08:00:00 -0300 -03", NewClock(8, 0), day)
+	check("2026-09-06 23:59:00 -0300 -03", NewClock(23, 59), day)
+	// the days before and after are unaffected
+	check("2026-09-05 08:00:00 -0400 -04", NewClock(8, 0), day.AddDate(0, 0, -1))
+	check("2026-09-05 23:59:00 -0400 -04", NewClock(23, 59), day.AddDate(0, 0, -1))
+	check("2026-09-07 00:00:00 -0300 -03", NewClock(0, 0), day.AddDate(0, 0, 1))
+	check("2026-09-07 08:00:00 -0300 -03", NewClock(8, 0), day.AddDate(0, 0, 1))
+
+	// DST starts at midnight in Havana on 2026-03-08 (00:00 -> 01:00)
+	havana := mustLoadLocation(t, "America/Havana")
+	day = time.Date(2026, time.March, 8, 12, 0, 0, 0, havana)
+	check("2026-03-08 01:00:00 -0400 CDT", NewClock(0, 0), day)
+	check("2026-03-08 01:00:00 -0400 CDT", NewClock(0, 30), day)
+	check("2026-03-08 08:00:00 -0400 CDT", NewClock(8, 0), day)
+
+	// positive offset: time.Date resolves the missing midnight to 01:00 on the same day
+	beirut := mustLoadLocation(t, "Asia/Beirut")
+	day = time.Date(2026, time.March, 29, 12, 0, 0, 0, beirut)
+	check("2026-03-29 01:00:00 +0300 EEST", NewClock(0, 0), day)
+	check("2026-03-29 01:00:00 +0300 EEST", NewClock(0, 30), day)
+	check("2026-03-29 08:00:00 +0300 EEST", NewClock(8, 0), day)
+
+	// DST ends at midnight in Santiago on 2026-04-05 (00:00 -> 23:00); 23:xx happens twice on the 4th
+	day = time.Date(2026, time.April, 4, 12, 0, 0, 0, santiago)
+	check("2026-04-04 22:30:00 -0300 -03", NewClock(22, 30), day)
+	check("2026-04-04 23:30:00 -0300 -03", NewClock(23, 30), day)
+	check("2026-04-05 00:00:00 -0400 -04", NewClock(0, 0), day.AddDate(0, 0, 1))
+	check("2026-04-05 08:00:00 -0400 -04", NewClock(8, 0), day.AddDate(0, 0, 1))
+
+	// DST ends in Havana on 2026-11-01 (01:00 -> 00:00); midnight happens twice
+	day = time.Date(2026, time.November, 1, 12, 0, 0, 0, havana)
+	check("2026-11-01 00:00:00 -0400 CDT", NewClock(0, 0), day)
+	check("2026-11-01 00:30:00 -0400 CDT", NewClock(0, 30), day)
+	check("2026-11-01 01:00:00 -0500 CST", NewClock(1, 0), day)
+	check("2026-11-01 08:00:00 -0500 CST", NewClock(8, 0), day)
+}
+
+func TestLastOfDay_MidnightDST(t *testing.T) {
+	check := func(expTs string, c Clock, ts time.Time) {
+		t.Helper()
+		res := c.LastOfDay(ts)
+		assert.Equal(t, expTs, res.String(), "LastOfDay(%s) on %s", c, ts.Format("2006-01-02"))
+	}
+
+	// DST starts at midnight in Santiago on 2026-09-06 (00:00 -> 01:00)
+	santiago := mustLoadLocation(t, "America/Santiago")
+	day := time.Date(2026, time.September, 6, 12, 0, 0, 0, santiago)
+	check("2026-09-06 01:00:00 -0300 -03", NewClock(0, 0), day)
+	check("2026-09-06 01:00:00 -0300 -03", NewClock(0, 30), day)
+	check("2026-09-06 01:00:00 -0300 -03", NewClock(1, 0), day)
+	check("2026-09-06 01:30:00 -0300 -03", NewClock(1, 30), day)
+	check("2026-09-06 08:00:00 -0300 -03", NewClock(8, 0), day)
+	check("2026-09-06 23:59:00 -0300 -03", NewClock(23, 59), day)
+	// the days before and after are unaffected
+	check("2026-09-05 08:00:00 -0400 -04", NewClock(8, 0), day.AddDate(0, 0, -1))
+	check("2026-09-05 23:59:00 -0400 -04", NewClock(23, 59), day.AddDate(0, 0, -1))
+	check("2026-09-07 00:00:00 -0300 -03", NewClock(0, 0), day.AddDate(0, 0, 1))
+	check("2026-09-07 08:00:00 -0300 -03", NewClock(8, 0), day.AddDate(0, 0, 1))
+
+	// DST starts at midnight in Havana on 2026-03-08 (00:00 -> 01:00)
+	havana := mustLoadLocation(t, "America/Havana")
+	day = time.Date(2026, time.March, 8, 12, 0, 0, 0, havana)
+	check("2026-03-08 01:00:00 -0400 CDT", NewClock(0, 0), day)
+	check("2026-03-08 01:00:00 -0400 CDT", NewClock(0, 30), day)
+	check("2026-03-08 08:00:00 -0400 CDT", NewClock(8, 0), day)
+
+	// positive offset: time.Date resolves the missing midnight to 01:00 on the same day
+	beirut := mustLoadLocation(t, "Asia/Beirut")
+	day = time.Date(2026, time.March, 29, 12, 0, 0, 0, beirut)
+	check("2026-03-29 01:00:00 +0300 EEST", NewClock(0, 0), day)
+	check("2026-03-29 01:00:00 +0300 EEST", NewClock(0, 30), day)
+	check("2026-03-29 08:00:00 +0300 EEST", NewClock(8, 0), day)
+
+	// DST ends at midnight in Santiago on 2026-04-05 (00:00 -> 23:00); 23:xx happens twice on the 4th
+	day = time.Date(2026, time.April, 4, 12, 0, 0, 0, santiago)
+	check("2026-04-04 22:30:00 -0300 -03", NewClock(22, 30), day)
+	check("2026-04-04 23:30:00 -0400 -04", NewClock(23, 30), day)
+	check("2026-04-05 00:00:00 -0400 -04", NewClock(0, 0), day.AddDate(0, 0, 1))
+	check("2026-04-05 08:00:00 -0400 -04", NewClock(8, 0), day.AddDate(0, 0, 1))
+
+	// DST ends in Havana on 2026-11-01 (01:00 -> 00:00); midnight happens twice
+	day = time.Date(2026, time.November, 1, 12, 0, 0, 0, havana)
+	check("2026-11-01 00:00:00 -0500 CST", NewClock(0, 0), day)
+	check("2026-11-01 00:30:00 -0500 CST", NewClock(0, 30), day)
+	check("2026-11-01 01:00:00 -0500 CST", NewClock(1, 0), day)
+	check("2026-11-01 08:00:00 -0500 CST", NewClock(8, 0), day)
+}

@@ -10,11 +10,8 @@ func AddClock(t time.Time, c Clock) time.Time {
 	c += NewClockFromTime(t)
 	days, c := c.Days()
 
-	start := StartOfDay(t)
-	if days != 0 {
-		start = start.AddDate(0, 0, days)
-	}
-	return c.FirstOfDay(start)
+	y, m, d := t.Date()
+	return c.FirstOfDay(startOfDay(y, m, d+days, t.Location()))
 }
 
 // HoursBetween will return the number of full hours from a to b with
@@ -47,10 +44,4 @@ func ClockDiff(a, b time.Time) Clock {
 	}
 	diff += time.Duration(offsetB-offsetA) * time.Second
 	return Clock(diff)
-}
-
-// StartOfDay will return the start of the day in t's location.
-func StartOfDay(t time.Time) time.Time {
-	y, m, d := t.Date()
-	return time.Date(y, m, d, 0, 0, 0, 0, t.Location())
 }
