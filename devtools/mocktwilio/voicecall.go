@@ -288,7 +288,7 @@ func (vc *VoiceCall) Accept() { close(vc.acceptCh) }
 // Reject will reject a call, moving it to a "failed" state.
 func (vc *VoiceCall) Reject() { close(vc.rejectCh); <-vc.doneCh }
 
-// Hangup will end the call, setting it's state to "completed".
+// Hangup will end the call, setting its state to "completed".
 func (vc *VoiceCall) Hangup() { close(vc.hangupCh); <-vc.doneCh }
 
 func (vc *VoiceCall) fetchMessage(digits string) (string, error) {
@@ -351,7 +351,7 @@ func (vc *VoiceCall) To() string {
 	return vc.call.To
 }
 
-// From return the source phone number.
+// From returns the source phone number.
 func (vc *VoiceCall) From() string {
 	return vc.call.From
 }

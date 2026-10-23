@@ -152,7 +152,7 @@ func (f *Fetcher[K, V]) fetchAll(ctx context.Context, batch *batch[K, V]) {
 	}
 	f.mx.Unlock()
 
-	// Fetch ouside of the lock to avoid blocking other requests.
+	// Fetch outside of the lock to avoid blocking other requests.
 	values, err := f.FetchFunc(ctx, batch.ids)
 
 	f.mx.Lock()
