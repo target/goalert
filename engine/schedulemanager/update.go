@@ -16,6 +16,7 @@ import (
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/log"
 	"github.com/target/goalert/util/sqlutil"
+	"github.com/target/goalert/util/timeutil"
 )
 
 // UpdateAll will update all schedule rules.
