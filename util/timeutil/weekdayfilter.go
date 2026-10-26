@@ -52,7 +52,7 @@ func (f WeekdayFilter) StartTime(t time.Time) time.Time {
 		return f.NextActive(t)
 	}
 	year, mon, day := t.Date()
-	return time.Date(year, mon, day-days+1, 0, 0, 0, 0, t.Location())
+	return startOfDay(year, mon, day-days+1, t.Location())
 }
 
 // NextActive returns the next time, at midnight, from t that is active.
