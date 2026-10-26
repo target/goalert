@@ -119,7 +119,7 @@ updates:
     allow:
       - dependency-type: 'direct'
 
-  - package-ecosystem: 'npm'
+  - package-ecosystem: 'bun'
     directory: '/'
     schedule:
       interval: 'weekly'
