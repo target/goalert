@@ -87,3 +87,56 @@ func TestAlertMetadata(t *testing.T) {
 	require.Equal(t, "jsonvalue", result.Alerts.Nodes[2].Meta[0].Value)
 
 }
+
+// TestAlertMetadataDedupMerge tests that metadata provided on a Generic API
+// request that matches (dedups to) an already-open alert is merged into the
+// alert's existing metadata, rather than being discarded.
+func TestAlertMetadataDedupMerge(t *testing.T) {
+	const sql = `
+	insert into escalation_policies (id, name)
+	values
+		({{uuid "eid"}}, 'esc policy');
+	insert into services (id, escalation_policy_id, name)
+	values
+		({{uuid "sid"}}, {{uuid "eid"}}, 'service');
+	insert into integration_keys (id, type, name, service_id)
+	values
+		({{uuid "int_key"}}, 'generic', 'my key', {{uuid "sid"}});
+	`
+
+	h := harness.NewHarness(t, sql, "")
+	defer h.Close()
+
+	post := func(meta string) {
+		resp, err := http.Post(h.URL()+"/api/v2/generic/incoming?summary=dup&dedup=same-key&meta="+meta+"&token="+h.UUID("int_key"), "", nil)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusNoContent, resp.StatusCode)
+	}
+
+	post("firstkey=firstvalue")
+	post("secondkey=secondvalue") // dedups against the first; meta should merge, not replace
+
+	res := h.GraphQLQuery2(`query{alerts{nodes{alertID summary meta{key value}}}}`)
+
+	var result struct {
+		Alerts struct {
+			Nodes []struct {
+				AlertID int
+				Summary string
+				Meta    []struct {
+					Key   string
+					Value string
+				}
+			}
+		}
+	}
+	require.NoError(t, json.Unmarshal(res.Data, &result), "failed to parse response: %s", string(res.Data))
+	require.Len(t, result.Alerts.Nodes, 1)
+
+	meta := make(map[string]string)
+	for _, m := range result.Alerts.Nodes[0].Meta {
+		meta[m.Key] = m.Value
+	}
+	require.Equal(t, "firstvalue", meta["firstkey"])
+	require.Equal(t, "secondvalue", meta["secondkey"])
+}
