@@ -181,6 +181,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 			where
 				last_status = 'queued_remotely' and
 				sent_at <= now()-'24 hours'::interval
+			limit 1000
 		`),
 
 		sentByCMType: p.P(`
