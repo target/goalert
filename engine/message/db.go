@@ -178,10 +178,16 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 				status_details = 'timed out waiting for final status from provider (last known: ' || status_details || ')',
 				cycle_id = null,
 				next_retry_at = null
-			where
-				last_status = 'queued_remotely' and
-				sent_at <= now()-'24 hours'::interval
-			limit 1000
+			where id in (
+				select id
+				from outgoing_messages
+				where
+					last_status = 'queued_remotely' and
+					sent_at <= now()-'24 hours'::interval
+				order by sent_at
+				limit 1000
+				for update skip locked
+			)
 		`),
 
 		sentByCMType: p.P(`
