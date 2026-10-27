@@ -73,6 +73,44 @@ func DBURL(name string) string {
 	return u.String()
 }
 
+// parseExpFlags parses a comma-separated list of experimental flag names (as
+// used by `goalert --experimental`), ignoring empty entries and surrounding
+// whitespace.
+func parseExpFlags(s string) expflag.FlagSet {
+	var fs expflag.FlagSet
+	for _, f := range strings.Split(s, ",") {
+		f = strings.TrimSpace(f)
+		if f == "" {
+			continue
+		}
+		fs = append(fs, expflag.Flag(f))
+	}
+	return fs
+}
+
+// mergeExpFlags returns the union of the given flag sets, preserving order and
+// dropping duplicates.
+func mergeExpFlags(sets ...expflag.FlagSet) expflag.FlagSet {
+	var result expflag.FlagSet
+	for _, fs := range sets {
+		for _, f := range fs {
+			if result.Has(f) {
+				continue
+			}
+			result = append(result, f)
+		}
+	}
+	return result
+}
+
+// envExpFlags returns the experimental flags requested via the SMOKE_EXP_FLAGS
+// environment variable (comma-separated). These are merged into the flags of
+// every harness so the whole suite can be run against an experimental code
+// path without editing tests.
+func envExpFlags() expflag.FlagSet {
+	return parseExpFlags(os.Getenv("SMOKE_EXP_FLAGS"))
+}
+
 // Harness is a helper for smoketests. It deals with assertions, database management, and backend monitoring during tests.
 type Harness struct {
 	phoneCCG, uuidG, emailG *DataGen
@@ -177,6 +215,11 @@ func NewStoppedHarnessWithFlags(t *testing.T, initSQL string, sqlData interface{
 
 	if testing.Short() {
 		t.Skip("skipping Harness tests for short mode")
+	}
+
+	if env := envExpFlags(); len(env) > 0 {
+		t.Logf("Using experimental flags from SMOKE_EXP_FLAGS: %v", env)
+		expFlags = mergeExpFlags(expFlags, env)
 	}
 
 	t.Logf("Using DB URL: %s", dbURL)
@@ -609,11 +652,149 @@ func (h *Harness) AddNotificationRule(userID, cmID string, delayMinutes int) {
 	})
 }
 
-// Trigger will trigger, and wait for, an engine cycle.
-func (h *Harness) Trigger() {
+// engineQueues lists the River queues used by engine modules that have moved
+// (or are moving) from inline per-cycle processing to River jobs. Trigger
+// waits for these queues to drain so an engine cycle observes their results.
+//
+// schedule-manager does not exist yet; queues that do not exist simply have
+// zero rows in river_job, so listing them early is harmless.
+var engineQueues = []string{"rotation-manager", "schedule-manager"}
+
+// pendingJobsQuery counts jobs in the given queues that are, or are about to
+// be, worked. Rows in 'scheduled' or 'retryable' whose scheduled_at has passed
+// are counted because River only promotes them to 'available' on its scheduler
+// interval (5s), so right after a FastForward they are due but not yet picked
+// up. now() here is the mocked DB clock (see devtools/pgmocktime), so it
+// follows FastForward.
+const pendingJobsQuery = `
+	select count(*)
+	from river_job
+	where queue = any($1)
+	and (
+		state in ('available', 'running', 'pending')
+		or (state in ('scheduled', 'retryable') and scheduled_at <= now())
+	)
+`
+
+// WaitForJobs waits until the given River queues have no jobs that are
+// available, running, pending, or due (scheduled/retryable with scheduled_at in
+// the past, by DB time).
+//
+// It returns true if it had to wait at all (i.e., the first poll found pending
+// jobs), and fails the test if the queues do not drain within 30 seconds.
+func (h *Harness) WaitForJobs(queues ...string) bool {
+	h.t.Helper()
+
+	count := func() (int, error) {
+		var n int
+		err := h.appPool.QueryRow(context.Background(), pendingJobsQuery, queues).Scan(&n)
+		return n, err
+	}
+
+	n, err := count()
+	require.NoError(h.t, err, "count pending jobs")
+	if n == 0 {
+		return false
+	}
+
+	require.EventuallyWithT(h.t, func(t *assert.CollectT) {
+		n, err := count()
+		require.NoError(t, err, "count pending jobs")
+		assert.Zero(t, n, "pending jobs in queues %v", queues)
+	}, 30*time.Second, 100*time.Millisecond, "jobs in queues %v did not finish", queues)
+
+	return true
+}
+
+// CountJobs returns the number of River jobs in `queue` of kind `kind` whose
+// args contain `argsContains` (JSON containment, `@>`). If `states` is
+// non-empty, only jobs in one of those states are counted.
+func (h *Harness) CountJobs(queue, kind string, argsContains map[string]any, states ...string) int {
+	h.t.Helper()
+
+	if argsContains == nil {
+		argsContains = map[string]any{}
+	}
+	args, err := json.Marshal(argsContains)
+	require.NoError(h.t, err, "marshal job args")
+
+	if len(states) == 0 {
+		states = nil // encodes as NULL
+	}
+
+	var n int
+	err = h.appPool.QueryRow(context.Background(), `
+		select count(*)
+		from river_job
+		where queue = $1
+		and kind = $2
+		and args @> $3::jsonb
+		and ($4::text[] is null or state::text = any($4::text[]))
+	`, queue, kind, string(args), states).Scan(&n)
+	require.NoError(h.t, err, "count jobs")
+
+	return n
+}
+
+// EnqueueJob inserts a River job using fn_util_river_job, the same SQL function
+// DB triggers use to enqueue work, and then waits for `queue` to drain.
+//
+// The call is made as a single statement in its own (implicit) transaction:
+// fn_util_river_job dedupes by (queue, id) within a transaction via a
+// transaction-local set_config guard, so each EnqueueJob call always inserts.
+func (h *Harness) EnqueueJob(queue, kind, id string, args map[string]any) {
+	h.t.Helper()
+
+	if args == nil {
+		args = map[string]any{}
+	}
+	data, err := json.Marshal(args)
+	require.NoError(h.t, err, "marshal job args")
+
+	_, err = h.appPool.Exec(context.Background(), `select fn_util_river_job($1, $2, $3, $4::jsonb)`, queue, kind, id, string(data))
+	require.NoError(h.t, err, "enqueue job")
+
+	h.WaitForJobs(queue)
+}
+
+// runEngineCycle runs, and waits for, exactly one engine cycle.
+func (h *Harness) runEngineCycle() {
+	h.t.Helper()
 	id := h.backend.Engine.NextCycleID()
 	go h.backend.Engine.Trigger()
 	require.NoError(h.t, h.backend.Engine.WaitCycleID(context.Background(), id))
+}
+
+// Trigger will trigger, and wait for, an engine cycle.
+//
+// Engine modules are moving from inline per-cycle processing to River jobs
+// (rotation-manager today, schedule-manager next). Those jobs are enqueued by
+// DB triggers and by River's scheduler exactly as in production, so the
+// harness does NOT re-insert or fake them: engine/jobtrigger.go (removed in
+// #4185) used to force periodic jobs to run, and was dropped because faking
+// job runs did not reflect real behavior. Instead, Trigger only waits for the
+// real queues to drain:
+//
+//  1. Wait for engineQueues to have no available/running/due jobs, so the
+//     cycle observes their output (e.g. rotation state).
+//  2. Run one engine cycle, exactly as before.
+//  3. Wait again, since the cycle (or DB triggers fired during it) may have
+//     enqueued more jobs.
+//  4. If either wait had to wait at all, run one more engine cycle so that
+//     modules which consume job output (e.g. the escalation manager reading
+//     schedule_on_call_users written by jobs that ran after the first cycle
+//     began) see it.
+//
+// Tests that see no job activity get exactly one cycle, as before.
+func (h *Harness) Trigger() {
+	h.t.Helper()
+
+	waited := h.WaitForJobs(engineQueues...)
+	h.runEngineCycle()
+	waited2 := h.WaitForJobs(engineQueues...)
+	if waited || waited2 {
+		h.runEngineCycle()
+	}
 }
 
 // Escalate will escalate an alert in the database, when 'level' matches.
@@ -897,11 +1078,15 @@ func (h *Harness) WaitAndAssertOnCallUsers(serviceID string, userIDs ...string) 
 	}
 	sort.Strings(userIDs)
 	check := func(t *assert.CollectT) {
+		// Run an engine cycle before each check (not just once up front) so
+		// on-call state produced by River jobs that finish between polls is
+		// picked up (see Trigger).
+		h.Trigger()
+
 		ids := getUsers()
 		require.Lenf(t, ids, len(userIDs), "number of on-call users")
 		require.ElementsMatch(t, userIDs, ids, "on-call users")
 	}
-	h.Trigger() // run engine cycle
 
-	assert.EventuallyWithT(h.t, check, 15*time.Second, time.Second)
+	assert.EventuallyWithT(h.t, check, 30*time.Second, time.Second)
 }
