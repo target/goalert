@@ -94,7 +94,7 @@
     "diff": "7.0.0",
     "esbuild": "0.25.10",
     "esbuild-jest": "0.5.0",
-    "eslint": "9.36.0",
+    "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-config-standard": "17.1.0",
     "eslint-config-standard-jsx": "11.0.0",
