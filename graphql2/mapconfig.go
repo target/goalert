@@ -55,6 +55,7 @@ func MapConfigValues(cfg config.Config) []ConfigValue {
 		{ID: "OIDC.IssuerURL", Type: ConfigTypeString, Description: "", Value: cfg.OIDC.IssuerURL},
 		{ID: "OIDC.ClientID", Type: ConfigTypeString, Description: "", Value: cfg.OIDC.ClientID},
 		{ID: "OIDC.ClientSecret", Type: ConfigTypeString, Description: "", Value: cfg.OIDC.ClientSecret, Password: true},
+		{ID: "OIDC.EnablePKCE", Type: ConfigTypeBoolean, Description: "Use Proof Key for Code Exchange (PKCE, RFC 7636) with the S256 challenge method. The OIDC provider must support PKCE.", Value: fmt.Sprintf("%t", cfg.OIDC.EnablePKCE)},
 		{ID: "OIDC.Scopes", Type: ConfigTypeString, Description: "Requested scopes for authentication. If left blank, openid, profile, and email will be used.", Value: cfg.OIDC.Scopes},
 		{ID: "OIDC.UserInfoEmailPath", Type: ConfigTypeString, Description: "JMESPath expression to find email address in UserInfo. If set, the email claim will be ignored in favor of this. (suggestion: email).", Value: cfg.OIDC.UserInfoEmailPath},
 		{ID: "OIDC.UserInfoEmailVerifiedPath", Type: ConfigTypeString, Description: "JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified).", Value: cfg.OIDC.UserInfoEmailVerifiedPath},
@@ -278,6 +279,12 @@ func ApplyConfigValues(cfg config.Config, vals []ConfigValueInput) (config.Confi
 			cfg.OIDC.ClientID = v.Value
 		case "OIDC.ClientSecret":
 			cfg.OIDC.ClientSecret = v.Value
+		case "OIDC.EnablePKCE":
+			val, err := parseBool(v.ID, v.Value)
+			if err != nil {
+				return cfg, err
+			}
+			cfg.OIDC.EnablePKCE = val
 		case "OIDC.Scopes":
 			cfg.OIDC.Scopes = v.Value
 		case "OIDC.UserInfoEmailPath":

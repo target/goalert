@@ -75,6 +75,8 @@ type Config struct {
 		ClientID     string
 		ClientSecret string `password:"true"`
 
+		EnablePKCE bool `info:"Use Proof Key for Code Exchange (PKCE, RFC 7636) with the S256 challenge method. The OIDC provider must support PKCE."`
+
 		Scopes                    string `info:"Requested scopes for authentication. If left blank, openid, profile, and email will be used."`
 		UserInfoEmailPath         string `info:"JMESPath expression to find email address in UserInfo. If set, the email claim will be ignored in favor of this. (suggestion: email)."`
 		UserInfoEmailVerifiedPath string `info:"JMESPath expression to find email verification state in UserInfo. If set, the email_verified claim will be ignored in favor of this. (suggestion: email_verified)."`
