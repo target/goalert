@@ -116,7 +116,7 @@ func (m *Mutation) UpdateKeyConfig(ctx context.Context, input graphql2.UpdateKey
 
 		if input.SetRule != nil {
 			if input.SetRule.ID == uuid.Nil {
-				// Since we don't have a rule ID, we're need to create a new rule.
+				// Since we don't have a rule ID, we need to create a new rule.
 				cfg.Rules = append(cfg.Rules, *input.SetRule)
 			} else {
 				var found bool
