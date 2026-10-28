@@ -30,7 +30,8 @@ type DB struct {
 
 	pausable lifecycle.Pausable
 
-	stuckMessages *sql.Stmt
+	stuckMessages        *sql.Stmt
+	timeoutStuckMessages *sql.Stmt
 
 	setSending *sql.Stmt
 
@@ -153,6 +154,7 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 				where
 					last_status = 'queued_remotely' and
 					last_status_at < now()-'1 minute'::interval and
+					sent_at > now()-'24 hours'::interval and
 					provider_msg_id notnull
 				order by
 					last_status_at
@@ -164,6 +166,28 @@ func NewDB(ctx context.Context, db *sql.DB, a *alertlog.Store, pausable lifecycl
 			from sel
 			where msg.id = sel.id
 			returning msg.id, msg.provider_msg_id
+		`),
+
+		// Some providers (e.g., Twilio RCS) may never report a final status, and
+		// eventually purge the message entirely. Stop checking after 24 hours.
+		timeoutStuckMessages: p.P(`
+			update outgoing_messages
+			set
+				last_status = 'failed',
+				last_status_at = now(),
+				status_details = 'timed out waiting for final status from provider (last known: ' || status_details || ')',
+				cycle_id = null,
+				next_retry_at = null
+			where id in (
+				select id
+				from outgoing_messages
+				where
+					last_status = 'queued_remotely' and
+					sent_at <= now()-'24 hours'::interval
+				order by sent_at
+				limit 1000
+				for update skip locked
+			)
 		`),
 
 		sentByCMType: p.P(`
@@ -678,6 +702,20 @@ func (db *DB) refreshMessageState(ctx context.Context, statusFn StatusFunc, id s
 		res <- nil
 		return
 	}
+	if errors.Is(err, notification.ErrStatusNotFound) {
+		// provider no longer has the message, so no further updates will ever arrive
+		log.Log(ctx, err)
+		res <- &notification.SendResult{
+			Status: notification.Status{
+				State:    notification.StateFailedPerm,
+				Details:  "message no longer exists at provider; final status unknown",
+				Sequence: -1,
+			},
+			ID:                id,
+			ProviderMessageID: providerID,
+		}
+		return
+	}
 	if err != nil {
 		// failed, log error
 		log.Log(ctx, err)
@@ -699,6 +737,11 @@ func (db *DB) updateStuckMessages(ctx context.Context, statusFn StatusFunc) erro
 		return err
 	}
 	defer sqlutil.Rollback(ctx, "message: update stuck messages", tx)
+
+	_, err = tx.StmtContext(ctx, db.timeoutStuckMessages).ExecContext(ctx)
+	if err != nil {
+		return err
+	}
 
 	rows, err := tx.Stmt(db.stuckMessages).QueryContext(ctx)
 	if err != nil {
