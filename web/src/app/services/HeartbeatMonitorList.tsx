@@ -10,6 +10,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import HeartbeatMonitorEditDialog from './HeartbeatMonitorEditDialog'
 import HeartbeatMonitorDeleteDialog from './HeartbeatMonitorDeleteDialog'
 import OtherActions from '../util/OtherActions'
+import { useCanManageResources } from '../util/RequireConfig'
 import HeartbeatMonitorStatus from './HeartbeatMonitorStatus'
 import CopyText from '../util/CopyText'
 import Spinner from '../loading/components/Spinner'
@@ -65,6 +66,7 @@ export default function HeartbeatMonitorList(props: {
 }): JSX.Element {
   const classes = useStyles()
   const isMobile = useIsWidthDown('md')
+  const canManage = useCanManageResources()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showEditDialogByID, setShowEditDialogByID] = useState<string | null>(
     null,
@@ -108,18 +110,20 @@ export default function HeartbeatMonitorList(props: {
             </React.Fragment>
           }
           action={
-            <OtherActions
-              actions={[
-                {
-                  label: 'Edit',
-                  onClick: () => setShowEditDialogByID(monitor.id),
-                },
-                {
-                  label: 'Delete',
-                  onClick: () => setShowDeleteDialogByID(monitor.id),
-                },
-              ]}
-            />
+            canManage && (
+              <OtherActions
+                actions={[
+                  {
+                    label: 'Edit',
+                    onClick: () => setShowEditDialogByID(monitor.id),
+                  },
+                  {
+                    label: 'Delete',
+                    onClick: () => setShowDeleteDialogByID(monitor.id),
+                  },
+                ]}
+              />
+            )
           }
         />
       ))
@@ -131,14 +135,16 @@ export default function HeartbeatMonitorList(props: {
         note={HEARTBEAT_MONITOR_DESCRIPTION}
         hideActionOnMobile
         action={
-          <Button
-            variant='contained'
-            onClick={() => setShowCreateDialog(true)}
-            startIcon={<Add />}
-            data-testid='create-monitor'
-          >
-            Create Heartbeat Monitor
-          </Button>
+          canManage && (
+            <Button
+              variant='contained'
+              onClick={() => setShowCreateDialog(true)}
+              startIcon={<Add />}
+              data-testid='create-monitor'
+            >
+              Create Heartbeat Monitor
+            </Button>
+          )
         }
       >
         {items}
@@ -155,7 +161,7 @@ export default function HeartbeatMonitorList(props: {
           </CardContent>
         </Card>
       </Grid>
-      {isMobile && (
+      {isMobile && canManage && (
         <CreateFAB
           onClick={() => setShowCreateDialog(true)}
           title='Create Heartbeat Monitor'

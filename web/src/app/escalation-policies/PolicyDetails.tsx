@@ -5,6 +5,7 @@ import { Edit, Delete } from '@mui/icons-material'
 import PolicyStepsQuery from './PolicyStepsQuery'
 import PolicyDeleteDialog from './PolicyDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
+import { useCanManageResources } from '../util/RequireConfig'
 import DetailsPage, { LinkStatus } from '../details/DetailsPage'
 import PolicyEditDialog from './PolicyEditDialog'
 import { GenericError, ObjectNotFound } from '../error-pages'
@@ -62,6 +63,7 @@ export default function PolicyDetails(props: {
 }): React.JSX.Element {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const canManage = useCanManageResources()
 
   const [{ fetching, error, data: _data }] = useQuery({
     query,
@@ -100,16 +102,20 @@ export default function PolicyDetails(props: {
         details={data.description}
         pageContent={<PolicyStepsQuery escalationPolicyID={data.id} />}
         secondaryActions={[
-          {
-            label: 'Edit',
-            icon: <Edit />,
-            handleOnClick: () => setShowEditDialog(true),
-          },
-          {
-            label: 'Delete',
-            icon: <Delete />,
-            handleOnClick: () => setShowDeleteDialog(true),
-          },
+          ...(!canManage
+            ? []
+            : [
+                {
+                  label: 'Edit',
+                  icon: <Edit />,
+                  handleOnClick: () => setShowEditDialog(true),
+                },
+                {
+                  label: 'Delete',
+                  icon: <Delete />,
+                  handleOnClick: () => setShowDeleteDialog(true),
+                },
+              ]),
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
             id={data.id}
