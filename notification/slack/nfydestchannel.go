@@ -20,10 +20,13 @@ func (s *ChannelSender) TypeInfo(ctx context.Context) (*nfydest.TypeInfo, error)
 
 	// Get bot name dynamically, fallback to generic name if error
 	botName := "GoAlert"
-	if name, err := s.BotName(ctx); err == nil && name != "" {
-		botName = name
+	// Only do the lookup if Slack is enabled
+	if cfg.Slack.Enable {
+		if name, err := s.BotName(ctx); err == nil && name != "" {
+			botName = name
+		}
 	}
-
+	
 	return &nfydest.TypeInfo{
 		Type:                       DestTypeSlackChannel,
 		Name:                       "Slack Channel",
