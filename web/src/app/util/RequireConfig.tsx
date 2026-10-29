@@ -195,6 +195,15 @@ export function useConfigValue(...fields: ConfigID[]): Value[] {
   return fields.map((f) => config[f])
 }
 
+// useCanManageResources returns true if the current session can create, modify,
+// or delete shared resources (services, integration keys, escalation policies,
+// rotations, schedules, heartbeat monitors, and labels).
+export function useCanManageResources(): boolean {
+  const { isAdmin } = useSessionInfo()
+  const [restrict] = useConfigValue('General.RestrictResourceChanges')
+  return isAdmin || !restrict
+}
+
 // useContactMethodTypes returns a list of contact method destination types.
 export function useContactMethodTypes(): DestinationTypeInfo[] {
   const cfg = React.useContext(ConfigContext)

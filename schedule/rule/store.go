@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -117,7 +118,7 @@ func (s *Store) _Add(ctx context.Context, stmt *sql.Stmt, r *Rule) (*Rule, error
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.All)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.All))
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +199,7 @@ func (s *Store) FindByTargetTx(ctx context.Context, tx *sql.Tx, scheduleID strin
 }
 
 func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) error {
-	err := permission.LimitCheckAny(ctx, permission.All)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.All))
 	if err != nil {
 		return err
 	}
@@ -220,7 +221,7 @@ func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ruleIDs []string) 
 }
 
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, r *Rule) error {
-	err := permission.LimitCheckAny(ctx, permission.All)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.All))
 	if err != nil {
 		return err
 	}

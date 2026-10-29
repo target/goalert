@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -135,7 +136,7 @@ func (s *Store) FindMany(ctx context.Context, ids []string) ([]Service, error) {
 }
 
 func (s *Store) CreateServiceTx(ctx context.Context, tx *sql.Tx, svc *Service) (*Service, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (s *Store) CreateServiceTx(ctx context.Context, tx *sql.Tx, svc *Service) (
 }
 
 func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -183,7 +184,7 @@ func wrap(tx *sql.Tx, s *sql.Stmt) *sql.Stmt {
 }
 
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, svc *Service) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

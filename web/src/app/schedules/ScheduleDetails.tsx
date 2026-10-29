@@ -8,6 +8,7 @@ import ScheduleEditDialog from './ScheduleEditDialog'
 import ScheduleDeleteDialog from './ScheduleDeleteDialog'
 import ScheduleCalendarQuery from './ScheduleCalendarQuery'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
+import { useCanManageResources } from '../util/RequireConfig'
 import CalendarSubscribeButton from './calendar-subscribe/CalendarSubscribeButton'
 import { ObjectNotFound, GenericError } from '../error-pages'
 import TempSchedDialog from './temp-sched/TempSchedDialog'
@@ -75,6 +76,7 @@ export default function ScheduleDetails({
     : ''
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const canManage = useCanManageResources()
 
   const isMobile = useIsWidthDown('md')
 
@@ -180,16 +182,20 @@ export default function ScheduleDetails({
           />,
         ]}
         secondaryActions={[
-          {
-            label: 'Edit',
-            icon: <Edit />,
-            handleOnClick: () => setShowEdit(true),
-          },
-          {
-            label: 'Delete',
-            icon: <Delete />,
-            handleOnClick: () => setShowDelete(true),
-          },
+          ...(!canManage
+            ? []
+            : [
+                {
+                  label: 'Edit',
+                  icon: <Edit />,
+                  handleOnClick: () => setShowEdit(true),
+                },
+                {
+                  label: 'Delete',
+                  icon: <Delete />,
+                  handleOnClick: () => setShowDelete(true),
+                },
+              ]),
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
             id={scheduleID}

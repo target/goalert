@@ -9,6 +9,7 @@ import DetailsPage, { LinkStatus } from '../details/DetailsPage'
 import ServiceEditDialog from './ServiceEditDialog'
 import ServiceDeleteDialog from './ServiceDeleteDialog'
 import { QuerySetFavoriteButton } from '../util/QuerySetFavoriteButton'
+import { useCanManageResources } from '../util/RequireConfig'
 import Spinner from '../loading/components/Spinner'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import ServiceOnCallList from './ServiceOnCallList'
@@ -90,6 +91,7 @@ export default function ServiceDetails(props: {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showMaintMode, setShowMaintMode] = useState(false)
+  const canManage = useCanManageResources()
   const [{ data, fetching, error }] = useQuery({
     query,
     variables: { serviceID },
@@ -134,28 +136,36 @@ export default function ServiceDetails(props: {
             </Grid>
           </Grid>
         }
-        primaryActions={[
-          <Button
-            color='primary'
-            variant='contained'
-            key='maintence-mode'
-            onClick={() => setShowMaintMode(true)}
-            aria-label='Maintenance Mode'
-          >
-            Maintenance Mode
-          </Button>,
-        ]}
+        primaryActions={
+          !canManage
+            ? []
+            : [
+                <Button
+                  color='primary'
+                  variant='contained'
+                  key='maintence-mode'
+                  onClick={() => setShowMaintMode(true)}
+                  aria-label='Maintenance Mode'
+                >
+                  Maintenance Mode
+                </Button>,
+              ]
+        }
         secondaryActions={[
-          {
-            label: 'Edit',
-            icon: <Edit />,
-            handleOnClick: () => setShowEdit(true),
-          },
-          {
-            label: 'Delete',
-            icon: <Delete />,
-            handleOnClick: () => setShowDelete(true),
-          },
+          ...(!canManage
+            ? []
+            : [
+                {
+                  label: 'Edit',
+                  icon: <Edit />,
+                  handleOnClick: () => setShowEdit(true),
+                },
+                {
+                  label: 'Delete',
+                  icon: <Delete />,
+                  handleOnClick: () => setShowDelete(true),
+                },
+              ]),
           <QuerySetFavoriteButton
             key='secondary-action-favorite'
             id={serviceID}
@@ -175,11 +185,15 @@ export default function ServiceDetails(props: {
             status: hbStatus(data?.service?.heartbeatMonitors),
             subText: 'Manage endpoints monitored for you',
           },
-          {
-            label: 'Integration Keys',
-            url: 'integration-keys',
-            subText: 'Manage keys used to create alerts',
-          },
+          ...(!canManage
+            ? []
+            : [
+                {
+                  label: 'Integration Keys',
+                  url: 'integration-keys',
+                  subText: 'Manage keys used to create alerts',
+                },
+              ]),
           {
             label: 'Labels',
             url: 'labels',
