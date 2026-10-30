@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +14,46 @@ import (
 	"github.com/target/goalert/notification/nfymsg"
 	"github.com/target/goalert/util/privnet"
 )
+
+func TestSender_HTTPStatus(t *testing.T) {
+	tests := []struct {
+		status int
+		state  notification.State
+	}{
+		{status: http.StatusOK, state: notification.StateSent},
+		{status: http.StatusNoContent, state: notification.StateSent},
+		{status: http.StatusFound, state: notification.StateFailedPerm},
+		{status: http.StatusBadRequest, state: notification.StateFailedPerm},
+		{status: http.StatusUnauthorized, state: notification.StateFailedPerm},
+		{status: http.StatusNotFound, state: notification.StateFailedPerm},
+		{status: http.StatusTooManyRequests, state: notification.StateFailedTemp},
+		{status: http.StatusInternalServerError, state: notification.StateFailedTemp},
+		{status: http.StatusServiceUnavailable, state: notification.StateFailedTemp},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("status_%d", test.status), func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(test.status)
+			}))
+			defer srv.Close()
+
+			var cfg config.Config
+			cfg.Webhook.Enable = true
+			s := NewSender(context.Background(), srv.Client())
+			msg := notification.Test{Base: nfymsg.Base{Dest: NewWebhookDest(srv.URL)}}
+
+			res, err := s.SendMessage(cfg.Context(context.Background()), msg)
+			require.NoError(t, err)
+			require.Equal(t, test.state, res.State)
+			if test.state.IsOK() {
+				assert.Empty(t, res.StateDetails)
+			} else {
+				assert.Contains(t, res.StateDetails, fmt.Sprint(test.status))
+			}
+		})
+	}
+}
 
 func TestSender_BlockPrivateAddresses(t *testing.T) {
 	var calls int
