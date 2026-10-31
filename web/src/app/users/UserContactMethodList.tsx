@@ -13,7 +13,7 @@ import { useIsWidthDown } from '../util/useWidth'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
-import { UserContactMethod } from '../../schema'
+import { UserContactMethod, UserNotificationRule } from '../../schema'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
@@ -45,6 +45,10 @@ const query = gql`
         disabled
         pending
         private
+      }
+      notificationRules {
+        id
+        contactMethodID
       }
     }
   }
@@ -92,7 +96,19 @@ export default function UserContactMethodList(
   if (!data?.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
-  const contactMethods = data.user.contactMethods
+  const contactMethods: UserContactMethod[] = data.user.contactMethods
+
+  // Private contact methods owned by someone else are omitted from
+  // contactMethods, but their notification rules are not, so a rule pointing
+  // at an unlisted ID is the only sign that one exists.
+  const visibleIDs = new Set(contactMethods.map((cm) => cm.id))
+  const hiddenIDs = Array.from(
+    new Set(
+      (data.user.notificationRules as UserNotificationRule[])
+        .map((nr) => nr.contactMethodID)
+        .filter((id) => !visibleIDs.has(id)),
+    ),
+  )
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
@@ -228,6 +244,13 @@ export default function UserContactMethodList(
               />
             )
           })}
+          {hiddenIDs.map((id) => (
+            <CompListItemText
+              key={id}
+              title='Hidden contact method (PRIVATE)'
+              subText='Details are only visible to this user'
+            />
+          ))}
         </CompList>
         <Suspense>
           {showAddDialog && (
