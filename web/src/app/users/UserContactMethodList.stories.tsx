@@ -45,71 +45,84 @@ const meta = {
                           pending: false,
                         },
                       ],
+                      notificationRules: [],
                     },
                   }
-                : {
-                    user: {
-                      id: '00000000-0000-0000-0000-000000000001',
-                      contactMethods: [
-                        {
-                          id: '67890',
-                          name: 'triple contact method',
-                          dest: {
-                            type: 'triple-field',
-                            values: [
-                              {
-                                fieldID: 'first-field',
-                                value: 'test_user@target.com',
+                : vars.id === '00000000-0000-0000-0000-000000000002'
+                  ? {
+                      user: {
+                        id: '00000000-0000-0000-0000-000000000002',
+                        contactMethods: [],
+                        notificationRules: [
+                          { id: 'nr1', contactMethodID: 'hidden-cm' },
+                          { id: 'nr2', contactMethodID: 'hidden-cm' },
+                        ],
+                      },
+                    }
+                  : {
+                      user: {
+                        id: '00000000-0000-0000-0000-000000000001',
+                        contactMethods: [
+                          {
+                            id: '67890',
+                            name: 'triple contact method',
+                            dest: {
+                              type: 'triple-field',
+                              values: [
+                                {
+                                  fieldID: 'first-field',
+                                  value: 'test_user@target.com',
+                                },
+                                {
+                                  fieldID: 'second-field',
+                                  value: 'parameter-1',
+                                },
+                                {
+                                  fieldID: 'third-field',
+                                  value: 'parameter-2',
+                                },
+                              ],
+                              args: {
+                                'first-field': 'test_user@target.com',
+                                'second-field': 'parameter-1',
+                                'third-field': 'parameter-2',
                               },
-                              {
-                                fieldID: 'second-field',
-                                value: 'parameter-1',
+                              displayInfo: {
+                                text: 'test_user@target.com',
+                                iconAltText: 'Email',
+                                iconURL: '',
+                                linkURL: '',
                               },
-                              {
-                                fieldID: 'third-field',
-                                value: 'parameter-2',
+                            } satisfies Partial<Destination>,
+                            disabled: false,
+                            pending: false,
+                          },
+                          {
+                            id: '1111',
+                            name: 'single field CM',
+                            dest: {
+                              type: 'single-field',
+                              values: [
+                                {
+                                  fieldID: 'phone_number',
+                                  value: '+15555555556',
+                                },
+                              ],
+                              args: { phone_number: '+15555555556' },
+                              displayInfo: {
+                                text: '+1 555-555-5556',
+                                iconAltText: 'Voice Call',
+                                iconURL: '',
+                                linkURL: '',
                               },
-                            ],
-                            args: {
-                              'first-field': 'test_user@target.com',
-                              'second-field': 'parameter-1',
-                              'third-field': 'parameter-2',
-                            },
-                            displayInfo: {
-                              text: 'test_user@target.com',
-                              iconAltText: 'Email',
-                              iconURL: '',
-                              linkURL: '',
-                            },
-                          } satisfies Partial<Destination>,
-                          disabled: false,
-                          pending: false,
-                        },
-                        {
-                          id: '1111',
-                          name: 'single field CM',
-                          dest: {
-                            type: 'single-field',
-                            values: [
-                              {
-                                fieldID: 'phone_number',
-                                value: '+15555555556',
-                              },
-                            ],
-                            args: { phone_number: '+15555555556' },
-                            displayInfo: {
-                              text: '+1 555-555-5556',
-                              iconAltText: 'Voice Call',
-                              iconURL: '',
-                              linkURL: '',
-                            },
-                          } satisfies Partial<Destination>,
-                          disabled: false,
-                          pending: false,
-                        },
-                      ],
+                            } satisfies Partial<Destination>,
+                            disabled: false,
+                            pending: false,
+                          },
+                        ],
+                        notificationRules: [],
+                      },
                     },
-                  },
           })
         }),
       ],
@@ -189,6 +202,27 @@ export const SingleReadOnlyContactMethods: Story = {
     // ensure no edit icons exist for read-only CM
     await expect(
       await canvas.queryByTestId('MoreHorizIcon'),
+    ).not.toBeInTheDocument()
+  },
+}
+
+export const HiddenPrivateContactMethod: Story = {
+  args: {
+    userID: '00000000-0000-0000-0000-000000000002',
+    readOnly: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // a private CM owned by someone else shows once, even with several rules
+    await expect(
+      await canvas.findAllByText('Hidden contact method (PRIVATE)'),
+    ).toHaveLength(1)
+    await expect(
+      await canvas.findByText('Details are only visible to this user'),
+    ).toBeVisible()
+    await expect(
+      await canvas.queryByText('No contact methods'),
     ).not.toBeInTheDocument()
   },
 }
