@@ -41,3 +41,32 @@ func TestSender_BlockPrivateAddresses(t *testing.T) {
 	assert.Equal(t, notification.StateFailedPerm, res.State)
 	assert.Equal(t, 1, calls, "request should not have been sent")
 }
+
+func TestSender_HTTPStatus(t *testing.T) {
+	var code int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(code)
+	}))
+	defer srv.Close()
+
+	s := NewSender(context.Background(), http.DefaultClient)
+	msg := notification.Test{Base: nfymsg.Base{Dest: NewWebhookDest(srv.URL)}}
+	var cfg config.Config
+	cfg.Webhook.Enable = true
+
+	// status code returned by the webhook -> expected message state
+	for c, state := range map[int]notification.State{
+		200: notification.StateSent,
+		204: notification.StateSent,
+		429: notification.StateFailedTemp,
+		500: notification.StateFailedTemp,
+		502: notification.StateFailedTemp,
+		404: notification.StateFailedPerm,
+		401: notification.StateFailedPerm,
+	} {
+		code = c
+		res, err := s.SendMessage(cfg.Context(context.Background()), msg)
+		require.NoError(t, err)
+		assert.Equal(t, state, res.State, "HTTP %d", c)
+	}
+}
