@@ -840,6 +840,10 @@ type UpdateAlertsInput struct {
 	AlertIDs    []int        `json:"alertIDs"`
 	NewStatus   *AlertStatus `json:"newStatus,omitempty"`
 	NoiseReason *string      `json:"noiseReason,omitempty"`
+	// Metadata to merge into each alert's existing metadata (new keys added, matching
+	// keys overwritten, other existing keys preserved). Has no effect on an alert that
+	// ends up Closed, since metadata cannot be set on a closed alert.
+	Meta []AlertMetadataInput `json:"meta,omitempty"`
 }
 
 type UpdateBasicAuthInput struct {

@@ -633,6 +633,54 @@ func (m *Mutation) UpdateAlerts(ctx context.Context, args graphql2.UpdateAlertsI
 		}
 	}
 
+	if len(args.Meta) > 0 {
+		meta := make(map[string]string, len(args.Meta))
+		for _, kv := range args.Meta {
+			meta[kv.Key] = kv.Value
+		}
+
+		// early validation of metadata, not required, but prevents starting a
+		// transaction and holding the alert lock if we know metadata is invalid
+		err := alert.ValidateMetadata(meta)
+		if err != nil {
+			return nil, err
+		}
+
+		err = withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
+			for _, id := range args.AlertIDs {
+				existing, err := m.AlertStore.Metadata(ctx, tx, id)
+				if err != nil {
+					return err
+				}
+
+				merged := make(map[string]string, len(existing)+len(meta))
+				for k, v := range existing {
+					merged[k] = v
+				}
+				for k, v := range meta {
+					merged[k] = v
+				}
+
+				err = m.AlertStore.SetMetadataTx(ctx, tx, id, merged)
+				var permErr permission.Error
+				if errors.As(err, &permErr) {
+					continue // alert closed, invalid, or wrong service -- skip rather than fail the whole batch
+				}
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(updatedIDs) == 0 {
+		updatedIDs = args.AlertIDs
+	}
+
 	return m.AlertStore.FindMany(ctx, updatedIDs)
 }
 
