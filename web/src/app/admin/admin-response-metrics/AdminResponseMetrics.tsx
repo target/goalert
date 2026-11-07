@@ -116,7 +116,7 @@ export default function AdminResponseMetrics(): React.JSX.Element {
         </Grid>
       ))}
 
-      <Grid item xs={12} md={5}>
+      <Grid item xs={12}>
         <Card>
           <CardHeader
             title='Time to Acknowledge'
@@ -128,7 +128,7 @@ export default function AdminResponseMetrics(): React.JSX.Element {
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={7}>
+      <Grid item xs={12}>
         <Card>
           <CardHeader
             title='Response by Service'
