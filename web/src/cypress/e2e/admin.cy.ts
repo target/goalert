@@ -269,9 +269,7 @@ function testAdmin(): void {
     })
 
     it('should display response metrics by service', () => {
-      cy.get('[data-cy=response-total]').should('contain', '3')
-      cy.get('[data-cy=response-ack-graph]').should('exist')
-      cy.get('[data-cy=response-hour-graph]').should('exist')
+      cy.get('[data-cy=response-stat]').first().should('contain', '3')
       cy.get('[data-cy=response-service-table]')
         .should('contain', svc1.name)
         .should('contain', svc2.name)

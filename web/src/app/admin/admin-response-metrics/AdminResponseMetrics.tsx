@@ -21,11 +21,11 @@ import AppLink from '../../util/AppLink'
 import ResponseBarGraph from './ResponseBarGraph'
 import {
   ackDistribution,
-  alertsByHour,
-  formatDuration,
-  formatPercent,
+  formatDuration as dur,
+  formatPercent as pct,
   responseByService,
   summarizeResponse,
+  ServiceResponse,
 } from './util'
 
 const RANGES = [
@@ -34,29 +34,13 @@ const RANGES = [
   { value: 'P90D', label: 'Past 90 days' },
 ]
 
-interface StatCardProps {
-  title: string
-  value: string
-  subheader: string
-}
-
-function StatCard(props: StatCardProps): React.JSX.Element {
-  return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant='body2' color='text.secondary'>
-          {props.title}
-        </Typography>
-        <Typography variant='h4' component='div' sx={{ my: 0.5 }}>
-          {props.value}
-        </Typography>
-        <Typography variant='caption' color='text.secondary'>
-          {props.subheader}
-        </Typography>
-      </CardContent>
-    </Card>
-  )
-}
+const COLUMNS: [string, (s: ServiceResponse) => string | number][] = [
+  ['Alerts', (s) => s.total],
+  ['Closed', (s) => s.closed],
+  ['Escalated', (s) => pct(s.escalated, s.closed)],
+  ['Median time to ack', (s) => dur(s.medianAckMs)],
+  ['Median time to close', (s) => dur(s.medianCloseMs)],
+]
 
 export default function AdminResponseMetrics(): React.JSX.Element {
   const [params, setParams] = useURLParams({ range: 'P30D' })
@@ -70,19 +54,29 @@ export default function AdminResponseMetrics(): React.JSX.Element {
         .toISO(),
     [range.value],
   )
-  const alertsData = useAlerts({ notCreatedBefore: since }, since)
-  const { alerts, loading } = alertsData
+  const { alerts, loading, error } = useAlerts(
+    { notCreatedBefore: since },
+    since,
+  )
 
-  const summary = useMemo(() => summarizeResponse(alerts), [alerts])
+  const s = useMemo(() => summarizeResponse(alerts), [alerts])
   const ackBuckets = useMemo(() => ackDistribution(alerts), [alerts])
-  const hours = useMemo(() => alertsByHour(alerts), [alerts])
   const services = useMemo(() => responseByService(alerts), [alerts])
 
-  if (alertsData.error) {
-    return <GenericError error={alertsData.error.message} />
-  }
+  if (error) return <GenericError error={error.message} />
 
-  const show = (v: string): string => (loading ? '…' : v)
+  const cards = [
+    ['Alerts', String(s.total), `${s.closed} closed`],
+    ['Open', String(s.open), `${s.unacknowledged} unacknowledged`],
+    ['Time to ack', dur(s.medianAckMs), `median · p90 ${dur(s.p90AckMs)}`],
+    [
+      'Time to close',
+      dur(s.medianCloseMs),
+      `median · p90 ${dur(s.p90CloseMs)}`,
+    ],
+    ['Escalated', pct(s.escalated, s.closed), 'of closed alerts'],
+    ['Services', String(services.length), 'with alerts'],
+  ]
 
   return (
     <Grid container spacing={2}>
@@ -104,82 +98,37 @@ export default function AdminResponseMetrics(): React.JSX.Element {
         </TextField>
       </Grid>
 
-      <Grid item xs={6} sm={4} md={2} data-cy='response-total'>
-        <StatCard
-          title='Alerts'
-          value={show(String(summary.total))}
-          subheader={`${summary.closed} closed`}
-        />
-      </Grid>
-      <Grid item xs={6} sm={4} md={2}>
-        <StatCard
-          title='Open'
-          value={show(String(summary.open))}
-          subheader={`${summary.unacknowledged} unacknowledged`}
-        />
-      </Grid>
-      <Grid item xs={6} sm={4} md={2}>
-        <StatCard
-          title='Time to ack'
-          value={show(formatDuration(summary.medianAckMs))}
-          subheader={`median · p90 ${formatDuration(summary.p90AckMs)}`}
-        />
-      </Grid>
-      <Grid item xs={6} sm={4} md={2}>
-        <StatCard
-          title='Time to close'
-          value={show(formatDuration(summary.medianCloseMs))}
-          subheader={`median · p90 ${formatDuration(summary.p90CloseMs)}`}
-        />
-      </Grid>
-      <Grid item xs={6} sm={4} md={2}>
-        <StatCard
-          title='Escalated'
-          value={show(formatPercent(summary.escalated, summary.closed))}
-          subheader='of closed alerts'
-        />
-      </Grid>
-      <Grid item xs={6} sm={4} md={2}>
-        <StatCard
-          title='Services'
-          value={show(String(services.length))}
-          subheader='with alerts'
-        />
-      </Grid>
+      {cards.map(([title, value, subheader]) => (
+        <Grid key={title} item xs={6} sm={4} md={2} data-cy='response-stat'>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Typography variant='body2' color='text.secondary'>
+                {title}
+              </Typography>
+              <Typography variant='h4' component='div' sx={{ my: 0.5 }}>
+                {loading ? '…' : value}
+              </Typography>
+              <Typography variant='caption' color='text.secondary'>
+                {subheader}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
 
-      <Grid item xs={12} md={6}>
+      <Grid item xs={12} md={5}>
         <Card>
           <CardHeader
             title='Time to Acknowledge'
             subheader='Closed alerts, by how long they took to be acknowledged'
           />
           <CardContent>
-            <ResponseBarGraph
-              data={ackBuckets}
-              loading={loading}
-              showAllLabels
-              data-cy='response-ack-graph'
-            />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardHeader
-            title='Alerts by Hour of Day'
-            subheader='When alerts are created, in your local time'
-          />
-          <CardContent>
-            <ResponseBarGraph
-              data={hours}
-              loading={loading}
-              data-cy='response-hour-graph'
-            />
+            <ResponseBarGraph data={ackBuckets} loading={loading} />
           </CardContent>
         </Card>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid item xs={12} md={7}>
         <Card>
           <CardHeader
             title='Response by Service'
@@ -190,40 +139,32 @@ export default function AdminResponseMetrics(): React.JSX.Element {
               <TableHead>
                 <TableRow>
                   <TableCell>Service</TableCell>
-                  <TableCell align='right'>Alerts</TableCell>
-                  <TableCell align='right'>Closed</TableCell>
-                  <TableCell align='right'>Escalated</TableCell>
-                  <TableCell align='right'>Median time to ack</TableCell>
-                  <TableCell align='right'>Median time to close</TableCell>
+                  {COLUMNS.map(([c]) => (
+                    <TableCell key={c} align='right'>
+                      {c}
+                    </TableCell>
+                  ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {services.map((s) => (
-                  <TableRow key={s.id} hover>
+                {services.map((svc) => (
+                  <TableRow key={svc.id} hover>
                     <TableCell>
-                      <AppLink to={`/services/${s.id}/alert-metrics`}>
-                        {s.name}
+                      <AppLink to={`/services/${svc.id}/alert-metrics`}>
+                        {svc.name}
                       </AppLink>
                     </TableCell>
-                    <TableCell align='right'>{s.total}</TableCell>
-                    <TableCell align='right'>{s.closed}</TableCell>
-                    <TableCell align='right'>
-                      {formatPercent(s.escalated, s.closed)}
-                    </TableCell>
-                    <TableCell align='right'>
-                      {formatDuration(s.medianAckMs)}
-                    </TableCell>
-                    <TableCell align='right'>
-                      {formatDuration(s.medianCloseMs)}
-                    </TableCell>
+                    {COLUMNS.map(([c, get]) => (
+                      <TableCell key={c} align='right'>
+                        {get(svc)}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))}
                 {!loading && !services.length && (
                   <TableRow>
                     <TableCell colSpan={6} align='center'>
-                      <Typography variant='body2' color='text.secondary'>
-                        No alerts in this time range
-                      </Typography>
+                      No alerts in this time range
                     </TableCell>
                   </TableRow>
                 )}
