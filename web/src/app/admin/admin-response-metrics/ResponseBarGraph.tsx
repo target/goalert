@@ -8,6 +8,9 @@ interface ResponseBarGraphProps {
   data: { label: string; count: number }[]
   loading: boolean
   height?: number
+  // Show every x-axis label (for small categorical data) instead of thinning
+  // them out to avoid overlap.
+  showAllLabels?: boolean
   'data-cy'?: string
 }
 
@@ -42,8 +45,9 @@ export default function ResponseBarGraph(
               <XAxis
                 dataKey='label'
                 stroke={theme.palette.text.secondary}
-                interval='preserveStartEnd'
+                interval={props.showAllLabels ? 0 : 'preserveStartEnd'}
                 tickLine={false}
+                fontSize={12}
               />
               <YAxis
                 allowDecimals={false}

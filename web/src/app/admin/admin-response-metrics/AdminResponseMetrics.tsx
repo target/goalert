@@ -157,6 +157,7 @@ export default function AdminResponseMetrics(): React.JSX.Element {
             <ResponseBarGraph
               data={ackBuckets}
               loading={loading}
+              showAllLabels
               data-cy='response-ack-graph'
             />
           </CardContent>

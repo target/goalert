@@ -37,13 +37,13 @@ export type ServiceResponse = {
 
 // Upper bounds (in minutes, exclusive) for the time-to-acknowledge histogram.
 const ACK_BUCKETS: { label: string; max: number }[] = [
-  { label: '< 1 min', max: 1 },
-  { label: '1–5 min', max: 5 },
-  { label: '5–15 min', max: 15 },
-  { label: '15–30 min', max: 30 },
-  { label: '30–60 min', max: 60 },
-  { label: '1–4 hours', max: 240 },
-  { label: '> 4 hours', max: Infinity },
+  { label: '< 1m', max: 1 },
+  { label: '1–5m', max: 5 },
+  { label: '5–15m', max: 15 },
+  { label: '15–30m', max: 30 },
+  { label: '30–60m', max: 60 },
+  { label: '1–4h', max: 240 },
+  { label: '> 4h', max: Infinity },
 ]
 
 // durationMs converts an ISO-8601 duration (e.g. "PT3M48.6S") to milliseconds,

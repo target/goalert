@@ -97,9 +97,9 @@ describe('ackDistribution', () => {
     const counts = Object.fromEntries(
       ackDistribution(alerts).map((b) => [b.label, b.count]),
     )
-    expect(counts['< 1 min']).toEqual(1)
-    expect(counts['5–15 min']).toEqual(1)
-    expect(counts['> 4 hours']).toEqual(1)
+    expect(counts['< 1m']).toEqual(1)
+    expect(counts['5–15m']).toEqual(1)
+    expect(counts['> 4h']).toEqual(1)
     expect(Object.values(counts).reduce((a, b) => a + b, 0)).toEqual(3)
   })
 })
