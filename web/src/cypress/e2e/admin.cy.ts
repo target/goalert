@@ -247,6 +247,47 @@ function testAdmin(): void {
     })
   })
 
+  describe('Admin Response Metrics Page', () => {
+    let svc1: Service
+    let svc2: Service
+
+    beforeEach(() => {
+      cy.createService().then((s1: Service) => {
+        svc1 = s1
+        cy.createAlert({ serviceID: s1.id }).then((a: Alert) => {
+          cy.ackAlert(a.id)
+          cy.closeAlert(a.id)
+        })
+      })
+      cy.createService().then((s2: Service) => {
+        svc2 = s2
+        cy.createAlert({ serviceID: s2.id })
+        cy.createAlert({ serviceID: s2.id })
+      })
+
+      return cy.visit('/admin/response-metrics')
+    })
+
+    it('should display response metrics by service', () => {
+      cy.get('[data-cy=response-stat]').first().should('contain', '3')
+      cy.get('[data-cy=response-service-table]')
+        .should('contain', svc1.name)
+        .should('contain', svc2.name)
+
+      // busiest service is listed first
+      cy.get('[data-cy=response-service-table] tbody tr')
+        .first()
+        .should('contain', svc2.name)
+    })
+
+    it('should change the time range', () => {
+      cy.get('[data-cy=response-range]').click()
+      cy.get('li[data-value=P7D]').click()
+      cy.location('search').should('contain', 'range=P7D')
+      cy.get('[data-cy=response-service-table]').should('contain', svc1.name)
+    })
+  })
+
   describe('Admin Message Logs Page', () => {
     let debugMessage: DebugMessage
 
