@@ -4,6 +4,7 @@ import { Switch, Route, useLocation, RouteProps, useRoute } from 'wouter'
 import AdminMessageLogsLayout from '../admin/admin-message-logs/AdminMessageLogsLayout'
 import AdminAlertCounts from '../admin/admin-alert-counts/AdminAlertCounts'
 import AdminServiceMetrics from '../admin/admin-service-metrics/AdminServiceMetrics'
+import AdminResponseMetrics from '../admin/admin-response-metrics/AdminResponseMetrics'
 import AdminConfig from '../admin/AdminConfig'
 import AdminLimits from '../admin/AdminLimits'
 import AdminToolbox from '../admin/AdminToolbox'
@@ -126,6 +127,7 @@ export const routes: Record<string, JSXElementConstructor<any>> = {
   '/admin/message-logs': AdminMessageLogsLayout,
   '/admin/alert-counts': AdminAlertCounts,
   '/admin/service-metrics': AdminServiceMetrics,
+  '/admin/response-metrics': AdminResponseMetrics,
   '/admin/switchover': AdminSwitchover,
   '/admin/switchover/guide': AdminSwitchoverGuide,
   '/admin/api-keys': AdminAPIKeys,

@@ -107,6 +107,10 @@ export default function NavBar(): React.JSX.Element {
                 to='/admin/service-metrics'
                 title='Service Metrics'
               />
+              <NavBarSubLink
+                to='/admin/response-metrics'
+                title='Response Metrics'
+              />
               <NavBarSubLink to='/admin/switchover' title='Switchover' />
               <NavBarSubLink to='/admin/api-keys' title='API Keys' />
               {localDevRiver}
