@@ -1666,6 +1666,7 @@ type ConfigID =
   | 'OIDC.IssuerURL'
   | 'OIDC.ClientID'
   | 'OIDC.ClientSecret'
+  | 'OIDC.EnablePKCE'
   | 'OIDC.Scopes'
   | 'OIDC.UserInfoEmailPath'
   | 'OIDC.UserInfoEmailVerifiedPath'

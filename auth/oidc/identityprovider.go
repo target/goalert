@@ -22,7 +22,10 @@ import (
 
 var _ auth.IdentityProvider = &Provider{}
 
-const nonceCookieName = "goalert_oidc_nonce"
+const (
+	nonceCookieName        = "goalert_oidc_nonce"
+	pkceVerifierCookieName = "goalert_oidc_pkce_verifier"
+)
 
 var b64enc = base64.URLEncoding.WithPadding(base64.NoPadding)
 
@@ -202,7 +205,15 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		}
 		oaCfg.RedirectURL = route.CurrentURL + "/callback"
 
-		u := oaCfg.AuthCodeURL(stateToken, oidc.Nonce(nonceStr))
+		opts := []oauth2.AuthCodeOption{oidc.Nonce(nonceStr)}
+		if cfg.OIDC.EnablePKCE {
+			// RFC 7636: keep the verifier in a cookie and send only its S256 challenge.
+			verifier := oauth2.GenerateVerifier()
+			auth.SetCookie(w, req, pkceVerifierCookieName, verifier, false)
+			opts = append(opts, oauth2.S256ChallengeOption(verifier))
+		}
+
+		u := oaCfg.AuthCodeURL(stateToken, opts...)
 		return nil, auth.RedirectURL(u)
 	case "/callback":
 		// handled below
@@ -216,6 +227,12 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 		return nil, auth.Error("There was a problem recognizing this browser. You can try again")
 	}
 	auth.ClearCookie(w, req, nonceCookieName, false)
+
+	// The PKCE verifier is single-use, clear it regardless of the current config.
+	verifierC, verifierErr := req.Cookie(pkceVerifierCookieName)
+	if verifierErr == nil {
+		auth.ClearCookie(w, req, pkceVerifierCookieName, false)
+	}
 
 	nonce, err := b64enc.DecodeString(nonceC.Value)
 	if err != nil || len(nonce) != 16 {
@@ -237,7 +254,15 @@ func (p *Provider) ExtractIdentity(route *auth.RouteInfo, w http.ResponseWriter,
 	}
 	oaCfg.RedirectURL = route.CurrentURL
 
-	oauth2Token, err := oaCfg.Exchange(ctx, req.URL.Query().Get("code"))
+	var exchangeOpts []oauth2.AuthCodeOption
+	if cfg.OIDC.EnablePKCE {
+		if verifierErr != nil || verifierC.Value == "" {
+			return nil, auth.Error("There was a problem verifying this browser. You can try again")
+		}
+		exchangeOpts = append(exchangeOpts, oauth2.VerifierOption(verifierC.Value))
+	}
+
+	oauth2Token, err := oaCfg.Exchange(ctx, req.URL.Query().Get("code"), exchangeOpts...)
 	if err != nil {
 		log.Log(ctx, errors.Wrap(err, "exchange OIDC token"))
 		return nil, auth.Error(fmt.Sprintf("Could not communicate with %s server. You can try again", name))
