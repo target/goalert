@@ -1,5 +1,5 @@
 import { Chance } from 'chance'
-import { testScreen } from '../support/e2e'
+import { pathPrefix, testScreen } from '../support/e2e'
 import { Schedule } from '../../schema'
 import users from '../fixtures/users.json'
 
@@ -179,6 +179,10 @@ function testSchedules(screen: ScreenFormat): void {
           cy.visit('/schedules/' + s.id + '/assignments')
           return cy.get('[role="progressbar"]').should('not.exist')
         })
+    })
+
+    it('should link to the rotation including the path prefix', () => {
+      cy.get(`[href="${pathPrefix()}/rotations/${rot.id}"]`).should('exist')
     })
 
     it('should add a rotation as an assignment', () => {
