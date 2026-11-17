@@ -214,13 +214,13 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 	}
 	resp.Body.Close()
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
+	if resp.StatusCode/100 == 2 { // 2xx responses
 		return &notification.SentMessage{State: notification.StateSent}, nil
 	}
 
 	state := notification.StateFailedPerm
 	if resp.StatusCode == http.StatusTooManyRequests ||
-		(resp.StatusCode >= http.StatusInternalServerError && resp.StatusCode < 600) {
+		resp.StatusCode/100 == 5 { // retry 5xx responses
 		state = notification.StateFailedTemp
 	}
 
