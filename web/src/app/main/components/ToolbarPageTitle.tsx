@@ -27,6 +27,16 @@ export default function ToolbarPageTitle(): React.JSX.Element {
   return (
     <Breadcrumbs
       maxItems={isMobile ? 2 : undefined}
+      // stay on one line and truncate the last crumb, so a long page title
+      // does not push the toolbar actions off-screen on narrow viewports
+      sx={{
+        minWidth: 0,
+        '& .MuiBreadcrumbs-ol': { flexWrap: 'nowrap' },
+        '& .MuiBreadcrumbs-li': { minWidth: 0 },
+        '& .MuiBreadcrumbs-li:not(:last-child), & .MuiBreadcrumbs-separator': {
+          flexShrink: 0,
+        },
+      }}
       separator={
         <ChevronRight
           sx={{
