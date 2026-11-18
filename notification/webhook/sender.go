@@ -214,5 +214,18 @@ func (s *Sender) SendMessage(ctx context.Context, msg notification.Message) (*no
 	}
 	resp.Body.Close()
 
-	return &notification.SentMessage{State: notification.StateSent}, nil
+	if resp.StatusCode/100 == 2 { // 2xx responses
+		return &notification.SentMessage{State: notification.StateSent}, nil
+	}
+
+	state := notification.StateFailedPerm
+	if resp.StatusCode == http.StatusTooManyRequests ||
+		resp.StatusCode/100 == 5 { // retry 5xx responses
+		state = notification.StateFailedTemp
+	}
+
+	return &notification.SentMessage{
+		State:        state,
+		StateDetails: resp.Status,
+	}, nil
 }
