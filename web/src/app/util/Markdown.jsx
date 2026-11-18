@@ -10,15 +10,31 @@ import timestampSupport from './Markdown.timestampSupport'
 const useStyles = makeStyles((theme) => ({
   markdown: {
     overflowWrap: 'break-word',
-    '& td, th': {
+    '& table': {
+      borderCollapse: 'collapse',
+      margin: '0.5rem 0',
+      // wide tables scroll instead of overflowing the card
+      display: 'block',
+      maxWidth: '100%',
+      overflowX: 'auto',
+    },
+    '& td, & th': {
       textAlign: 'left',
-      padding: '0.25rem 1rem',
+      padding: '0.25rem 0.75rem',
+      border: '1px solid ' + theme.palette.divider,
     },
-    '& td:first-child, th:first-child': {
-      paddingLeft: 0,
+    '& th': {
+      fontWeight: 600,
+      backgroundColor: theme.palette.action.selected,
     },
-    '& td:last-child, th:last-child': {
-      paddingRight: 0,
+    '& tbody tr:nth-of-type(even)': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    '& blockquote': {
+      margin: '0.5rem 0',
+      padding: '0.25rem 0.75rem',
+      borderLeft: '4px solid ' + theme.palette.primary.main,
+      backgroundColor: theme.palette.action.hover,
     },
     '& pre': {
       padding: '0.375rem',
