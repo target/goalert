@@ -159,7 +159,7 @@ export default function AlertDetails(
     return {
       repeatCount: state?.repeatCount,
       repeat: ep?.repeat,
-      numSteps: ep?.steps.length,
+      numSteps: ep?.steps?.length,
       steps: ep?.steps,
       status: alert.status,
       currentLevel: state?.stepNumber,
@@ -174,9 +174,11 @@ export default function AlertDetails(
       return false
     }
 
+    const level = currentLevel ?? 0
     if (
-      currentLevel === (steps?.length ?? 0) - 1 &&
-      (repeatCount ?? 0) >= (repeat ?? 0)
+      !steps?.length ||
+      level < 0 ||
+      (level >= steps.length - 1 && (repeatCount ?? 0) >= (repeat ?? 0))
     ) {
       return false
     }
@@ -190,7 +192,10 @@ export default function AlertDetails(
 
     const prevEscalation = DateTime.fromISO(lastEscalation ?? '')
     const nextEsclation = prevEscalation.plus({
-      minutes: steps ? steps[currentLevel ?? 0].delayMinutes : 0,
+      minutes:
+        steps?.[currentLevel ?? 0]?.delayMinutes ??
+        steps?.[0]?.delayMinutes ??
+        0,
     })
 
     return (
