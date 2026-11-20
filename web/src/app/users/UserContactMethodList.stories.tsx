@@ -6,6 +6,25 @@ import { handleDefaultConfig } from '../storybook/graphql'
 import { HttpResponse, graphql } from 'msw'
 import { Destination } from '../../schema'
 
+// a contact method visible to the viewer, alongside a hidden private one
+const visibleCM = {
+  id: '24680',
+  name: 'Visible CM',
+  dest: {
+    type: 'single-field',
+    values: [{ fieldID: 'phone_number', value: '+15555555557' }],
+    args: { phone_number: '+15555555557' },
+    displayInfo: {
+      text: '+1 555-555-5557',
+      iconAltText: 'Voice Call',
+      iconURL: '',
+      linkURL: '',
+    },
+  } satisfies Partial<Destination>,
+  disabled: false,
+  pending: false,
+}
+
 const meta = {
   title: 'users/UserContactMethodList',
   component: UserContactMethodList,
@@ -45,71 +64,90 @@ const meta = {
                           pending: false,
                         },
                       ],
+                      notificationRules: [],
                     },
                   }
-                : {
-                    user: {
-                      id: '00000000-0000-0000-0000-000000000001',
-                      contactMethods: [
-                        {
-                          id: '67890',
-                          name: 'triple contact method',
-                          dest: {
-                            type: 'triple-field',
-                            values: [
-                              {
-                                fieldID: 'first-field',
-                                value: 'test_user@target.com',
+                : vars.id === '00000000-0000-0000-0000-000000000002' ||
+                    vars.id === '00000000-0000-0000-0000-000000000003'
+                  ? {
+                      user: {
+                        id: vars.id,
+                        // ...0003 also has a visible CM, which a rule uses too
+                        contactMethods:
+                          vars.id === '00000000-0000-0000-0000-000000000003'
+                            ? [visibleCM]
+                            : [],
+                        notificationRules: [
+                          { id: 'nr1', contactMethodID: 'hidden-cm' },
+                          { id: 'nr2', contactMethodID: 'hidden-cm' },
+                          { id: 'nr3', contactMethodID: visibleCM.id },
+                        ],
+                      },
+                    }
+                  : {
+                      user: {
+                        id: '00000000-0000-0000-0000-000000000001',
+                        contactMethods: [
+                          {
+                            id: '67890',
+                            name: 'triple contact method',
+                            dest: {
+                              type: 'triple-field',
+                              values: [
+                                {
+                                  fieldID: 'first-field',
+                                  value: 'test_user@target.com',
+                                },
+                                {
+                                  fieldID: 'second-field',
+                                  value: 'parameter-1',
+                                },
+                                {
+                                  fieldID: 'third-field',
+                                  value: 'parameter-2',
+                                },
+                              ],
+                              args: {
+                                'first-field': 'test_user@target.com',
+                                'second-field': 'parameter-1',
+                                'third-field': 'parameter-2',
                               },
-                              {
-                                fieldID: 'second-field',
-                                value: 'parameter-1',
+                              displayInfo: {
+                                text: 'test_user@target.com',
+                                iconAltText: 'Email',
+                                iconURL: '',
+                                linkURL: '',
                               },
-                              {
-                                fieldID: 'third-field',
-                                value: 'parameter-2',
+                            } satisfies Partial<Destination>,
+                            disabled: false,
+                            pending: false,
+                          },
+                          {
+                            id: '1111',
+                            name: 'single field CM',
+                            dest: {
+                              type: 'single-field',
+                              values: [
+                                {
+                                  fieldID: 'phone_number',
+                                  value: '+15555555556',
+                                },
+                              ],
+                              args: { phone_number: '+15555555556' },
+                              displayInfo: {
+                                text: '+1 555-555-5556',
+                                iconAltText: 'Voice Call',
+                                iconURL: '',
+                                linkURL: '',
                               },
-                            ],
-                            args: {
-                              'first-field': 'test_user@target.com',
-                              'second-field': 'parameter-1',
-                              'third-field': 'parameter-2',
-                            },
-                            displayInfo: {
-                              text: 'test_user@target.com',
-                              iconAltText: 'Email',
-                              iconURL: '',
-                              linkURL: '',
-                            },
-                          } satisfies Partial<Destination>,
-                          disabled: false,
-                          pending: false,
-                        },
-                        {
-                          id: '1111',
-                          name: 'single field CM',
-                          dest: {
-                            type: 'single-field',
-                            values: [
-                              {
-                                fieldID: 'phone_number',
-                                value: '+15555555556',
-                              },
-                            ],
-                            args: { phone_number: '+15555555556' },
-                            displayInfo: {
-                              text: '+1 555-555-5556',
-                              iconAltText: 'Voice Call',
-                              iconURL: '',
-                              linkURL: '',
-                            },
-                          } satisfies Partial<Destination>,
-                          disabled: false,
-                          pending: false,
-                        },
-                      ],
+                            } satisfies Partial<Destination>,
+                            disabled: false,
+                            pending: false,
+                          },
+                        ],
+                        notificationRules: [],
+                      },
                     },
-                  },
           })
         }),
       ],
@@ -190,5 +228,46 @@ export const SingleReadOnlyContactMethods: Story = {
     await expect(
       await canvas.queryByTestId('MoreHorizIcon'),
     ).not.toBeInTheDocument()
+  },
+}
+
+export const HiddenPrivateContactMethod: Story = {
+  args: {
+    userID: '00000000-0000-0000-0000-000000000002',
+    readOnly: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // rules pointing at a private CM owned by someone else replace the empty
+    // message, without guessing how many there are
+    await expect(
+      await canvas.findByText(
+        'This user has one or more private contact methods',
+      ),
+    ).toBeVisible()
+    await expect(
+      await canvas.queryByText('No contact methods'),
+    ).not.toBeInTheDocument()
+  },
+}
+
+export const VisibleAndHiddenPrivateContactMethods: Story = {
+  args: {
+    userID: '00000000-0000-0000-0000-000000000003',
+    readOnly: true,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+
+    // the visible CM is listed, and the note covers the hidden one
+    await expect(
+      await canvas.findByText('Visible CM (Single Field)'),
+    ).toBeVisible()
+    await expect(
+      await canvas.findByText(
+        'This user has one or more private contact methods',
+      ),
+    ).toBeVisible()
   },
 }
