@@ -7,31 +7,45 @@ import makeStyles from '@mui/styles/makeStyles'
 import AppLink from './AppLink'
 import timestampSupport from './Markdown.timestampSupport'
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   markdown: {
     overflowWrap: 'break-word',
-    '& td, th': {
+    '& table': {
+      borderCollapse: 'collapse',
+      margin: '0.5rem 0',
+      // wide tables scroll instead of overflowing the card
+      display: 'block',
+      maxWidth: '100%',
+      overflowX: 'auto',
+    },
+    '& td, & th': {
       textAlign: 'left',
-      padding: '0.25rem 1rem',
+      padding: '0.25rem 0.75rem',
+      border: '1px solid ' + theme.palette.divider,
     },
-    '& td:first-child, th:first-child': {
-      paddingLeft: 0,
+    '& th': {
+      fontWeight: 600,
+      backgroundColor: theme.palette.action.selected,
     },
-    '& td:last-child, th:last-child': {
-      paddingRight: 0,
+    '& tbody tr:nth-of-type(even)': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    '& blockquote': {
+      margin: '0.5rem 0',
+      padding: '0.25rem 0.75rem',
+      borderLeft: '4px solid ' + theme.palette.primary.main,
+      backgroundColor: theme.palette.action.hover,
     },
     '& pre': {
       padding: '0.375rem',
-      color: '#333',
-      backgroundColor: '#f5f5f5',
-      border: '1px solid #ccc',
+      backgroundColor: theme.palette.action.hover,
+      border: '1px solid ' + theme.palette.divider,
       borderRadius: '4px',
     },
     '& code': {
       padding: '2px 4px',
       fontSize: '90%',
-      color: '#c7254e',
-      backgroundColor: '#f9f2f4',
+      backgroundColor: theme.palette.action.selected,
       borderRadius: '4px',
     },
     '& pre code': {
@@ -42,7 +56,7 @@ const useStyles = makeStyles({
       borderRadius: 0,
     },
   },
-})
+}))
 
 function TableCell({ children, isHeader, align, ...rest }) {
   const content = React.Children.map(children, (c) =>
@@ -63,34 +77,36 @@ export default function Markdown(props) {
   const { value, ...rest } = props
   if (!value) return null
 
+  // react-markdown 10 removed the className prop: wrap it to apply the styles
   return (
-    <ReactMarkdown
-      className={classes.markdown}
-      components={{
-        td: TableCell,
-        a: ({ node, inline, className, children, ...props }) => (
-          <AppLink to={props.href} newTab {...props}>
-            {children}
-          </AppLink>
-        ),
-      }}
-      remarkPlugins={[timestampSupport, remarkGfm, remarkBreaks]}
-      allowElement={(element) => {
-        if (
-          element.tagName === 'a' &&
-          element.children[0].type === 'text' &&
-          !safeURL(element.properties.href, element.children[0].value)
-        ) {
-          element.type = 'text'
-          element.value = `[${element.children[0].value}](${element.properties.href})`
-          delete element.properties.href
-        }
+    <div className={classes.markdown}>
+      <ReactMarkdown
+        components={{
+          td: TableCell,
+          a: ({ node, inline, className, children, ...props }) => (
+            <AppLink to={props.href} newTab {...props}>
+              {children}
+            </AppLink>
+          ),
+        }}
+        remarkPlugins={[timestampSupport, remarkGfm, remarkBreaks]}
+        allowElement={(element) => {
+          if (
+            element.tagName === 'a' &&
+            element.children[0].type === 'text' &&
+            !safeURL(element.properties.href, element.children[0].value)
+          ) {
+            element.type = 'text'
+            element.value = `[${element.children[0].value}](${element.properties.href})`
+            delete element.properties.href
+          }
 
-        return true
-      }}
-      {...rest}
-    >
-      {value}
-    </ReactMarkdown>
+          return true
+        }}
+        {...rest}
+      >
+        {value}
+      </ReactMarkdown>
+    </div>
   )
 }
