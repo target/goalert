@@ -18,6 +18,7 @@ import (
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/errutil"
 	"github.com/target/goalert/validation"
+	"github.com/target/goalert/validation/validate"
 )
 
 type Handler struct {
@@ -52,19 +53,7 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inser
 		}
 
 	case "builtin-alert":
-		status := alert.StatusTriggered
-		if act.Param("close") == "true" {
-			status = alert.StatusClosed
-		}
-
-		_, _, err := h.alertStore.CreateOrUpdate(ctx, &alert.Alert{
-			ServiceID: permission.ServiceID(ctx),
-			Summary:   act.Param("summary"),
-			Details:   act.Param("details"),
-			Source:    alert.SourceUniversal,
-			Status:    status,
-			Dedup:     alert.NewUserDedup(act.Param("dedup")),
-		})
+		_, _, err := h.alertStore.CreateOrUpdate(ctx, newAlert(permission.ServiceID(ctx), act))
 		if err != nil {
 			return false, err
 		}
@@ -86,6 +75,29 @@ func (h *Handler) handleAction(ctx context.Context, act gadb.UIKActionV1) (inser
 	}
 
 	return didInsertSignals, nil
+}
+
+// newAlert builds the alert for a builtin-alert action.
+//
+// Summary and details are sanitized like the other alert sources (generic API,
+// email, Prometheus Alertmanager): non-printable characters such as a
+// no-break space or a carriage return are replaced or removed, and the text is
+// truncated to the maximum length. Without it, the alert fails validation and
+// is dropped.
+func newAlert(serviceID string, act gadb.UIKActionV1) *alert.Alert {
+	status := alert.StatusTriggered
+	if act.Param("close") == "true" {
+		status = alert.StatusClosed
+	}
+
+	return &alert.Alert{
+		ServiceID: serviceID,
+		Summary:   validate.SanitizeText(act.Param("summary"), alert.MaxSummaryLength),
+		Details:   validate.SanitizeText(act.Param("details"), alert.MaxDetailsLength),
+		Source:    alert.SourceUniversal,
+		Status:    status,
+		Dedup:     alert.NewUserDedup(act.Param("dedup")),
+	}
 }
 
 // EventNewSignals is an event that is triggered when new signals are generated for a service.
