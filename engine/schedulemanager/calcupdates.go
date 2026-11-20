@@ -12,6 +12,49 @@ import (
 	"github.com/target/goalert/util/jsonutil"
 )
 
+// overrideSpan is a user override as the schedule manager sees it: who is
+// added and/or removed, and the window during which it applies.
+//
+// Both the batch (SchedMgrOverrides) and per-schedule
+// (SchedMgrOverridesForSchedule) row types convert to this one so the on-call
+// calculation does not depend on which query produced the rows.
+type overrideSpan struct {
+	AddUserID, RemoveUserID uuid.NullUUID
+	Start, End              time.Time
+}
+
+// overrideSpanFromRow converts a batch override row into an overrideSpan.
+func overrideSpanFromRow(row gadb.SchedMgrOverridesRow) overrideSpan {
+	return overrideSpan{
+		AddUserID:    row.AddUserID,
+		RemoveUserID: row.RemoveUserID,
+		Start:        row.StartTime,
+		End:          row.EndTime,
+	}
+}
+
+// overrideSpanFromScheduleRow converts a per-schedule override row into an
+// overrideSpan.
+func overrideSpanFromScheduleRow(row gadb.SchedMgrOverridesForScheduleRow) overrideSpan {
+	return overrideSpan{
+		AddUserID:    row.AddUserID,
+		RemoveUserID: row.RemoveUserID,
+		Start:        row.StartTime,
+		End:          row.EndTime,
+	}
+}
+
+// overrideActive reports whether the override o is in effect at now.
+//
+// The window is INCLUSIVE on both ends (Start <= now <= End), which is exactly
+// the `now() BETWEEN start_time AND end_time` filter the batch
+// SchedMgrOverrides query applies in SQL. The two MUST stay in agreement: a
+// later change to half-open [Start, End) semantics has to change this function
+// and the batch query's WHERE clause together.
+func overrideActive(now time.Time, o overrideSpan) bool {
+	return !now.Before(o.Start) && !now.After(o.End)
+}
+
 type updateInfo struct {
 	ScheduleID      uuid.UUID
 	TimeZone        *time.Location
@@ -19,7 +62,11 @@ type updateInfo struct {
 	ScheduleData    schedule.Data
 	CurrentOnCall   mapset.Set[uuid.UUID]
 	Rules           []gadb.SchedMgrRulesRow
-	ActiveOverrides []gadb.SchedMgrOverridesRow
+
+	// Overrides are the overrides to consider for this schedule. They may
+	// include overrides that are not in effect at the evaluation time; those
+	// are skipped by calcLatestOnCall (see overrideActive).
+	Overrides []overrideSpan
 
 	// MissingUsers contains user IDs referenced by temporary schedule shifts that no longer exist
 	MissingUsers mapset.Set[uuid.UUID]
@@ -53,7 +100,11 @@ func (info updateInfo) calcLatestOnCall(now time.Time) mapset.Set[uuid.UUID] {
 		}
 	}
 
-	for _, o := range info.ActiveOverrides {
+	for _, o := range info.Overrides {
+		if !overrideActive(now, o) {
+			continue
+		}
+
 		if o.RemoveUserID.Valid {
 			if !newOnCall.Contains(o.RemoveUserID.UUID) {
 				// if the user to be removed is not currently on-call, skip
