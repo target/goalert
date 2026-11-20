@@ -106,6 +106,7 @@ export default function UserContactMethodList(
   const hasHiddenContactMethods = (
     data.user.notificationRules as UserNotificationRule[]
   ).some((nr) => !visibleIDs.has(nr.contactMethodID))
+  const privateNote = 'This user has one or more private contact methods'
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
@@ -225,10 +226,13 @@ export default function UserContactMethodList(
         />
         <CompList
           data-cy='contact-methods'
+          note={
+            hasHiddenContactMethods && contactMethods.length > 0
+              ? privateNote
+              : undefined
+          }
           emptyMessage={
-            hasHiddenContactMethods
-              ? 'This user has one or more private contact methods'
-              : 'No contact methods'
+            hasHiddenContactMethods ? privateNote : 'No contact methods'
           }
         >
           {sortContactMethods(contactMethods).map((cm) => {
