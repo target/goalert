@@ -96,6 +96,12 @@ func NewHandler(uiDir, prefix string) (http.Handler, error) {
 		mux.Handle("/static/", NewEtagFileServer(http.FS(sub), true))
 	}
 
+	mux.HandleFunc("GET /manifest.webmanifest", func(w http.ResponseWriter, req *http.Request) {
+		cfg := config.FromContext(req.Context())
+
+		serveManifest(w, req, cfg.ApplicationName(), prefix)
+	})
+
 	mux.HandleFunc("/api/graphql/explore", func(w http.ResponseWriter, req *http.Request) {
 		cfg := config.FromContext(req.Context())
 
