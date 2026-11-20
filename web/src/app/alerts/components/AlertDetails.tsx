@@ -300,24 +300,29 @@ export default function AlertDetails(
         key='update-alert-buttons'
         variant='contained'
         aria-label='Update Alert Status Button Group'
+        size={isMobile ? 'small' : 'medium'}
+        fullWidth={isMobile}
+        sx={{
+          '& .MuiButton-root': { flex: isMobile ? '1 1 auto' : undefined },
+        }}
       >
         {status === 'StatusUnacknowledged' && (
           <Button
-            startIcon={<AcknowledgeIcon />}
+            startIcon={isMobile ? undefined : <AcknowledgeIcon />}
             onClick={() => alertAction('alert_acknowledged', ack)}
           >
             Acknowledge
           </Button>
         )}
         <Button
-          startIcon={<EscalateIcon />}
+          startIcon={isMobile ? undefined : <EscalateIcon />}
           onClick={() => alertAction('alert_escalated', escalate)}
           disabled={isMaintMode}
         >
           Escalate
         </Button>
         <Button
-          startIcon={<CloseIcon />}
+          startIcon={isMobile ? undefined : <CloseIcon />}
           onClick={() => alertAction('alert_closed', close)}
         >
           Close
@@ -368,6 +373,7 @@ export default function AlertDetails(
       {/* Main Alert Info */}
       <Grid
         item
+        xs={12}
         lg={isMobile || noiseReason !== '' ? 12 : 8}
         className={classes.cardContainer}
       >
