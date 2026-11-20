@@ -7,6 +7,7 @@ import makeStyles from '@mui/styles/makeStyles'
 import { gql, useQuery } from 'urql'
 import CreateFAB from '../lists/CreateFAB'
 import OtherActions from '../util/OtherActions'
+import { useCanManageResources } from '../util/RequireConfig'
 
 import ServiceLabelSetDialog from './ServiceLabelCreateDialog'
 import ServiceLabelEditDialog from './ServiceLabelEditDialog'
@@ -47,6 +48,7 @@ export default function ServiceLabelList(props: {
   const [editKey, setEditKey] = useState<string | null>(null)
   const [deleteKey, setDeleteKey] = useState<string | null>(null)
   const isMobile = useIsWidthDown('md')
+  const canManage = useCanManageResources()
   const classes = useStyles()
 
   const [{ data, fetching }] = useQuery({
@@ -65,7 +67,7 @@ export default function ServiceLabelList(props: {
         emptyMessage='No labels exist for this service.'
         note='Labels are a way to associate services with each other throughout GoAlert. Search using the format key1/key2=value'
         action={
-          isMobile ? undefined : (
+          isMobile || !canManage ? undefined : (
             <Button
               variant='contained'
               onClick={() => setCreate(true)}
@@ -86,18 +88,20 @@ export default function ServiceLabelList(props: {
               title={label.key}
               subText={label.value}
               action={
-                <OtherActions
-                  actions={[
-                    {
-                      label: 'Edit',
-                      onClick: () => setEditKey(label.key),
-                    },
-                    {
-                      label: 'Delete',
-                      onClick: () => setDeleteKey(label.key),
-                    },
-                  ]}
-                />
+                canManage && (
+                  <OtherActions
+                    actions={[
+                      {
+                        label: 'Edit',
+                        onClick: () => setEditKey(label.key),
+                      },
+                      {
+                        label: 'Delete',
+                        onClick: () => setDeleteKey(label.key),
+                      },
+                    ]}
+                  />
+                )
               }
             />
           ))}
@@ -112,7 +116,7 @@ export default function ServiceLabelList(props: {
           <CardContent>{renderList(data.service.labels)}</CardContent>
         </Card>
       </Grid>
-      {isMobile && (
+      {isMobile && canManage && (
         <CreateFAB onClick={() => setCreate(true)} title='Add Label' />
       )}
 

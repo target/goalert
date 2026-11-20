@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util"
 	"github.com/target/goalert/util/sqlutil"
@@ -177,7 +178,7 @@ func (s *Store) CreateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) (
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.All)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.All))
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (s *Store) UpdateRotationTx(ctx context.Context, tx *sql.Tx, r *Rotation) e
 		return err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.All)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.All))
 	if err != nil {
 		return err
 	}
@@ -341,7 +342,7 @@ func (s *Store) FindRotationForUpdateTx(ctx context.Context, tx *sql.Tx, rotatio
 }
 
 func (s *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -427,7 +428,7 @@ func (s *Store) withTxLock(ctx context.Context, tx *sql.Tx, f func(*sql.Tx) erro
 }
 
 func (s *Store) SetActiveIndexTx(ctx context.Context, tx *sql.Tx, rotID string, position int) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -478,7 +479,7 @@ func (s *Store) FindParticipant(ctx context.Context, id string) (*Participant, e
 }
 
 func (s *Store) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID string, userIDs []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -504,7 +505,7 @@ func (s *Store) AddRotationUsersTx(ctx context.Context, tx *sql.Tx, rotationID s
 }
 
 func (s *Store) DeleteRotationParticipantsTx(ctx context.Context, tx *sql.Tx, partIDs []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -521,7 +522,7 @@ func (s *Store) DeleteRotationParticipantsTx(ctx context.Context, tx *sql.Tx, pa
 }
 
 func (s *Store) UpdateParticipantUserIDTx(ctx context.Context, tx *sql.Tx, partID, userID string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -541,7 +542,7 @@ func (s *Store) UpdateParticipantUserIDTx(ctx context.Context, tx *sql.Tx, partI
 }
 
 func (s *Store) DeleteStateTx(ctx context.Context, tx *sql.Tx, rotationID string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

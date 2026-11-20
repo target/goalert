@@ -5,6 +5,7 @@ import Search from '../util/Search'
 import FlatList from '../lists/FlatList'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import ListPageControls from '../lists/ListPageControls'
+import { useCanManageResources } from '../util/RequireConfig'
 import { useURLParam } from '../actions'
 import { EscalationPolicyConnection } from '../../schema'
 
@@ -29,6 +30,7 @@ const context = { suspense: false }
 export default function PolicyList(): React.JSX.Element {
   const [search] = useURLParam<string>('search', '')
   const [create, setCreate] = useState(false)
+  const canManage = useCanManageResources()
   const [cursor, setCursor] = useState('')
 
   const inputVars = {
@@ -63,7 +65,7 @@ export default function PolicyList(): React.JSX.Element {
         nextCursor={nextCursor}
         onCursorChange={setCursor}
         loading={q.fetching}
-        onCreateClick={() => setCreate(true)}
+        onCreateClick={canManage ? () => setCreate(true) : undefined}
         slots={{
           search: <Search />,
           list: (

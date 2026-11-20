@@ -6,6 +6,7 @@ import Tooltip from '@mui/material/Tooltip'
 import { startCase, sortBy } from 'lodash'
 import { RotationAvatar, UserAvatar } from '../util/avatars'
 import OtherActions from '../util/OtherActions'
+import { useCanManageResources } from '../util/RequireConfig'
 import SpeedDial from '../util/SpeedDial'
 import { AccountPlus, AccountMultiplePlus } from 'mdi-material-ui'
 import ScheduleRuleCreateDialog from './ScheduleRuleCreateDialog'
@@ -59,6 +60,7 @@ export default function ScheduleRuleList(
   const [deleteTarget, setDeleteTarget] = useState<TargetValue | null>(null)
   const [createType, setCreateType] = useState<TargetType | null>(null)
   const isMobile = useIsWidthDown('md')
+  const canManage = useCanManageResources()
 
   const [{ data, error }] = useQuery({
     query,
@@ -127,18 +129,20 @@ export default function ScheduleRuleList(
             )
           }
           action={
-            <OtherActions
-              actions={[
-                {
-                  label: 'Edit',
-                  onClick: () => setEditTarget({ type, id }),
-                },
-                {
-                  label: 'Delete',
-                  onClick: () => setDeleteTarget({ type, id }),
-                },
-              ]}
-            />
+            canManage && (
+              <OtherActions
+                actions={[
+                  {
+                    label: 'Edit',
+                    onClick: () => setEditTarget({ type, id }),
+                  },
+                  {
+                    label: 'Delete',
+                    onClick: () => setDeleteTarget({ type, id }),
+                  },
+                ]}
+              />
+            )
           }
         />,
       )
@@ -151,27 +155,29 @@ export default function ScheduleRuleList(
             note={`Showing times in ${data.schedule.timeZone}.`}
             hideActionOnMobile
             action={
-              <ButtonGroup variant='contained'>
-                <Button
-                  startIcon={<GroupAdd />}
-                  onClick={() => setCreateType('rotation')}
-                >
-                  Add Rotation
-                </Button>
-                <Button
-                  startIcon={<PersonAdd />}
-                  onClick={() => setCreateType('user')}
-                >
-                  Add User
-                </Button>
-              </ButtonGroup>
+              canManage && (
+                <ButtonGroup variant='contained'>
+                  <Button
+                    startIcon={<GroupAdd />}
+                    onClick={() => setCreateType('rotation')}
+                  >
+                    Add Rotation
+                  </Button>
+                  <Button
+                    startIcon={<PersonAdd />}
+                    onClick={() => setCreateType('user')}
+                  >
+                    Add User
+                  </Button>
+                </ButtonGroup>
+              )
             }
           >
             {items}
           </CompList>
         </Card>
 
-        {isMobile && (
+        {isMobile && canManage && (
           <SpeedDial
             label='Add Assignment'
             actions={[

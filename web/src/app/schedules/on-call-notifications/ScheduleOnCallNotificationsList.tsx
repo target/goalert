@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react'
 import { Button, Grid, Card, Typography, Tooltip, Theme } from '@mui/material'
 import OtherActions from '../../util/OtherActions'
+import { useCanManageResources } from '../../util/RequireConfig'
 import { onCallRuleSummary } from './util'
 import ScheduleOnCallNotificationsDeleteDialog from './ScheduleOnCallNotificationsDeleteDialog'
 import CreateFAB from '../../lists/CreateFAB'
@@ -58,6 +59,7 @@ export default function ScheduleOnCallNotificationsList({
   const [editRuleID, setEditRuleID] = useState('')
   const [deleteRuleID, setDeleteRuleID] = useState('')
   const isMobile = useIsWidthDown('md')
+  const canManage = useCanManageResources()
 
   const classes = useStyles()
 
@@ -107,13 +109,15 @@ export default function ScheduleOnCallNotificationsList({
               emptyMessage='No notification rules.'
               hideActionOnMobile
               action={
-                <Button
-                  variant='contained'
-                  onClick={() => setCreateRule(true)}
-                  startIcon={<Add />}
-                >
-                  Create Notification Rule
-                </Button>
+                canManage && (
+                  <Button
+                    variant='contained'
+                    onClick={() => setCreateRule(true)}
+                    startIcon={<Add />}
+                  >
+                    Create Notification Rule
+                  </Button>
+                )
               }
             >
               {q.data.schedule.onCallNotificationRules.map((rule) => {
@@ -126,18 +130,20 @@ export default function ScheduleOnCallNotificationsList({
                       title={`ERROR: ${display.error}`}
                       subText={`Notifies ${onCallRuleSummary(timeZone, rule)}`}
                       action={
-                        <OtherActions
-                          actions={[
-                            {
-                              label: 'Edit',
-                              onClick: () => setEditRuleID(rule.id),
-                            },
-                            {
-                              label: 'Delete',
-                              onClick: () => setDeleteRuleID(rule.id),
-                            },
-                          ]}
-                        />
+                        canManage && (
+                          <OtherActions
+                            actions={[
+                              {
+                                label: 'Edit',
+                                onClick: () => setEditRuleID(rule.id),
+                              },
+                              {
+                                label: 'Delete',
+                                onClick: () => setDeleteRuleID(rule.id),
+                              },
+                            ]}
+                          />
+                        )
                       }
                     />
                   )
@@ -155,18 +161,20 @@ export default function ScheduleOnCallNotificationsList({
                     title={display.text}
                     subText={'Notifies ' + onCallRuleSummary(timeZone, rule)}
                     action={
-                      <OtherActions
-                        actions={[
-                          {
-                            label: 'Edit',
-                            onClick: () => setEditRuleID(rule.id),
-                          },
-                          {
-                            label: 'Delete',
-                            onClick: () => setDeleteRuleID(rule.id),
-                          },
-                        ]}
-                      />
+                      canManage && (
+                        <OtherActions
+                          actions={[
+                            {
+                              label: 'Edit',
+                              onClick: () => setEditRuleID(rule.id),
+                            },
+                            {
+                              label: 'Delete',
+                              onClick: () => setDeleteRuleID(rule.id),
+                            },
+                          ]}
+                        />
+                      )
                     }
                   />
                 )
@@ -175,7 +183,7 @@ export default function ScheduleOnCallNotificationsList({
           </Card>
         </Grid>
       </Grid>
-      {isMobile && (
+      {isMobile && canManage && (
         <CreateFAB
           onClick={() => setCreateRule(true)}
           title='Create Notification Rule'

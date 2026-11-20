@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/alert/alertlog"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/notification/nfydest"
 	"github.com/target/goalert/notification/slack"
 	"github.com/target/goalert/notificationchannel"
@@ -174,7 +175,7 @@ func (s *Store) FindManyPolicies(ctx context.Context, ids []string) ([]Policy, e
 
 // CreatePolicyTx creates a new escalation policy in the database.
 func (s *Store) CreatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) (*Policy, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +210,7 @@ func (s *Store) UpdatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) error
 		return err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -231,7 +232,7 @@ func (s *Store) UpdatePolicyTx(ctx context.Context, tx *sql.Tx, p *Policy) error
 
 // DeleteManyPoliciesTx deletes multiple policies in a single transaction.
 func (s *Store) DeleteManyPoliciesTx(ctx context.Context, tx *sql.Tx, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -425,7 +426,7 @@ func (s *Store) FindAllStepsTx(ctx context.Context, tx *sql.Tx, policyID string)
 
 // CreateStepTx adds a step to an escalation policy.
 func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +454,7 @@ func (s *Store) CreateStepTx(ctx context.Context, tx *sql.Tx, st *Step) (*Step, 
 
 // UpdateStepNumberTx updates the step number for a step.
 func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, stepNumber int) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -473,7 +474,7 @@ func (s *Store) UpdateStepNumberTx(ctx context.Context, tx *sql.Tx, stepID uuid.
 
 // UpdateStepDelayTx updates the delay for a step.
 func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, stepDelay int) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -498,7 +499,7 @@ func (s *Store) UpdateStepDelayTx(ctx context.Context, tx *sql.Tx, stepID uuid.U
 
 // UpdateStepMultiAckTx updates the multi-ack setting for a step.
 func (s *Store) UpdateStepMultiAckTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, multiAck bool) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -518,7 +519,7 @@ func (s *Store) UpdateStepMultiAckTx(ctx context.Context, tx *sql.Tx, stepID uui
 
 // DeleteStepTx deletes a step from an escalation policy.
 func (s *Store) DeleteStepTx(ctx context.Context, tx *sql.Tx, id uuid.UUID) (string, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return "", err
 	}

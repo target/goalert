@@ -9,6 +9,7 @@ import { Add } from '@mui/icons-material'
 import FlatList from '../lists/FlatList'
 import { reorderList, calcNewActiveIndex } from './util'
 import OtherActions from '../util/OtherActions'
+import { useCanManageResources } from '../util/RequireConfig'
 import RotationSetActiveDialog from './RotationSetActiveDialog'
 import RotationUserDeleteDialog from './RotationUserDeleteDialog'
 import { UserAvatar } from '../util/avatars'
@@ -68,6 +69,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
   const [showAddUser, setShowAddUser] = useState(false)
   const [lastSwap, setLastSwap] = useState<SwapType[]>([])
   const isMobile = useIsWidthDown('md')
+  const canManage = useCanManageResources()
 
   const {
     data,
@@ -138,7 +140,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
 
   return (
     <React.Fragment>
-      {isMobile && (
+      {isMobile && canManage && (
         <CreateFAB title='Add User' onClick={() => setShowAddUser(true)} />
       )}
       <Suspense>
@@ -170,7 +172,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
           component='h3'
           title='Users'
           action={
-            !isMobile ? (
+            !isMobile && canManage ? (
               <Button
                 variant='contained'
                 onClick={() => setShowAddUser(true)}
@@ -191,7 +193,7 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
             highlight: index === activeUserIndex,
             icon: <UserAvatar userID={u.id} />,
             subText: handoff[index],
-            secondaryAction: (
+            secondaryAction: !canManage ? null : (
               <OtherActions
                 actions={[
                   {
@@ -206,69 +208,74 @@ function RotationUserList(props: RotationUserListProps): React.JSX.Element {
               />
             ),
           }))}
-          onReorder={(oldIndex: number, newIndex: number) => {
-            setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
+          onReorder={
+            !canManage
+              ? undefined
+              : (oldIndex: number, newIndex: number) => {
+                  setLastSwap(lastSwap.concat({ oldIndex, newIndex }))
 
-            const updatedUsers = reorderList(
-              users.map((u: User) => u.id),
-              oldIndex,
-              newIndex,
-            )
-            const newActiveIndex = calcNewActiveIndex(
-              activeUserIndex,
-              oldIndex,
-              newIndex,
-            )
-            const params = {
-              id: rotationID,
-              userIDs: updatedUsers,
-              activeUserIndex,
-            }
-
-            if (newActiveIndex !== -1) {
-              params.activeUserIndex = newActiveIndex
-            }
-
-            return updateRotation({
-              variables: { input: params },
-              update: (cache, response) => {
-                if (!response.data.updateRotation) {
-                  return
-                }
-                const data: { rotation: Rotation } | null = cache.readQuery({
-                  query,
-                  variables: { id: rotationID },
-                })
-
-                if (data?.rotation?.users) {
-                  const users = reorderList(
-                    data.rotation.users,
+                  const updatedUsers = reorderList(
+                    users.map((u: User) => u.id),
                     oldIndex,
                     newIndex,
                   )
-                  cache.writeQuery({
-                    query,
-                    variables: { id: rotationID },
-                    data: {
-                      ...data,
-                      rotation: {
-                        ...data?.rotation,
-                        activeUserIndex:
-                          newActiveIndex === -1
-                            ? data?.rotation?.activeUserIndex
-                            : newActiveIndex,
-                        users,
-                      },
+                  const newActiveIndex = calcNewActiveIndex(
+                    activeUserIndex,
+                    oldIndex,
+                    newIndex,
+                  )
+                  const params = {
+                    id: rotationID,
+                    userIDs: updatedUsers,
+                    activeUserIndex,
+                  }
+
+                  if (newActiveIndex !== -1) {
+                    params.activeUserIndex = newActiveIndex
+                  }
+
+                  return updateRotation({
+                    variables: { input: params },
+                    update: (cache, response) => {
+                      if (!response.data.updateRotation) {
+                        return
+                      }
+                      const data: { rotation: Rotation } | null =
+                        cache.readQuery({
+                          query,
+                          variables: { id: rotationID },
+                        })
+
+                      if (data?.rotation?.users) {
+                        const users = reorderList(
+                          data.rotation.users,
+                          oldIndex,
+                          newIndex,
+                        )
+                        cache.writeQuery({
+                          query,
+                          variables: { id: rotationID },
+                          data: {
+                            ...data,
+                            rotation: {
+                              ...data?.rotation,
+                              activeUserIndex:
+                                newActiveIndex === -1
+                                  ? data?.rotation?.activeUserIndex
+                                  : newActiveIndex,
+                              users,
+                            },
+                          },
+                        })
+                      }
+                    },
+                    optimisticResponse: {
+                      __typename: 'Mutation',
+                      updateRotation: true,
                     },
                   })
                 }
-              },
-              optimisticResponse: {
-                __typename: 'Mutation',
-                updateRotation: true,
-              },
-            })
-          }}
+          }
         />
       </Card>
     </React.Fragment>

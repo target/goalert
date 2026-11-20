@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/target/goalert/auth/authtoken"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/keyring"
@@ -79,7 +80,7 @@ func (s *Store) GetServiceID(ctx context.Context, id string, t Type) (string, er
 }
 
 func (s *Store) Create(ctx context.Context, dbtx gadb.DBTX, i *IntegrationKey) (*IntegrationKey, error) {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +129,7 @@ func (s *Store) Delete(ctx context.Context, dbtx gadb.DBTX, id string) error {
 }
 
 func (s *Store) DeleteMany(ctx context.Context, dbtx gadb.DBTX, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func (s *Store) FindOne(ctx context.Context, id string) (*IntegrationKey, error)
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +178,7 @@ func (s *Store) FindAllByService(ctx context.Context, serviceID string) ([]Integ
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}

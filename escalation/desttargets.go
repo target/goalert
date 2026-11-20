@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
@@ -16,7 +17,7 @@ import (
 )
 
 func (s *Store) AddStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, dest gadb.DestV1) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -67,7 +68,7 @@ func (s *Store) AddStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUI
 }
 
 func (s *Store) DeleteStepActionTx(ctx context.Context, tx *sql.Tx, stepID uuid.UUID, dest gadb.DestV1) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
