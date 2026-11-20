@@ -29,7 +29,7 @@ require (
 	github.com/matcornic/hermes v1.3.0
 	github.com/mnako/letters v0.2.8
 	github.com/nyaruka/phonenumbers v1.8.0
-	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
+	github.com/oauth2-proxy/mockoidc v0.0.0-20261103160011-e06ed0b7cb7f
 	github.com/pelletier/go-toml/v2 v2.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
@@ -43,7 +43,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	github.com/sqlc-dev/pqtype v0.3.0
-	github.com/stretchr/testify v1.11.1
+	github.com/stretchr/testify v1.12.1
 	github.com/vektah/gqlparser/v2 v2.5.34
 	golang.org/x/crypto v0.55.0
 	golang.org/x/oauth2 v0.36.0
@@ -87,8 +87,7 @@ require (
 	github.com/fullstorydev/grpcui v1.4.3 // indirect
 	github.com/fullstorydev/grpcurl v1.9.3 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.5 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.8 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -192,7 +191,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
