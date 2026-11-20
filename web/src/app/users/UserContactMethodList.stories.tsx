@@ -214,12 +214,12 @@ export const HiddenPrivateContactMethod: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
 
-    // a private CM owned by someone else shows once, even with several rules
+    // rules pointing at a private CM owned by someone else replace the empty
+    // message, without guessing how many there are
     await expect(
-      await canvas.findAllByText('Hidden contact method (PRIVATE)'),
-    ).toHaveLength(1)
-    await expect(
-      await canvas.findByText('Details are only visible to this user'),
+      await canvas.findByText(
+        'This user has one or more private contact methods',
+      ),
     ).toBeVisible()
     await expect(
       await canvas.queryByText('No contact methods'),

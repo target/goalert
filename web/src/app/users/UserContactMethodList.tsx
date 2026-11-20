@@ -100,15 +100,12 @@ export default function UserContactMethodList(
 
   // Private contact methods owned by someone else are omitted from
   // contactMethods, but their notification rules are not, so a rule pointing
-  // at an unlisted ID is the only sign that one exists.
+  // at an unlisted ID is the only sign that one exists. Rules can't tell us
+  // how many there are, so this only says that there are some.
   const visibleIDs = new Set(contactMethods.map((cm) => cm.id))
-  const hiddenIDs = Array.from(
-    new Set(
-      (data.user.notificationRules as UserNotificationRule[])
-        .map((nr) => nr.contactMethodID)
-        .filter((id) => !visibleIDs.has(id)),
-    ),
-  )
+  const hasHiddenContactMethods = (
+    data.user.notificationRules as UserNotificationRule[]
+  ).some((nr) => !visibleIDs.has(nr.contactMethodID))
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
@@ -226,7 +223,14 @@ export default function UserContactMethodList(
             ) : null
           }
         />
-        <CompList data-cy='contact-methods' emptyMessage='No contact methods'>
+        <CompList
+          data-cy='contact-methods'
+          emptyMessage={
+            hasHiddenContactMethods
+              ? 'This user has one or more private contact methods'
+              : 'No contact methods'
+          }
+        >
           {sortContactMethods(contactMethods).map((cm) => {
             const destType = destinationTypes.find(
               (d) => d.type === cm.dest.type,
@@ -244,13 +248,6 @@ export default function UserContactMethodList(
               />
             )
           })}
-          {hiddenIDs.map((id) => (
-            <CompListItemText
-              key={id}
-              title='Hidden contact method (PRIVATE)'
-              subText='Details are only visible to this user'
-            />
-          ))}
         </CompList>
         <Suspense>
           {showAddDialog && (
