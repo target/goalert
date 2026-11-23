@@ -13,7 +13,7 @@ import { useIsWidthDown } from '../util/useWidth'
 import { GenericError, ObjectNotFound } from '../error-pages'
 import SendTestDialog from './SendTestDialog'
 import { styles as globalStyles } from '../styles/materialStyles'
-import { UserContactMethod } from '../../schema'
+import { UserContactMethod, UserNotificationRule } from '../../schema'
 import { useSessionInfo, useContactMethodTypes } from '../util/RequireConfig'
 import UserContactMethodEditDialog from './UserContactMethodEditDialog'
 import UserContactMethodCreateDialog from './UserContactMethodCreateDialog'
@@ -45,6 +45,10 @@ const query = gql`
         disabled
         pending
         private
+      }
+      notificationRules {
+        id
+        contactMethodID
       }
     }
   }
@@ -92,7 +96,17 @@ export default function UserContactMethodList(
   if (!data?.user) return <ObjectNotFound type='user' />
   if (error) return <GenericError error={error.message} />
 
-  const contactMethods = data.user.contactMethods
+  const contactMethods: UserContactMethod[] = data.user.contactMethods
+
+  // Private contact methods owned by someone else are omitted from
+  // contactMethods, but their notification rules are not, so a rule pointing
+  // at an unlisted ID is the only sign that one exists. Rules can't tell us
+  // how many there are, so this only says that there are some.
+  const visibleIDs = new Set(contactMethods.map((cm) => cm.id))
+  const hasHiddenContactMethods = (
+    data.user.notificationRules as UserNotificationRule[]
+  ).some((nr) => !visibleIDs.has(nr.contactMethodID))
+  const privateNote = 'This user has one or more private contact methods'
 
   const getIcon = (cm: UserContactMethod): JSX.Element | null => {
     if (!cm.disabled) return null
@@ -210,7 +224,17 @@ export default function UserContactMethodList(
             ) : null
           }
         />
-        <CompList data-cy='contact-methods' emptyMessage='No contact methods'>
+        <CompList
+          data-cy='contact-methods'
+          note={
+            hasHiddenContactMethods && contactMethods.length > 0
+              ? privateNote
+              : undefined
+          }
+          emptyMessage={
+            hasHiddenContactMethods ? privateNote : 'No contact methods'
+          }
+        >
           {sortContactMethods(contactMethods).map((cm) => {
             const destType = destinationTypes.find(
               (d) => d.type === cm.dest.type,
