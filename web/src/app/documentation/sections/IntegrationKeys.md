@@ -9,7 +9,7 @@
 | `token`   | **Required** | The integration key to use.                                                                                                                                         |
 | `summary` | **Required** | Short description of the alert sent as SMS and voice.                                                                                                               |
 | `details` | _optional_   | Additional information about the alert, supports markdown.                                                                                                          |
-| `action`  | _optional_   | If set to `close`, it will close any matching alerts.                                                                                                               |
+| `action`  | _optional_   | If set to `acknowledge` or `close`, it will acknowledge or close any matching alerts.                                                                                                               |
 | `dedup`   | _optional_   | All calls for the same service with the same `dedup` string will update the same alert (if open) or create a new one. Defaults to using summary & details together. |
 | `meta`    | _optional_   | Additional key/value metadata to attach to the alert.                                                                                                               |
 
