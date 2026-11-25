@@ -1,6 +1,10 @@
 package app
 
-import "time"
+import (
+	"time"
+
+	"github.com/target/goalert/notification/slack"
+)
 
 // Defaults returns the default app config.
 func Defaults() Config {
@@ -13,5 +17,7 @@ func Defaults() Config {
 		RegionName:        "default",
 		EngineCycleTime:   5 * time.Second,
 		SMTPMaxRecipients: 1,
+
+		SlackMaxChannelPages: slack.DefaultMaxChannelPages,
 	}
 }

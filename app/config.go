@@ -61,6 +61,8 @@ type Config struct {
 	TwilioBaseURL string
 	SlackBaseURL  string
 
+	SlackMaxChannelPages int
+
 	DBURL     string
 	DBURLNext string
 
