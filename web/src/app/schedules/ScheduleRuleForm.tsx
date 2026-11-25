@@ -129,38 +129,159 @@ export default function ScheduleRuleForm(
   const classes = useStyles()
   const { zone, isLocalZone } = useScheduleTZ(scheduleID)
   const isMobile = useIsWidthDown('md')
+  // below sm there is no room for start, end and days side by side
+  const isNarrow = useIsWidthDown('sm')
 
   const Spacer = (): ReactNode =>
     isLocalZone ? null : <FormHelperText>&nbsp;</FormHelperText>
+
+  function startField(idx: number, label = ''): ReactNode {
+    return (
+      <FormField
+        fullWidth
+        noError
+        component={ISOTimePicker}
+        required
+        label={label}
+        name={`rules[${idx}].start`}
+        disabled={!zone || disabled}
+        timeZone={zone}
+        hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
+      />
+    )
+  }
+
+  function endField(idx: number, label = ''): ReactNode {
+    return (
+      <FormField
+        fullWidth
+        noError
+        component={ISOTimePicker}
+        required
+        label={label}
+        name={`rules[${idx}].end`}
+        disabled={!zone || disabled}
+        timeZone={zone}
+        hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
+      />
+    )
+  }
+
+  function daysField(idx: number, label = ''): ReactNode {
+    return (
+      <FormField
+        fullWidth
+        component={TextField}
+        select
+        noError
+        required
+        disabled={disabled}
+        SelectProps={{
+          renderValue: renderDaysValue,
+          multiple: true,
+        }}
+        label={label}
+        name={`rules[${idx}].weekdayFilter`}
+        aria-label='Weekday Filter'
+        multiple
+        mapValue={(value: string[]) => days.filter((d, idx) => value[idx])}
+        mapOnChangeValue={(value: string[]) =>
+          days.map((day) => value.includes(day))
+        }
+      >
+        {days.map((day) => (
+          <MenuItem value={day} key={day}>
+            {day}
+          </MenuItem>
+        ))}
+      </FormField>
+    )
+  }
+
+  function deleteButton(idx: number): ReactNode {
+    return (
+      <React.Fragment>
+        {props.value.rules.length > 1 && (
+          <IconButton
+            aria-label='Delete rule'
+            disabled={disabled}
+            onClick={() =>
+              onChange({
+                ...value,
+                rules: value.rules.filter((r, i) => i !== idx),
+              })
+            }
+            size='large'
+          >
+            <Trash />
+          </IconButton>
+        )}
+      </React.Fragment>
+    )
+  }
+
+  const addButton = (
+    <IconButton
+      aria-label='Add rule'
+      disabled={disabled}
+      onClick={() =>
+        onChange({
+          ...value,
+          rules: value.rules.concat({
+            start: DateTime.local().startOf('day').toUTC().toISO(),
+            end: DateTime.local()
+              .plus({ day: 1 })
+              .startOf('day')
+              .toUTC()
+              .toISO(),
+            weekdayFilter: Array(days.length).fill(true),
+          }),
+        })
+      }
+      size='large'
+    >
+      <Add />
+    </IconButton>
+  )
+
+  // narrow layout: one table row per rule (kept for tests and a11y),
+  // with the fields stacked inside a single cell
+  function renderNarrowRuleField(idx: number): ReactNode {
+    return (
+      <TableRow key={idx}>
+        <TableCell
+          colSpan={2}
+          className={classNames(classes.noPadding, classes.noBorder)}
+        >
+          <Grid container spacing={1} alignItems='center'>
+            <Grid item xs={6}>
+              {startField(idx, 'Start')}
+            </Grid>
+            <Grid item xs={6}>
+              {endField(idx, 'End')}
+            </Grid>
+            <Grid item xs>
+              {daysField(idx, 'Days')}
+            </Grid>
+            {props.value.rules.length > 1 && (
+              <Grid item xs='auto'>
+                {deleteButton(idx)}
+              </Grid>
+            )}
+          </Grid>
+        </TableCell>
+      </TableRow>
+    )
+  }
 
   function renderRuleField(idx: number): ReactNode {
     return (
       <TableRow key={idx}>
         <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
-          <FormField
-            fullWidth
-            noError
-            component={ISOTimePicker}
-            required
-            label=''
-            name={`rules[${idx}].start`}
-            disabled={!zone || disabled}
-            timeZone={zone}
-            hint={isLocalZone ? '' : fmtLocal(value.rules[idx].start)}
-          />
+          {startField(idx)}
         </TableCell>
         <TableCell className={classNames(classes.startEnd, classes.noBorder)}>
-          <FormField
-            fullWidth
-            noError
-            component={ISOTimePicker}
-            required
-            label=''
-            name={`rules[${idx}].end`}
-            disabled={!zone || disabled}
-            timeZone={zone}
-            hint={isLocalZone ? '' : fmtLocal(value.rules[idx].end)}
-          />
+          {endField(idx)}
         </TableCell>
         <Hidden mdDown>
           {days.map((day, dayIdx) => (
@@ -186,53 +307,12 @@ export default function ScheduleRuleForm(
           <TableCell
             className={classNames(classes.dayFilter, classes.noBorder)}
           >
-            <FormField
-              fullWidth
-              component={TextField}
-              select
-              noError
-              required
-              disabled={disabled}
-              SelectProps={{
-                renderValue: renderDaysValue,
-                multiple: true,
-              }}
-              label=''
-              name={`rules[${idx}].weekdayFilter`}
-              aria-label='Weekday Filter'
-              multiple
-              mapValue={(value: string[]) =>
-                days.filter((d, idx) => value[idx])
-              }
-              mapOnChangeValue={(value: string[]) =>
-                days.map((day) => value.includes(day))
-              }
-            >
-              {days.map((day) => (
-                <MenuItem value={day} key={day}>
-                  {day}
-                </MenuItem>
-              ))}
-            </FormField>
+            {daysField(idx)}
             <Spacer />
           </TableCell>
         </Hidden>
         <TableCell padding='none' className={classes.noBorder}>
-          {props.value.rules.length > 1 && (
-            <IconButton
-              aria-label='Delete rule'
-              disabled={disabled}
-              onClick={() =>
-                onChange({
-                  ...value,
-                  rules: value.rules.filter((r, i) => i !== idx),
-                })
-              }
-              size='large'
-            >
-              <Trash />
-            </IconButton>
-          )}
+          {deleteButton(idx)}
           <Spacer />
         </TableCell>
       </TableRow>
@@ -265,64 +345,63 @@ export default function ScheduleRuleForm(
         <Grid item xs={12} style={{ paddingTop: 0 }}>
           <Table data-cy='target-rules' className={classes.table}>
             <TableHead>
-              <TableRow>
-                <TableCell
-                  className={classNames(classes.startEnd, classes.noBorder)}
-                >
-                  Start
-                </TableCell>
-                <TableCell
-                  className={classNames(classes.startEnd, classes.noBorder)}
-                >
-                  End
-                </TableCell>
-                <Hidden mdDown>
-                  {days.map((d) => (
-                    <TableCell key={d} padding='checkbox'>
-                      {d.slice(0, 3)}
-                    </TableCell>
-                  ))}
-                </Hidden>
-                <Hidden mdUp>
+              {isNarrow ? (
+                <TableRow>
                   <TableCell
-                    className={classNames(classes.dayFilter, classes.noBorder)}
+                    className={classNames(classes.noPadding, classes.noBorder)}
                   >
-                    Days
+                    Rules
                   </TableCell>
-                </Hidden>
-                <TableCell
-                  padding='none'
-                  className={classNames({ [classes.noBorder]: isMobile })}
-                >
-                  <IconButton
-                    aria-label='Add rule'
-                    disabled={disabled}
-                    onClick={() =>
-                      onChange({
-                        ...value,
-                        rules: value.rules.concat({
-                          start: DateTime.local()
-                            .startOf('day')
-                            .toUTC()
-                            .toISO(),
-                          end: DateTime.local()
-                            .plus({ day: 1 })
-                            .startOf('day')
-                            .toUTC()
-                            .toISO(),
-                          weekdayFilter: Array(days.length).fill(true),
-                        }),
-                      })
-                    }
-                    size='large'
+                  <TableCell
+                    padding='none'
+                    align='right'
+                    className={classes.noBorder}
                   >
-                    <Add />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
+                    {addButton}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                <TableRow>
+                  <TableCell
+                    className={classNames(classes.startEnd, classes.noBorder)}
+                  >
+                    Start
+                  </TableCell>
+                  <TableCell
+                    className={classNames(classes.startEnd, classes.noBorder)}
+                  >
+                    End
+                  </TableCell>
+                  <Hidden mdDown>
+                    {days.map((d) => (
+                      <TableCell key={d} padding='checkbox'>
+                        {d.slice(0, 3)}
+                      </TableCell>
+                    ))}
+                  </Hidden>
+                  <Hidden mdUp>
+                    <TableCell
+                      className={classNames(
+                        classes.dayFilter,
+                        classes.noBorder,
+                      )}
+                    >
+                      Days
+                    </TableCell>
+                  </Hidden>
+                  <TableCell
+                    padding='none'
+                    className={classNames({ [classes.noBorder]: isMobile })}
+                  >
+                    {addButton}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableHead>
             <TableBody>
-              {props.value.rules.map((r, idx) => renderRuleField(idx))}
+              {props.value.rules.map((r, idx) =>
+                isNarrow ? renderNarrowRuleField(idx) : renderRuleField(idx),
+              )}
             </TableBody>
           </Table>
         </Grid>
