@@ -320,13 +320,18 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 		return nil, fmt.Errorf("lookup team ID: %w", err)
 	}
 
+	maxPages := s.cfg.MaxChannelPages
+	if maxPages <= 0 {
+		maxPages = DefaultMaxChannelPages
+	}
+
 	n := 0
 	var channels []Channel
 	var cursor string
 	for {
 		n++
-		if n > 10 {
-			return nil, errors.New("abort after > 10 pages of Slack channels")
+		if n > maxPages {
+			return nil, errors.Errorf("abort after > %d pages of Slack channels", maxPages)
 		}
 
 		err = s.withClient(ctx, func(c *slack.Client) error {

@@ -752,6 +752,8 @@ func getConfig(ctx context.Context) (Config, error) {
 		SlackBaseURL:  viper.GetString("slack-base-url"),
 		TwilioBaseURL: viper.GetString("twilio-base-url"),
 
+		SlackMaxChannelPages: viper.GetInt("slack-max-channel-pages"),
+
 		DBURL:     viper.GetString("db-url"),
 		DBURLNext: viper.GetString("db-url-next"),
 
@@ -900,6 +902,7 @@ func init() {
 
 	RootCmd.Flags().String("twilio-base-url", def.TwilioBaseURL, "Override the Twilio API URL.")
 	RootCmd.Flags().String("slack-base-url", def.SlackBaseURL, "Override the Slack base URL.")
+	RootCmd.Flags().Int("slack-max-channel-pages", def.SlackMaxChannelPages, "Max number of pages (200 channels each) to load when listing Slack channels.")
 
 	RootCmd.Flags().String("region-name", def.RegionName, "Name of region for message processing (case sensitive). Only one instance per-region-name will process outgoing messages.")
 
