@@ -19,6 +19,10 @@ import (
 	"github.com/target/goalert/util/timeutil"
 )
 
+// errScheduleDeleted is returned by applyUpdates when a write fails because
+// the schedule no longer exists (see isScheduleDeleted).
+var errScheduleDeleted = errors.New("schedule deleted")
+
 // UpdateAll will update all schedule rules.
 func (db *DB) UpdateAll(ctx context.Context) error {
 	err := permission.LimitCheckAny(ctx, permission.System)
@@ -85,7 +89,7 @@ func (db *DB) update(ctx context.Context) error {
 	}
 	for _, o := range overrides {
 		info := getInfo(o.TgtScheduleID)
-		info.ActiveOverrides = append(info.ActiveOverrides, o)
+		info.Overrides = append(info.Overrides, overrideSpanFromRow(o))
 	}
 
 	rules, err := q.SchedMgrRules(ctx)
@@ -138,7 +142,6 @@ func (db *DB) update(ctx context.Context) error {
 		getInfo(row.ScheduleID).CurrentOnCall.Add(row.UserID)
 	}
 
-updateLoop:
 	for scheduleID, info := range updateData {
 		result, err := info.calcUpdates(now)
 		if err != nil {
@@ -146,62 +149,83 @@ updateLoop:
 			continue
 		}
 
-		for userID := range mapset.Elements(result.UsersToStart) {
-			err = q.SchedMgrStartOnCall(ctx, gadb.SchedMgrStartOnCallParams{
-				ScheduleID: info.ScheduleID,
-				UserID:     userID,
-			})
-			if isScheduleDeleted(err) {
-				// If the schedule was deleted, we skip this update and continue with the next one.
-				// This prevents errors from being returned when the schedule no longer exists.
-				continue updateLoop
-			}
-			if err != nil {
-				return errors.Wrapf(err, "record shift start for user %s on schedule %s", userID, info.ScheduleID)
-			}
+		err = applyUpdates(ctx, q, info, result)
+		if errors.Is(err, errScheduleDeleted) {
+			// If the schedule was deleted, we skip this update and continue with the next one.
+			// This prevents errors from being returned when the schedule no longer exists.
+			continue
 		}
-		for userID := range mapset.Elements(result.UsersToStop) {
-			err = q.SchedMgrEndOnCall(ctx, gadb.SchedMgrEndOnCallParams{
-				ScheduleID: info.ScheduleID,
-				UserID:     userID,
-			})
-			if isScheduleDeleted(err) {
-				continue updateLoop
-			}
-			if err != nil {
-				return errors.Wrapf(err, "record shift end for user %s on schedule %s", userID, info.ScheduleID)
-			}
-		}
-
-		if result.NewRawScheduleData != nil {
-			err = q.SchedMgrSetData(ctx, gadb.SchedMgrSetDataParams{
-				ScheduleID: info.ScheduleID,
-				Data:       result.NewRawScheduleData,
-			})
-			if isScheduleDeleted(err) {
-				continue
-			}
-			if err != nil {
-				return errors.Wrapf(err, "set schedule data for %s", info.ScheduleID)
-			}
-		}
-
-		for chanID := range mapset.Elements(result.NotificationChannels) {
-			err = q.SchedMgrInsertMessage(ctx, gadb.SchedMgrInsertMessageParams{
-				ID:         uuid.New(),
-				ChannelID:  uuid.NullUUID{UUID: chanID, Valid: true},
-				ScheduleID: uuid.NullUUID{UUID: info.ScheduleID, Valid: true},
-			})
-			if isScheduleDeleted(err) {
-				continue
-			}
-			if err != nil {
-				return errors.Wrapf(err, "insert notification message for channel %s on schedule %s", chanID, info.ScheduleID)
-			}
+		if err != nil {
+			return err
 		}
 	}
 
 	return tx.Commit()
+}
+
+// applyUpdates writes the result of calcUpdates for a single schedule using q.
+//
+// Writes happen in this order: shift starts, shift ends, the schedule data
+// update (if any), then one outgoing message per notification channel.
+//
+// If any write fails because the schedule no longer exists, errScheduleDeleted
+// is returned and the remaining writes for the schedule are skipped: every one
+// of them references the deleted schedule by foreign key, so they would fail
+// the same way. Any other error is returned wrapped with context.
+func applyUpdates(ctx context.Context, q *gadb.Queries, info *updateInfo, result *updateResult) error {
+	for userID := range mapset.Elements(result.UsersToStart) {
+		err := q.SchedMgrStartOnCall(ctx, gadb.SchedMgrStartOnCallParams{
+			ScheduleID: info.ScheduleID,
+			UserID:     userID,
+		})
+		if isScheduleDeleted(err) {
+			return errScheduleDeleted
+		}
+		if err != nil {
+			return errors.Wrapf(err, "record shift start for user %s on schedule %s", userID, info.ScheduleID)
+		}
+	}
+	for userID := range mapset.Elements(result.UsersToStop) {
+		err := q.SchedMgrEndOnCall(ctx, gadb.SchedMgrEndOnCallParams{
+			ScheduleID: info.ScheduleID,
+			UserID:     userID,
+		})
+		if isScheduleDeleted(err) {
+			return errScheduleDeleted
+		}
+		if err != nil {
+			return errors.Wrapf(err, "record shift end for user %s on schedule %s", userID, info.ScheduleID)
+		}
+	}
+
+	if result.NewRawScheduleData != nil {
+		err := q.SchedMgrSetData(ctx, gadb.SchedMgrSetDataParams{
+			ScheduleID: info.ScheduleID,
+			Data:       result.NewRawScheduleData,
+		})
+		if isScheduleDeleted(err) {
+			return errScheduleDeleted
+		}
+		if err != nil {
+			return errors.Wrapf(err, "set schedule data for %s", info.ScheduleID)
+		}
+	}
+
+	for chanID := range mapset.Elements(result.NotificationChannels) {
+		err := q.SchedMgrInsertMessage(ctx, gadb.SchedMgrInsertMessageParams{
+			ID:         uuid.New(),
+			ChannelID:  uuid.NullUUID{UUID: chanID, Valid: true},
+			ScheduleID: uuid.NullUUID{UUID: info.ScheduleID, Valid: true},
+		})
+		if isScheduleDeleted(err) {
+			return errScheduleDeleted
+		}
+		if err != nil {
+			return errors.Wrapf(err, "insert notification message for channel %s on schedule %s", chanID, info.ScheduleID)
+		}
+	}
+
+	return nil
 }
 
 func equalTimePtr(a, b *time.Time) bool {
