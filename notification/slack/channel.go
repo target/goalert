@@ -314,6 +314,10 @@ func (s *ChannelSender) ListChannels(ctx context.Context) ([]Channel, error) {
 	return cpy, nil
 }
 
+// errTooManyChannels is returned to the client when the Slack workspace has more
+// channels than GoAlert is configured to load.
+const errTooManyChannels = "Unable to list Slack channels: this workspace has more channels than GoAlert is configured to load. Please forward this message to your GoAlert administrator (setting: slack-max-channel-pages)."
+
 func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	teamID, err := s.TeamID(ctx)
 	if err != nil {
@@ -331,7 +335,10 @@ func (s *ChannelSender) loadChannels(ctx context.Context) ([]Channel, error) {
 	for {
 		n++
 		if n > maxPages {
-			return nil, errors.Errorf("abort after > %d pages of Slack channels", maxPages)
+			// Known failure mode for large workspaces: log the details for
+			// admins and return a message that is safe to show to end users.
+			log.Log(ctx, errors.Errorf("list Slack channels: exceeded limit of %d pages (see --slack-max-channel-pages)", maxPages))
+			return nil, validation.NewGenericError(errTooManyChannels)
 		}
 
 		err = s.withClient(ctx, func(c *slack.Client) error {
