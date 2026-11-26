@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/log"
@@ -118,7 +119,7 @@ func (s *Store) Config(ctx context.Context, db gadb.DBTX, keyID uuid.UUID) (*gad
 }
 
 func (s *Store) SetConfig(ctx context.Context, db gadb.DBTX, keyID uuid.UUID, cfg *gadb.UIKConfigV1) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

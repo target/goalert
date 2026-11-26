@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/target/goalert/assignment"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 
@@ -56,7 +57,7 @@ func (l *Label) tgtRot() uuid.NullUUID {
 // SetTx will set a label for the service. It can be used to set the key-value pair for the label,
 // delete a label or update the value given the label's key.
 func (s *Store) SetTx(ctx context.Context, db gadb.DBTX, label *Label) error {
-	err := permission.LimitCheckAny(ctx, permission.System, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

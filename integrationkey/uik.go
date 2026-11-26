@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
@@ -94,7 +95,7 @@ func (s *Store) TokenHints(ctx context.Context, db gadb.DBTX, id uuid.UUID) (pri
 }
 
 func (s *Store) GenerateToken(ctx context.Context, db gadb.DBTX, id uuid.UUID) (string, error) {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return "", err
 	}
@@ -124,7 +125,7 @@ func (s *Store) GenerateToken(ctx context.Context, db gadb.DBTX, id uuid.UUID) (
 }
 
 func (s *Store) setToken(ctx context.Context, db gadb.DBTX, keyID, tokenID uuid.UUID, tokenHint string) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -162,7 +163,7 @@ func (s *Store) setToken(ctx context.Context, db gadb.DBTX, keyID, tokenID uuid.
 }
 
 func (s *Store) PromoteSecondaryToken(ctx context.Context, db gadb.DBTX, id uuid.UUID) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -180,7 +181,7 @@ func (s *Store) PromoteSecondaryToken(ctx context.Context, db gadb.DBTX, id uuid
 }
 
 func (s *Store) DeleteSecondaryToken(ctx context.Context, db gadb.DBTX, id uuid.UUID) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

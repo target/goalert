@@ -6,6 +6,7 @@ import ServiceCreateDialog from './ServiceCreateDialog'
 import ServiceFilterContainer from './ServiceFilterContainer'
 import { ServiceConnection } from '../../schema'
 import ListPageControls from '../lists/ListPageControls'
+import { useCanManageResources } from '../util/RequireConfig'
 import Search from '../util/Search'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import CompList from '../lists/CompList'
@@ -32,6 +33,7 @@ export default function ServiceList(): JSX.Element {
   const [search, setSearch] = useURLParam<string>('search', '')
   const { labelKey, labelValue, integrationKey } = getServiceFilters(search)
   const [create, setCreate] = useState(false)
+  const canManage = useCanManageResources()
   const [cursor, setCursor] = useState('')
 
   const inputVars = {
@@ -66,7 +68,7 @@ export default function ServiceList(): JSX.Element {
         nextCursor={nextCursor}
         onCursorChange={setCursor}
         loading={q.fetching}
-        onCreateClick={() => setCreate(true)}
+        onCreateClick={canManage ? () => setCreate(true) : undefined}
         slots={{
           search: (
             <Search

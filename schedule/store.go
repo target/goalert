@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user"
@@ -120,7 +121,7 @@ func (store *Store) CreateScheduleTx(ctx context.Context, tx *sql.Tx, s *Schedul
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +155,7 @@ func (store *Store) Update(ctx context.Context, s *Schedule) error {
 		return err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err = permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -174,7 +175,7 @@ func (store *Store) Update(ctx context.Context, s *Schedule) error {
 }
 
 func (store *Store) UpdateTx(ctx context.Context, tx *sql.Tx, s *Schedule) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -316,7 +317,7 @@ func (store *Store) DeleteTx(ctx context.Context, tx *sql.Tx, id string) error {
 }
 
 func (store *Store) DeleteManyTx(ctx context.Context, tx *sql.Tx, ids []string) error {
-	err := permission.LimitCheckAny(ctx, permission.Admin, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

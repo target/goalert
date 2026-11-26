@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/util/timeutil"
 	"github.com/target/goalert/validation"
@@ -16,7 +17,7 @@ const onCallNotificationRuleLimit = 50
 
 // SetOnCallNotificationRules will set/replace all notification rules for the given schedule ID.
 func (store *Store) SetOnCallNotificationRules(ctx context.Context, tx *sql.Tx, scheduleID uuid.UUID, rules []OnCallNotificationRule) error {
-	err := permission.LimitCheckAny(ctx, permission.User)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

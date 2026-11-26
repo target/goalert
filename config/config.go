@@ -32,6 +32,7 @@ type Config struct {
 		DisableSMSLinks              bool   `public:"true" info:"If set, SMS messages will not contain a URL pointing to GoAlert."`
 		DisableLabelCreation         bool   `public:"true" info:"Disables the ability to create new labels for services."`
 		DisableCalendarSubscriptions bool   `public:"true" info:"If set, disables all active calendar subscriptions as well as the ability to create new calendar subscriptions."`
+		RestrictResourceChanges      bool   `public:"true" info:"If set, only admins can create, modify, or delete services, integration keys, escalation policies, rotations, schedules, heartbeat monitors, and labels, or view integration keys. Users can still manage alerts, their own profile, and schedule overrides."`
 	}
 
 	Services struct {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/target/goalert/config"
 	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/search"
@@ -27,7 +28,7 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 
 // CreateTx creates a new heartbeat Monitor.
 func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, m *Monitor) (*Monitor, error) {
-	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +75,7 @@ func (s *Store) RecordHeartbeat(ctx context.Context, idStr string) error {
 
 // DeleteTx deletes the heartbeat check with the given ID(s).
 func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, idStrs ...string) error {
-	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}
@@ -89,7 +90,7 @@ func (s *Store) DeleteTx(ctx context.Context, tx *sql.Tx, idStrs ...string) erro
 
 // UpdateTx updates a heartbeat Monitor.
 func (s *Store) UpdateTx(ctx context.Context, tx *sql.Tx, m *Monitor) error {
-	err := permission.LimitCheckAny(ctx, permission.User, permission.Admin)
+	err := permission.LimitCheckAny(ctx, config.ResourceCheck(permission.User))
 	if err != nil {
 		return err
 	}

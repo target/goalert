@@ -16,6 +16,7 @@ import { reorderList } from '../rotations/util'
 import PolicyStepDeleteDialog from './PolicyStepDeleteDialog'
 import PolicyStepEditDialog from './PolicyStepEditDialog'
 import OtherActions from '../util/OtherActions'
+import { useCanManageResources } from '../util/RequireConfig'
 import {
   renderChipsDest,
   renderDelayMessage,
@@ -56,6 +57,7 @@ export default function PolicyStepsCard(
   const stepNumParam = 'createStep'
   const [createStep, setCreateStep] = useURLParam<boolean>(stepNumParam, false)
   const resetCreateStep = useResetURLParams(stepNumParam)
+  const canManage = useCanManageResources()
 
   const [stepIDs, setStepIDs] = useState<string[]>(props.steps.map((s) => s.id))
 
@@ -100,6 +102,46 @@ export default function PolicyStepsCard(
     )
   }
 
+  function renderStep(step: StepInfo, idx: number): React.ReactNode {
+    return (
+      <CompListItemText
+        title={
+          <Typography component='h4' variant='subtitle1' sx={{ pb: 1 }}>
+            <b>Step #{idx + 1}:</b>
+          </Typography>
+        }
+        subText={
+          <React.Fragment>
+            {renderChipsDest(step.actions)}
+            {renderMultiAckMessage(step)}
+            {renderDelayMessage(
+              step,
+              idx,
+              props.repeat,
+              idx === orderedSteps.length - 1,
+            )}
+          </React.Fragment>
+        }
+        action={
+          canManage && (
+            <OtherActions
+              actions={[
+                {
+                  label: 'Edit',
+                  onClick: () => setEditStepID(step.id),
+                },
+                {
+                  label: 'Delete',
+                  onClick: () => setDeleteStep(step.id),
+                },
+              ]}
+            />
+          )
+        }
+      />
+    )
+  }
+
   function renderRepeatText(): React.ReactNode {
     if (!stepIDs.length) {
       return null
@@ -119,7 +161,7 @@ export default function PolicyStepsCard(
 
   return (
     <React.Fragment>
-      {isMobile && (
+      {isMobile && canManage && (
         <CreateFAB onClick={() => setCreateStep(true)} title='Create Step' />
       )}
       {createStep && (
@@ -134,7 +176,8 @@ export default function PolicyStepsCard(
           component='h3'
           sx={{ paddingBottom: 0, margin: 0 }}
           action={
-            !isMobile && (
+            !isMobile &&
+            canManage && (
               <Button
                 variant='contained'
                 onClick={() => setCreateStep(true)}
@@ -150,49 +193,21 @@ export default function PolicyStepsCard(
           emptyMessage='No steps currently on this Escalation Policy'
           note='Notify the following:'
         >
-          <ReorderGroup onReorder={onReorder}>
-            {orderedSteps.map((step, idx) => (
-              <ReorderableItem id={step.id} key={step.id}>
-                <CompListItemText
-                  title={
-                    <Typography
-                      component='h4'
-                      variant='subtitle1'
-                      sx={{ pb: 1 }}
-                    >
-                      <b>Step #{idx + 1}:</b>
-                    </Typography>
-                  }
-                  subText={
-                    <React.Fragment>
-                      {renderChipsDest(step.actions)}
-                      {renderMultiAckMessage(step)}
-                      {renderDelayMessage(
-                        step,
-                        idx,
-                        props.repeat,
-                        idx === orderedSteps.length - 1,
-                      )}
-                    </React.Fragment>
-                  }
-                  action={
-                    <OtherActions
-                      actions={[
-                        {
-                          label: 'Edit',
-                          onClick: () => setEditStepID(step.id),
-                        },
-                        {
-                          label: 'Delete',
-                          onClick: () => setDeleteStep(step.id),
-                        },
-                      ]}
-                    />
-                  }
-                />
-              </ReorderableItem>
-            ))}
-          </ReorderGroup>
+          {canManage ? (
+            <ReorderGroup onReorder={onReorder}>
+              {orderedSteps.map((step, idx) => (
+                <ReorderableItem id={step.id} key={step.id}>
+                  {renderStep(step, idx)}
+                </ReorderableItem>
+              ))}
+            </ReorderGroup>
+          ) : (
+            orderedSteps.map((step, idx) => (
+              <React.Fragment key={step.id}>
+                {renderStep(step, idx)}
+              </React.Fragment>
+            ))
+          )}
         </CompList>
         {renderRepeatText()}
       </Card>

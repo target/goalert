@@ -4,6 +4,7 @@ import ScheduleCreateDialog from './ScheduleCreateDialog'
 import { useURLParam } from '../actions'
 import { ScheduleConnection } from '../../schema'
 import ListPageControls from '../lists/ListPageControls'
+import { useCanManageResources } from '../util/RequireConfig'
 import Search from '../util/Search'
 import { FavoriteIcon } from '../util/SetFavoriteButton'
 import CompList from '../lists/CompList'
@@ -30,6 +31,7 @@ const context = { suspense: false }
 export default function ScheduleList(): JSX.Element {
   const [search] = useURLParam<string>('search', '')
   const [create, setCreate] = useState(false)
+  const canManage = useCanManageResources()
   const [cursor, setCursor] = useState('')
 
   const inputVars = {
@@ -64,7 +66,7 @@ export default function ScheduleList(): JSX.Element {
         nextCursor={nextCursor}
         onCursorChange={setCursor}
         loading={q.fetching}
-        onCreateClick={() => setCreate(true)}
+        onCreateClick={canManage ? () => setCreate(true) : undefined}
         slots={{
           search: <Search />,
           list: (
