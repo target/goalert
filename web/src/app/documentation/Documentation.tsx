@@ -4,6 +4,7 @@ import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import integrationKeys from './sections/IntegrationKeys.md'
 import webhooks from './sections/Webhooks.md'
+import teams from './sections/Teams.md'
 import Markdown from '../util/Markdown'
 import { useConfigValue } from '../util/RequireConfig'
 import { pathPrefix } from '../env'
@@ -16,9 +17,10 @@ const useStyles = makeStyles({
 })
 
 export default function Documentation(): React.JSX.Element {
-  const [publicURL, webhookEnabled] = useConfigValue(
+  const [publicURL, webhookEnabled, teamsEnabled] = useConfigValue(
     'General.PublicURL',
     'Webhook.Enable',
+    'Teams.Enable',
   )
   const classes = useStyles()
 
@@ -26,6 +28,9 @@ export default function Documentation(): React.JSX.Element {
   let markdownDocs = [{ doc: integrationKeys, id: 'integration-keys' }]
   if (webhookEnabled) {
     markdownDocs.push({ doc: webhooks, id: 'webhooks' })
+  }
+  if (teamsEnabled) {
+    markdownDocs.push({ doc: teams, id: 'teams' })
   }
 
   markdownDocs = markdownDocs.map((md) => ({
@@ -44,7 +49,7 @@ export default function Documentation(): React.JSX.Element {
     if (!el) return
 
     el.scrollIntoView()
-  }, [webhookEnabled, publicURL])
+  }, [webhookEnabled, teamsEnabled, publicURL])
 
   return (
     <React.Fragment>

@@ -8,6 +8,7 @@ import (
 	"github.com/target/goalert/app/lifecycle"
 	"github.com/target/goalert/expflag"
 	"github.com/target/goalert/notification/email"
+	"github.com/target/goalert/notification/teams"
 	"github.com/target/goalert/notification/webhook"
 	"github.com/target/goalert/retry"
 
@@ -95,6 +96,7 @@ func (app *App) startup(ctx context.Context) error {
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.DMSender())
 	app.DestRegistry.RegisterProvider(ctx, app.slackChan.UserGroupSender())
 	app.DestRegistry.RegisterProvider(ctx, webhook.NewSender(ctx, app.httpClient))
+	app.DestRegistry.RegisterProvider(ctx, teams.NewSender(ctx, app.httpClient))
 	if app.cfg.StubNotifiers {
 		app.DestRegistry.StubNotifiers()
 	}
