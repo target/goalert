@@ -4,6 +4,8 @@ import MUILink from '@mui/material/Link'
 
 import { Link, LinkProps as WLinkProps, useLocation } from 'wouter'
 import joinURL from './joinURL'
+import withPathPrefix from './withPathPrefix'
+import { pathPrefix } from '../env'
 
 type MergedLinkProps = Omit<LinkProps & WLinkProps, 'to' | 'href'>
 
@@ -46,12 +48,15 @@ const AppLink = forwardRef<HTMLAnchorElement, AppLinkProps>((props, ref) => {
     to = joinURL(location, to)
   }
 
+  // wouter's Link applies the router base; a plain anchor does not.
+  const href = newTab && !external ? withPathPrefix(to, pathPrefix) : to
+
   return (
     <MUILink
       {...other}
       ref={ref}
-      to={to}
-      href={to}
+      to={href}
+      href={href}
       component={external || newTab ? 'a' : WrapLink}
     />
   )
