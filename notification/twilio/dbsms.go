@@ -114,34 +114,39 @@ func (db *dbSMS) insertDB(ctx context.Context, phoneNumber, callbackID string, a
 	if err != nil {
 		return 0, err
 	}
-	if existingCode.Valid {
-		return int(existingCode.Int64), nil
-	}
 
-	rows, err := tx.StmtContext(ctx, db.getInUse).QueryContext(ctx, phoneNumber)
-	if err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	m := make(map[int]struct{})
-	for rows.Next() {
-		var code int
-		err = rows.Scan(&code)
+	var code int
+	if existingCode.Valid {
+		code = int(existingCode.Int64)
+	} else {
+		rows, err := tx.StmtContext(ctx, db.getInUse).QueryContext(ctx, phoneNumber)
 		if err != nil {
 			return 0, err
 		}
-		m[code] = struct{}{}
-	}
-
-	code := 1
-	if serviceID != "" {
-		code = 100
-	}
-	for {
-		if _, ok := m[code]; !ok {
-			break
+		defer rows.Close()
+		m := make(map[int]struct{})
+		for rows.Next() {
+			var inUseCode int
+			err = rows.Scan(&inUseCode)
+			if err != nil {
+				return 0, err
+			}
+			m[inUseCode] = struct{}{}
 		}
-		code++
+		if err = rows.Err(); err != nil {
+			return 0, err
+		}
+
+		code = 1
+		if serviceID != "" {
+			code = 100
+		}
+		for {
+			if _, ok := m[code]; !ok {
+				break
+			}
+			code++
+		}
 	}
 
 	_, err = tx.StmtContext(ctx, db.insert).ExecContext(ctx, phoneNumber, callbackID, code, aID, sID)
