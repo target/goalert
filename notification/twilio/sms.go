@@ -391,7 +391,7 @@ func (s *SMS) ServeMessage(w http.ResponseWriter, req *http.Request) {
 		return nil
 	}, retryOpts...)
 
-	if errors.Is(err, sql.ErrNoRows) || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0) {
+	if errors.Is(err, sql.ErrNoRows) || (err == nil && (info == nil || (isSvc && info.ServiceName == "") || (!isSvc && info.AlertID == 0))) {
 		respond(true, "Unknown reply code for this action. Visit the dashboard to manage alerts.")
 		return
 	}
